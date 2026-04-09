@@ -68,7 +68,7 @@
 
 ## 当前最优结论
 
-- 正式提交模型按验证集选择为 `best`/`final_a`
+- 正式提交模型按验证集选择为 `best`/`final_p`
   - 结构: `1280 -> 768`
   - 激活: `relu`
   - 训练: `44 epochs`, `lr=0.012`, `lr_decay=0.01`, `weight_decay=2e-4`, `grad_clip=3.0`, `dropout=0.15`
