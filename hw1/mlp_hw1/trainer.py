@@ -10,7 +10,7 @@ from pathlib import Path
 
 import numpy as np
 
-from .backend import resolve_backend, seed_everything, to_numpy
+from .backend import get_array_module, seed_everything, to_numpy
 from .config import SearchConfig, TrainConfig
 from .data import DataSplit, iterate_minibatches, load_dataset, normalize_images
 from .metrics import accuracy_score, confusion_matrix, per_class_accuracy
@@ -25,12 +25,11 @@ from .visualization import (
 
 def train_model(
     config: TrainConfig,
-    backend_name: str,
     run_name: str | None = None,
     generate_reports: bool = True,
 ) -> dict:
     """Train a model and persist artifacts."""
-    backend = resolve_backend(backend_name)
+    xp = get_array_module()
     seed_everything(config.seed)
 
     dataset = load_dataset(
@@ -43,7 +42,7 @@ def train_model(
         force_rebuild=config.force_rebuild_cache,
     )
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    run_dir = config.output_dir / "runs" / (run_name or f"{timestamp}_{backend.name}_{config.activation}_h{config.hidden_dim}")
+    run_dir = config.output_dir / "runs" / (run_name or f"{timestamp}_cupy_{config.activation}_h{config.hidden_dim}")
     run_dir.mkdir(parents=True, exist_ok=True)
 
     model = ThreeLayerMLP(
@@ -51,7 +50,7 @@ def train_model(
         hidden_dim=config.hidden_dim,
         output_dim=len(dataset.class_names),
         activation=config.activation,
-        xp=backend.xp,
+        xp=xp,
         seed=config.seed,
     )
     history = {
@@ -76,8 +75,8 @@ def train_model(
             shuffle=True,
         ):
             features = normalize_images(batch_images, dataset.mean, dataset.std)
-            batch_x = backend.xp.asarray(features)
-            batch_y = backend.xp.asarray(batch_labels)
+            batch_x = xp.asarray(features)
+            batch_y = xp.asarray(batch_labels)
             model.loss_and_backward(batch_x, batch_y, config.weight_decay)
             model.step(learning_rate)
 
@@ -100,7 +99,7 @@ def train_model(
             best_epoch = epoch
             model.save(best_checkpoint)
 
-    best_model = ThreeLayerMLP.load(best_checkpoint, backend.xp)
+    best_model = ThreeLayerMLP.load(best_checkpoint, xp)
     test_metrics = evaluate_split(
         best_model,
         dataset.test,
@@ -111,7 +110,7 @@ def train_model(
     )
     matrix = confusion_matrix(test_metrics["y_true"], test_metrics["y_pred"], len(dataset.class_names))
     summary = {
-        "backend": backend.name,
+        "backend": "cupy",
         "best_epoch": best_epoch,
         "best_val_accuracy": best_val_accuracy,
         "test_accuracy": test_metrics["accuracy"],
@@ -160,12 +159,11 @@ def train_model(
 
 def evaluate_model(
     config: TrainConfig,
-    backend_name: str,
     checkpoint_path: Path,
     output_dir: Path | None = None,
 ) -> dict:
     """Evaluate a saved model on the test split."""
-    backend = resolve_backend(backend_name)
+    xp = get_array_module()
     dataset = load_dataset(
         data_dir=config.data_dir,
         output_dir=config.output_dir,
@@ -175,7 +173,7 @@ def evaluate_model(
         limit_per_class=config.limit_per_class,
         force_rebuild=config.force_rebuild_cache,
     )
-    model = ThreeLayerMLP.load(checkpoint_path, backend.xp)
+    model = ThreeLayerMLP.load(checkpoint_path, xp)
     metrics = evaluate_split(
         model,
         dataset.test,
@@ -212,7 +210,7 @@ def evaluate_model(
     }
 
 
-def run_search(config: SearchConfig, backend_name: str) -> dict:
+def run_search(config: SearchConfig) -> dict:
     """Run a simple grid/random search over hyper-parameters."""
     candidates = [
         {
@@ -250,7 +248,6 @@ def run_search(config: SearchConfig, backend_name: str) -> dict:
         )
         run_result = train_model(
             config=trial_config,
-            backend_name=backend_name,
             run_name=f"trial_{trial_id:02d}",
             generate_reports=False,
         )

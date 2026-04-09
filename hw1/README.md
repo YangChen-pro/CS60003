@@ -1,8 +1,8 @@
 # HW1：EuroSAT 三层 MLP 分类器
 
-本目录给出一个不依赖 PyTorch / TensorFlow / JAX 自动微分能力的课程作业实现。核心思路是：
+本目录给出一个不依赖 PyTorch / TensorFlow / JAX 自动微分能力的课程作业实现。运行前提已经固定为远端 GPU 环境，核心思路是：
 
-- 使用 `CuPy` 或 `NumPy` 作为底层数组后端
+- 使用 `CuPy` 作为唯一底层数组后端
 - 手写三层 MLP 的前向传播、交叉熵损失和反向传播
 - 使用 SGD、学习率衰减和 L2 正则完成训练
 - 自动保存验证集最优权重
@@ -14,7 +14,7 @@
 hw1/
 ├── EuroSAT_RGB/              # 数据集
 ├── mlp_hw1/
-│   ├── backend.py            # CuPy / NumPy 后端切换
+│   ├── backend.py            # CuPy 后端封装
 │   ├── config.py             # 训练与搜索配置
 │   ├── data.py               # 数据加载、缓存、归一化、划分
 │   ├── metrics.py            # 准确率与混淆矩阵
@@ -31,13 +31,13 @@ hw1/
 
 ## 环境依赖
 
-基础依赖写在 `requirements.txt` 中：
+基础依赖写在 `requirements.txt` 中，其中已经显式包含 `CuPy`：
 
 ```bash
 python -m pip install -r "hw1/requirements.txt"
 ```
 
-如果要使用 GPU 后端，还需要准备和 CUDA 环境匹配的 `CuPy`。当前项目默认远端环境已经提供：
+当前项目默认直接运行在远端 GPU 环境，已经提供可用的 `CuPy`：
 
 - 远端主机：`135-3090-8`
 - conda 环境：`/data/yc/miniconda/envs/llm-26-gpu`
@@ -50,27 +50,27 @@ python -m pip install -r "hw1/requirements.txt"
 ### 1. 快速检查训练流程
 
 ```bash
-python -X utf8 "hw1/train.py" --backend numpy --preset quick
+python -X utf8 "hw1/train.py" --preset quick
 ```
 
-`quick` 预设只抽取少量样本并训练 2 个 epoch，适合验证代码能否跑通。
+`quick` 预设只抽取少量样本并训练 2 个 epoch，适合先在远端验证代码链路。
 
 ### 2. 常规训练
 
 ```bash
-python -X utf8 "hw1/train.py" --backend cupy --preset default
+python -X utf8 "hw1/train.py" --preset default
 ```
 
 可选地覆盖少量关键参数：
 
 ```bash
-python -X utf8 "hw1/train.py" --backend cupy --preset default --activation tanh --hidden-dim 768 --epochs 16
+python -X utf8 "hw1/train.py" --preset default --activation tanh --hidden-dim 768 --epochs 16
 ```
 
 ### 3. 超参数搜索
 
 ```bash
-python -X utf8 "hw1/search.py" --backend cupy --preset quick --strategy grid --max-trials 4
+python -X utf8 "hw1/search.py" --preset quick --strategy grid --max-trials 4
 ```
 
 搜索结果会保存在 `hw1/outputs/search/...` 下，包括：
@@ -82,7 +82,7 @@ python -X utf8 "hw1/search.py" --backend cupy --preset quick --strategy grid --m
 ### 4. 评估最优模型
 
 ```bash
-python -X utf8 "hw1/evaluate.py" --backend cupy --preset default --checkpoint "hw1/outputs/runs/<run_name>/best_model.npz"
+python -X utf8 "hw1/evaluate.py" --preset default --checkpoint "hw1/outputs/runs/<run_name>/best_model.npz"
 ```
 
 ## 输出产物
@@ -132,6 +132,6 @@ python -X utf8 -m unittest discover -s "hw1/tests"
 
 ## 说明
 
-- 本实现把 `CuPy` 仅作为数组计算后端，不使用现成自动微分或训练框架能力
+- 本实现把 `CuPy` 作为唯一数组计算后端，不保留 `NumPy` 训练回退
 - 代码刻意保持“作业级工程化”：模块清晰、注释适量，但不过度抽象
 - 所有 HW1 相关代码都放在 `hw1/` 目录中，便于后续新增 `hw2/`

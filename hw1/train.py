@@ -11,7 +11,6 @@ from mlp_hw1.trainer import train_model
 def parse_args() -> argparse.Namespace:
     """Parse a small set of practical CLI arguments."""
     parser = argparse.ArgumentParser(description="训练 EuroSAT 三层 MLP 分类器")
-    parser.add_argument("--backend", default="auto", choices=["auto", "numpy", "cupy"])
     parser.add_argument("--preset", default="default", choices=["quick", "default", "full"])
     parser.add_argument("--activation", default=None, choices=["relu", "tanh", "sigmoid"])
     parser.add_argument("--hidden-dim", type=int, default=None)
@@ -31,7 +30,7 @@ def main() -> None:
     if args.epochs is not None:
         config.epochs = args.epochs
     config.force_rebuild_cache = args.rebuild_cache
-    train_model(config=config, backend_name=args.backend)
+    train_model(config=config)
 
 
 if __name__ == "__main__":

@@ -11,7 +11,6 @@ from mlp_hw1.trainer import run_search
 def parse_args() -> argparse.Namespace:
     """Parse search arguments."""
     parser = argparse.ArgumentParser(description="为 EuroSAT MLP 执行超参数搜索")
-    parser.add_argument("--backend", default="auto", choices=["auto", "numpy", "cupy"])
     parser.add_argument("--preset", default="quick", choices=["quick", "default"])
     parser.add_argument("--strategy", default="grid", choices=["grid", "random"])
     parser.add_argument("--max-trials", type=int, default=None)
@@ -27,7 +26,7 @@ def main() -> None:
     if args.max_trials is not None:
         config.max_trials = args.max_trials
     config.train_config.force_rebuild_cache = args.rebuild_cache
-    run_search(config=config, backend_name=args.backend)
+    run_search(config=config)
 
 
 if __name__ == "__main__":
