@@ -21,7 +21,7 @@ def confusion_matrix(y_true: np.ndarray, y_pred: np.ndarray, num_classes: int) -
 def per_class_accuracy(matrix: np.ndarray) -> np.ndarray:
     """Compute per-class accuracy from a confusion matrix."""
     totals = matrix.sum(axis=1)
+    scores = np.zeros(matrix.shape[0], dtype=np.float64)
     with np.errstate(divide="ignore", invalid="ignore"):
-        scores = np.divide(matrix.diagonal(), totals, where=totals > 0)
-    scores[totals == 0] = 0.0
+        np.divide(matrix.diagonal(), totals, out=scores, where=totals > 0)
     return scores
