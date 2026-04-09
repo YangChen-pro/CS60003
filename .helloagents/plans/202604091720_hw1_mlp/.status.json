@@ -1,10 +1,10 @@
 {
-  "status": "in_progress",
-  "completed": 7,
+  "status": "completed",
+  "completed": 9,
   "failed": 0,
-  "pending": 2,
+  "pending": 0,
   "total": 9,
-  "percent": 78,
-  "current": "Git 提交并推送远端",
-  "updated_at": "2026-04-09 17:28:00"
+  "percent": 100,
+  "current": "已完成",
+  "updated_at": "2026-04-09 17:36:00"
 }
