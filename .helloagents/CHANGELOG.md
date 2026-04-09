@@ -19,3 +19,7 @@
 - **[hw1]**: 完成正式搜索、最终训练与简写实验报告，新增 `best` 预设并沉淀最终结论到 README / REPORT / 知识库 — by YangChen-pro
   - 类型: 标准流程（方案包：.helloagents/plans/202604091720_hw1_mlp）
   - 文件: hw1/mlp_hw1/config.py, hw1/train.py, hw1/evaluate.py, hw1/README.md, hw1/REPORT.md, hw1/outputs/runs/final_a/*, hw1/outputs/runs/final_c/*, .helloagents/context.md, .helloagents/modules/hw1.md, .helloagents/CHANGELOG.md, .helloagents/STATE.md, .helloagents/plans/202604091720_hw1_mlp/*
+
+- **[hw1]**: 继续冲三层 MLP 性能，引入可选 dropout，并将正式提交模型刷新为 `final_p`（`val_acc=0.6901`） — by YangChen-pro
+  - 类型: 标准流程（持续优化）
+  - 文件: hw1/mlp_hw1/config.py, hw1/mlp_hw1/model.py, hw1/mlp_hw1/trainer.py, hw1/tests/test_core.py, hw1/README.md, hw1/REPORT.md, hw1/outputs/runs/final_p/*, .gitignore, .helloagents/context.md, .helloagents/modules/hw1.md, .helloagents/CHANGELOG.md, .helloagents/STATE.md

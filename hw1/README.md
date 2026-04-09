@@ -45,9 +45,9 @@ python -m pip install -r "hw1/requirements.txt"
 
 ## 当前正式结果
 
-- 按验证集选出的正式提交模型：`best` 预设，对应双隐层宽度 `1280 -> 768`
-- 正式提交模型指标：`val acc = 0.6849`，`test acc = 0.6669`
-- 扩展上限实验：`final_c` 达到 `test acc = 0.6748`，但验证集略低于正式提交模型，因此报告中作为扩展实验给出
+- 按验证集选出的正式提交模型：`best` 预设，对应 `1280 -> 768 + dropout 0.15`
+- 正式提交模型指标：`val acc = 0.6901`，`test acc = 0.6758`
+- 扩展上限实验：`final_o` 达到 `test acc = 0.6810`，但验证集略低于正式提交模型，因此报告中作为扩展实验给出
 - 简写实验报告见 `hw1/REPORT.md`
 
 ## 运行方式
@@ -95,7 +95,7 @@ python -X utf8 "hw1/search.py" --preset quick --strategy grid --max-trials 4
 ### 5. 评估最优模型
 
 ```bash
-python -X utf8 "hw1/evaluate.py" --preset best --checkpoint "hw1/outputs/runs/final_a/best_model.npz"
+python -X utf8 "hw1/evaluate.py" --preset best --checkpoint "hw1/outputs/runs/final_p/best_model.npz"
 ```
 
 ## 输出产物
@@ -117,6 +117,7 @@ python -X utf8 "hw1/evaluate.py" --preset best --checkpoint "hw1/outputs/runs/fi
 
 - 网络结构：`input -> hidden -> hidden -> output`
 - 支持分别设置第一、第二隐藏层宽度，正式提交模型使用 `1280 -> 768`
+- 支持训练阶段可选 dropout，当前正式提交模型使用 `dropout=0.15`
 - 支持 `relu`、`tanh`、`sigmoid`
 - 反向传播由 `mlp_hw1/model.py` 中的手写链式法则完成
 

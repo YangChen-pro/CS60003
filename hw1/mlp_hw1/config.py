@@ -116,12 +116,12 @@ def build_train_config(preset: str) -> TrainConfig:
             hidden_dim2=768,
             batch_size=256,
             eval_batch_size=512,
-            epochs=36,
+            epochs=44,
             learning_rate=0.012,
             lr_decay=0.01,
             weight_decay=2e-4,
             grad_clip=3.0,
-            dropout_rate=0.0,
+            dropout_rate=0.15,
         )
     raise ValueError(f"未知预设: {preset}")
 

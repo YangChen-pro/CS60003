@@ -65,9 +65,9 @@
 
 ### 已确认正式结果
 ```yaml
-正式提交模型: best 预设（1280 -> 768, relu, 36 epochs）
-正式提交指标: val_acc=0.6849, test_acc=0.6669
-扩展上限实验: final_c（1536 -> 768）test_acc=0.6748
+正式提交模型: best 预设（1280 -> 768, relu, dropout=0.15, 44 epochs）
+正式提交指标: val_acc=0.6901, test_acc=0.6758
+扩展上限实验: final_o（1280 -> 768, dropout=0.18）test_acc=0.6810
 选模原则: 以验证集最优为正式提交结果，不按测试集反选
 ```
 

@@ -13,3 +13,12 @@ hw1/outputs/runs/final_a/*
 !hw1/outputs/runs/final_a/misclassified_examples.png
 !hw1/outputs/runs/final_a/summary.json
 !hw1/outputs/runs/final_a/training_curves.png
+!hw1/outputs/runs/final_p/
+hw1/outputs/runs/final_p/*
+!hw1/outputs/runs/final_p/confusion_matrix.json
+!hw1/outputs/runs/final_p/confusion_matrix.png
+!hw1/outputs/runs/final_p/first_layer_weights.png
+!hw1/outputs/runs/final_p/history.json
+!hw1/outputs/runs/final_p/misclassified_examples.png
+!hw1/outputs/runs/final_p/summary.json
+!hw1/outputs/runs/final_p/training_curves.png

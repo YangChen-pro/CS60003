@@ -64,20 +64,23 @@
 - 已完成 GitHub 推送和远端运行验证
 - 已将脚本接口收紧为远端 CuPy 唯一路径
 - 已新增 `best` 预设，用于直接复现实验报告中的正式提交模型
+- 已验证轻量 dropout 仍能保持“三层 MLP”边界内的合规优化
 
 ## 当前最优结论
 
 - 正式提交模型按验证集选择为 `best`/`final_a`
   - 结构: `1280 -> 768`
   - 激活: `relu`
-  - 训练: `36 epochs`, `lr=0.012`, `lr_decay=0.01`, `weight_decay=2e-4`, `grad_clip=3.0`
-  - 结果: `val_acc=0.6849`, `test_acc=0.6669`
-- 扩展实验中的最高测试精度为 `final_c`
-  - 结构: `1536 -> 768`
-  - 结果: `val_acc=0.6815`, `test_acc=0.6748`
+  - 训练: `44 epochs`, `lr=0.012`, `lr_decay=0.01`, `weight_decay=2e-4`, `grad_clip=3.0`, `dropout=0.15`
+  - 结果: `val_acc=0.6901`, `test_acc=0.6758`
+- 扩展实验中的最高测试精度为 `final_o`
+  - 结构: `1280 -> 768`
+  - 训练: `42 epochs`, `dropout=0.18`
+  - 结果: `val_acc=0.6877`, `test_acc=0.6810`
 - 当前经验结论:
   - 扩大第一隐藏层宽度比单纯延长训练更有效
   - `ReLU` 明显优于本轮搜索中的 `tanh`
+  - 轻量 `dropout` 能继续提升验证集泛化
   - 难分类别主要集中在 `Highway` 与 `PermanentCrop`
 
 ### 历史性能对比（仅保留背景）
