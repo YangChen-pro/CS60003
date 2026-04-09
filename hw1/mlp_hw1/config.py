@@ -107,6 +107,18 @@ def build_train_config(preset: str) -> TrainConfig:
             weight_decay=1e-4,
             grad_clip=3.0,
         )
+    if normalized == "best":
+        return TrainConfig(
+            hidden_dim=1280,
+            hidden_dim2=768,
+            batch_size=256,
+            eval_batch_size=512,
+            epochs=36,
+            learning_rate=0.012,
+            lr_decay=0.01,
+            weight_decay=2e-4,
+            grad_clip=3.0,
+        )
     raise ValueError(f"未知预设: {preset}")
 
 

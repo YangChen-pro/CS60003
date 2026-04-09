@@ -43,6 +43,13 @@ python -m pip install -r "hw1/requirements.txt"
 - conda 环境：`/data/yc/miniconda/envs/llm-26-gpu`
 - CuPy 版本：`14.0.1`
 
+## 当前正式结果
+
+- 按验证集选出的正式提交模型：`best` 预设，对应双隐层宽度 `1280 -> 768`
+- 正式提交模型指标：`val acc = 0.6849`，`test acc = 0.6669`
+- 扩展上限实验：`final_c` 达到 `test acc = 0.6748`，但验证集略低于正式提交模型，因此报告中作为扩展实验给出
+- 简写实验报告见 `hw1/REPORT.md`
+
 ## 运行方式
 
 以下命令默认在仓库根目录执行。
@@ -67,7 +74,13 @@ python -X utf8 "hw1/train.py" --preset default
 python -X utf8 "hw1/train.py" --preset default --activation tanh --hidden-dim 768 --epochs 16
 ```
 
-### 3. 超参数搜索
+### 3. 复现实验报告中的正式提交模型
+
+```bash
+python -X utf8 "hw1/train.py" --preset best
+```
+
+### 4. 超参数搜索
 
 ```bash
 python -X utf8 "hw1/search.py" --preset quick --strategy grid --max-trials 4
@@ -79,10 +92,10 @@ python -X utf8 "hw1/search.py" --preset quick --strategy grid --max-trials 4
 - `results.json`
 - `best_result.json`
 
-### 4. 评估最优模型
+### 5. 评估最优模型
 
 ```bash
-python -X utf8 "hw1/evaluate.py" --preset default --checkpoint "hw1/outputs/runs/<run_name>/best_model.npz"
+python -X utf8 "hw1/evaluate.py" --preset best --checkpoint "hw1/outputs/runs/final_a/best_model.npz"
 ```
 
 ## 输出产物
@@ -103,7 +116,7 @@ python -X utf8 "hw1/evaluate.py" --preset default --checkpoint "hw1/outputs/runs
 ### 模型
 
 - 网络结构：`input -> hidden -> hidden -> output`
-- 默认两层隐藏层共用同一个 `hidden_dim`
+- 支持分别设置第一、第二隐藏层宽度，正式提交模型使用 `1280 -> 768`
 - 支持 `relu`、`tanh`、`sigmoid`
 - 反向传播由 `mlp_hw1/model.py` 中的手写链式法则完成
 

@@ -12,7 +12,7 @@ from mlp_hw1.trainer import evaluate_model
 def parse_args() -> argparse.Namespace:
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(description="评估训练好的 EuroSAT MLP 模型")
-    parser.add_argument("--preset", default="default", choices=["quick", "default", "full"])
+    parser.add_argument("--preset", default="default", choices=["quick", "default", "full", "best"])
     parser.add_argument("--checkpoint", type=Path, required=True)
     parser.add_argument("--rebuild-cache", action="store_true")
     return parser.parse_args()

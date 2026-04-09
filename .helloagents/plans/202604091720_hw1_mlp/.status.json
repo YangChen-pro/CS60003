@@ -1,10 +1,10 @@
 {
   "status": "in_progress",
-  "completed": 10,
+  "completed": 14,
   "failed": 0,
-  "pending": 5,
+  "pending": 1,
   "total": 15,
-  "percent": 67,
-  "current": "完善正式搜索空间与报告生成流程",
-  "updated_at": "2026-04-09 18:05:00"
+  "percent": 93,
+  "current": "同步最终结果到 GitHub、远端与知识库",
+  "updated_at": "2026-04-09 19:15:00"
 }

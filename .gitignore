@@ -1,4 +1,15 @@
 .DS_Store
 __pycache__/
 *.pyc
-hw1/outputs/
+hw1/outputs/*
+!hw1/outputs/runs/
+hw1/outputs/runs/*
+!hw1/outputs/runs/final_a/
+hw1/outputs/runs/final_a/*
+!hw1/outputs/runs/final_a/confusion_matrix.json
+!hw1/outputs/runs/final_a/confusion_matrix.png
+!hw1/outputs/runs/final_a/first_layer_weights.png
+!hw1/outputs/runs/final_a/history.json
+!hw1/outputs/runs/final_a/misclassified_examples.png
+!hw1/outputs/runs/final_a/summary.json
+!hw1/outputs/runs/final_a/training_curves.png
