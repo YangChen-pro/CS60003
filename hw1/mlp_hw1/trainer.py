@@ -54,6 +54,7 @@ def train_model(
         activation=config.activation,
         xp=xp,
         seed=config.seed,
+        dropout_rate=config.dropout_rate,
     )
     history = {
         "epoch": [],

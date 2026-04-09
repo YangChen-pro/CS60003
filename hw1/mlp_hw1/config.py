@@ -29,6 +29,7 @@ class TrainConfig:
     lr_decay: float = 0.05
     weight_decay: float = 1e-4
     grad_clip: float = 5.0
+    dropout_rate: float = 0.0
     val_ratio: float = 0.15
     test_ratio: float = 0.15
     limit_per_class: int | None = None
@@ -91,6 +92,7 @@ def build_train_config(preset: str) -> TrainConfig:
             lr_decay=0.1,
             weight_decay=1e-4,
             grad_clip=5.0,
+            dropout_rate=0.0,
             limit_per_class=120,
         )
     if normalized == "default":
@@ -106,6 +108,7 @@ def build_train_config(preset: str) -> TrainConfig:
             lr_decay=0.02,
             weight_decay=1e-4,
             grad_clip=3.0,
+            dropout_rate=0.0,
         )
     if normalized == "best":
         return TrainConfig(
@@ -118,6 +121,7 @@ def build_train_config(preset: str) -> TrainConfig:
             lr_decay=0.01,
             weight_decay=2e-4,
             grad_clip=3.0,
+            dropout_rate=0.0,
         )
     raise ValueError(f"未知预设: {preset}")
 

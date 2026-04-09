@@ -33,6 +33,7 @@ class ThreeLayerMLP:
         activation: str,
         xp: Any,
         seed: int = 42,
+        dropout_rate: float = 0.0,
     ) -> None:
         self.input_dim = input_dim
         self.hidden_dim = hidden_dim
@@ -40,6 +41,7 @@ class ThreeLayerMLP:
         self.output_dim = output_dim
         self.activation = activation
         self.xp = xp
+        self.dropout_rate = dropout_rate
         self.dtype = np.float64 if xp is np else xp.float32
         rng = np.random.default_rng(seed)
 
@@ -63,13 +65,15 @@ class ThreeLayerMLP:
         }
         self.cache: dict[str, Any] = {}
 
-    def forward(self, inputs: Any) -> Any:
+    def forward(self, inputs: Any, training: bool = False) -> Any:
         """Run the forward pass and cache intermediates."""
         inputs = inputs.astype(self.dtype, copy=False)
         z1 = self._matmul(inputs, self.w1) + self.b1
         h1 = self._activate(z1)
+        h1, mask1 = self._apply_dropout(h1, training)
         z2 = self._matmul(h1, self.w2) + self.b2
         h2 = self._activate(z2)
+        h2, mask2 = self._apply_dropout(h2, training)
         logits = self._matmul(h2, self.w3) + self.b3
         self.cache = {
             "inputs": inputs,
@@ -77,13 +81,15 @@ class ThreeLayerMLP:
             "h1": h1,
             "z2": z2,
             "h2": h2,
+            "dropout_mask1": mask1,
+            "dropout_mask2": mask2,
             "logits": logits,
         }
         return logits
 
     def compute_loss(self, inputs: Any, targets: Any, weight_decay: float = 0.0) -> float:
         """Compute the current loss without updating gradients."""
-        logits = self.forward(inputs)
+        logits = self.forward(inputs, training=False)
         loss, _ = self._softmax_loss(logits, targets)
         reg = 0.5 * weight_decay * (
             self.xp.sum(self.w1 * self.w1)
@@ -94,7 +100,7 @@ class ThreeLayerMLP:
 
     def loss_and_backward(self, inputs: Any, targets: Any, weight_decay: float) -> float:
         """Run forward, compute loss, and back-propagate gradients."""
-        logits = self.forward(inputs)
+        logits = self.forward(inputs, training=True)
         loss, grad_logits = self._softmax_loss(logits, targets)
         self._backward(grad_logits, weight_decay)
         reg = 0.5 * weight_decay * (
@@ -106,7 +112,7 @@ class ThreeLayerMLP:
 
     def predict(self, inputs: Any) -> Any:
         """Predict labels for a batch of features."""
-        logits = self.forward(inputs)
+        logits = self.forward(inputs, training=False)
         return self.xp.argmax(logits, axis=1)
 
     def step(self, learning_rate: float, grad_clip: float = 5.0) -> None:
@@ -129,6 +135,7 @@ class ThreeLayerMLP:
             "hidden_dim2": self.hidden_dim2,
             "output_dim": self.output_dim,
             "activation": self.activation,
+            "dropout_rate": self.dropout_rate,
         }
         np.savez(
             checkpoint_path,
@@ -153,6 +160,7 @@ class ThreeLayerMLP:
             output_dim=metadata["output_dim"],
             activation=metadata["activation"],
             xp=xp,
+            dropout_rate=metadata.get("dropout_rate", 0.0),
         )
         model.w1 = xp.asarray(payload["w1"])
         model.b1 = xp.asarray(payload["b1"])
@@ -174,11 +182,13 @@ class ThreeLayerMLP:
         self.grads["b3"] = self.xp.sum(grad_logits, axis=0)
 
         grad_h2 = self._matmul(grad_logits, self.w3.T)
+        grad_h2 = grad_h2 * self.cache["dropout_mask2"]
         grad_z2 = grad_h2 * self._activation_grad(z2)
         self.grads["w2"] = self._matmul(h1.T, grad_z2) + weight_decay * self.w2
         self.grads["b2"] = self.xp.sum(grad_z2, axis=0)
 
         grad_h1 = self._matmul(grad_z2, self.w2.T)
+        grad_h1 = grad_h1 * self.cache["dropout_mask1"]
         grad_z1 = grad_h1 * self._activation_grad(z1)
         self.grads["w1"] = self._matmul(inputs.T, grad_z1) + weight_decay * self.w1
         self.grads["b1"] = self.xp.sum(grad_z1, axis=0)
@@ -226,3 +236,13 @@ class ThreeLayerMLP:
                 warnings.filterwarnings("ignore", message=".*encountered in matmul", category=RuntimeWarning)
                 return left @ right
         return left @ right
+
+    def _apply_dropout(self, inputs: Any, training: bool) -> tuple[Any, Any]:
+        """Apply inverted dropout during training only."""
+        if (not training) or self.dropout_rate <= 0.0:
+            ones = self.xp.ones_like(inputs)
+            return inputs, ones
+        keep_prob = 1.0 - self.dropout_rate
+        # 使用 inverted dropout，保证推理阶段不需要再额外缩放激活值。
+        mask = (self.xp.random.random(inputs.shape) < keep_prob).astype(inputs.dtype) / keep_prob
+        return inputs * mask, mask
