@@ -20,7 +20,7 @@ class ThreeLayerMLPTest(unittest.TestCase):
     """Small tests that do not require the EuroSAT dataset."""
 
     def test_forward_shape(self) -> None:
-        model = ThreeLayerMLP(input_dim=6, hidden_dim=8, output_dim=3, activation="relu", xp=cp)
+        model = ThreeLayerMLP(input_dim=6, hidden_dim=8, hidden_dim2=6, output_dim=3, activation="relu", xp=cp)
         features = cp.random.randn(4, 6, dtype=cp.float32)
         logits = model.forward(features)
         self.assertEqual(logits.shape, (4, 3))
@@ -29,7 +29,7 @@ class ThreeLayerMLPTest(unittest.TestCase):
         rng = np.random.default_rng(0)
         features = cp.asarray(rng.normal(size=(48, 4)).astype(np.float32))
         labels = cp.asarray((to_numpy(features)[:, 0] + 0.8 * to_numpy(features)[:, 1] > 0).astype(np.int64))
-        model = ThreeLayerMLP(input_dim=4, hidden_dim=16, output_dim=2, activation="tanh", xp=cp, seed=0)
+        model = ThreeLayerMLP(input_dim=4, hidden_dim=16, hidden_dim2=8, output_dim=2, activation="tanh", xp=cp, seed=0)
         initial_loss = model.compute_loss(features, labels)
         for _ in range(120):
             model.loss_and_backward(features, labels, weight_decay=0.0)

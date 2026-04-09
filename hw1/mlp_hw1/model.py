@@ -28,6 +28,7 @@ class ThreeLayerMLP:
         self,
         input_dim: int,
         hidden_dim: int,
+        hidden_dim2: int,
         output_dim: int,
         activation: str,
         xp: Any,
@@ -35,6 +36,7 @@ class ThreeLayerMLP:
     ) -> None:
         self.input_dim = input_dim
         self.hidden_dim = hidden_dim
+        self.hidden_dim2 = hidden_dim2
         self.output_dim = output_dim
         self.activation = activation
         self.xp = xp
@@ -44,12 +46,12 @@ class ThreeLayerMLP:
         # 这里的初始化按激活函数选择，避免一开始梯度过大或过小。
         scale1 = np.sqrt(2.0 / input_dim) if activation == "relu" else np.sqrt(1.0 / input_dim)
         scale2 = np.sqrt(2.0 / hidden_dim) if activation == "relu" else np.sqrt(1.0 / hidden_dim)
-        scale3 = np.sqrt(1.0 / hidden_dim)
+        scale3 = np.sqrt(2.0 / hidden_dim2) if activation == "relu" else np.sqrt(1.0 / hidden_dim2)
         self.w1 = xp.asarray(rng.standard_normal((input_dim, hidden_dim)) * scale1, dtype=self.dtype)
         self.b1 = xp.zeros(hidden_dim, dtype=self.dtype)
-        self.w2 = xp.asarray(rng.standard_normal((hidden_dim, hidden_dim)) * scale2, dtype=self.dtype)
-        self.b2 = xp.zeros(hidden_dim, dtype=self.dtype)
-        self.w3 = xp.asarray(rng.standard_normal((hidden_dim, output_dim)) * scale3, dtype=self.dtype)
+        self.w2 = xp.asarray(rng.standard_normal((hidden_dim, hidden_dim2)) * scale2, dtype=self.dtype)
+        self.b2 = xp.zeros(hidden_dim2, dtype=self.dtype)
+        self.w3 = xp.asarray(rng.standard_normal((hidden_dim2, output_dim)) * scale3, dtype=self.dtype)
         self.b3 = xp.zeros(output_dim, dtype=self.dtype)
         self.grads = {
             "w1": xp.zeros_like(self.w1),
@@ -124,6 +126,7 @@ class ThreeLayerMLP:
         metadata = {
             "input_dim": self.input_dim,
             "hidden_dim": self.hidden_dim,
+            "hidden_dim2": self.hidden_dim2,
             "output_dim": self.output_dim,
             "activation": self.activation,
         }
@@ -146,6 +149,7 @@ class ThreeLayerMLP:
         model = cls(
             input_dim=metadata["input_dim"],
             hidden_dim=metadata["hidden_dim"],
+            hidden_dim2=metadata.get("hidden_dim2", metadata["hidden_dim"]),
             output_dim=metadata["output_dim"],
             activation=metadata["activation"],
             xp=xp,

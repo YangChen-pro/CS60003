@@ -15,6 +15,7 @@ from .config import SearchConfig, TrainConfig
 from .data import DataSplit, iterate_minibatches, load_dataset, normalize_images
 from .metrics import accuracy_score, confusion_matrix, per_class_accuracy
 from .model import ThreeLayerMLP
+from .reporting import build_report
 from .visualization import (
     plot_confusion_matrix,
     plot_first_layer_weights,
@@ -48,6 +49,7 @@ def train_model(
     model = ThreeLayerMLP(
         input_dim=dataset.train.images.shape[1],
         hidden_dim=config.hidden_dim,
+        hidden_dim2=config.resolved_hidden_dim2(),
         output_dim=len(dataset.class_names),
         activation=config.activation,
         xp=xp,
@@ -78,7 +80,7 @@ def train_model(
             batch_x = xp.asarray(features)
             batch_y = xp.asarray(batch_labels)
             model.loss_and_backward(batch_x, batch_y, config.weight_decay)
-            model.step(learning_rate)
+            model.step(learning_rate, grad_clip=config.grad_clip)
 
         train_metrics = evaluate_split(model, dataset.train, dataset.mean, dataset.std, config.eval_batch_size)
         val_metrics = evaluate_split(model, dataset.val, dataset.mean, dataset.std, config.eval_batch_size)
@@ -216,12 +218,18 @@ def run_search(config: SearchConfig) -> dict:
         {
             "learning_rate": learning_rate,
             "hidden_dim": hidden_dim,
+            "hidden_dim2": hidden_dim2,
             "weight_decay": weight_decay,
+            "lr_decay": lr_decay,
+            "grad_clip": grad_clip,
             "activation": activation,
         }
         for learning_rate in config.learning_rates
         for hidden_dim in config.hidden_dims
+        for hidden_dim2 in config.hidden_dims2
         for weight_decay in config.weight_decays
+        for lr_decay in config.lr_decays
+        for grad_clip in config.grad_clips
         for activation in config.activations
     ]
     if config.strategy == "random":
@@ -243,7 +251,10 @@ def run_search(config: SearchConfig) -> dict:
             config.train_config,
             learning_rate=candidate["learning_rate"],
             hidden_dim=candidate["hidden_dim"],
+            hidden_dim2=candidate["hidden_dim2"],
             weight_decay=candidate["weight_decay"],
+            lr_decay=candidate["lr_decay"],
+            grad_clip=candidate["grad_clip"],
             activation=candidate["activation"],
         )
         run_result = train_model(
@@ -264,8 +275,10 @@ def run_search(config: SearchConfig) -> dict:
         print(
             f"[Trial {trial_id:02d}] "
             f"lr={row['learning_rate']:.4f} "
-            f"hidden={row['hidden_dim']} "
+            f"hidden=({row['hidden_dim']},{row['hidden_dim2']}) "
+            f"decay={row['lr_decay']:.4f} "
             f"wd={row['weight_decay']:.4e} "
+            f"clip={row['grad_clip']:.1f} "
             f"act={row['activation']} "
             f"val_acc={row['best_val_accuracy']:.4f}"
         )
@@ -277,6 +290,10 @@ def run_search(config: SearchConfig) -> dict:
     (search_dir / "results.json").write_text(json.dumps(rows, ensure_ascii=False, indent=2), encoding="utf-8")
     if best_row is not None:
         (search_dir / "best_result.json").write_text(json.dumps(best_row, ensure_ascii=False, indent=2), encoding="utf-8")
+        top_trials = sorted(rows, key=lambda item: item["best_val_accuracy"], reverse=True)[:5]
+        best_run_dir = Path(best_row["run_dir"])
+        best_summary = json.loads((best_run_dir / "summary.json").read_text(encoding="utf-8"))
+        build_report(best_run_dir=best_run_dir, best_summary=best_summary, search_dir=search_dir, top_trials=top_trials)
     return {
         "search_dir": str(search_dir),
         "results": rows,

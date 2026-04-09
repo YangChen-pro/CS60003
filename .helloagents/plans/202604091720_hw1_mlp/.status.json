@@ -1,10 +1,10 @@
 {
-  "status": "completed",
-  "completed": 9,
+  "status": "in_progress",
+  "completed": 10,
   "failed": 0,
-  "pending": 0,
-  "total": 9,
-  "percent": 100,
-  "current": "已完成",
-  "updated_at": "2026-04-09 17:36:00"
+  "pending": 5,
+  "total": 15,
+  "percent": 67,
+  "current": "完善正式搜索空间与报告生成流程",
+  "updated_at": "2026-04-09 18:05:00"
 }

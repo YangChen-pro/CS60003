@@ -12,13 +12,16 @@
 
 ## 关键决策
 
-- 训练后端默认优先 `CuPy`，但保留 `NumPy` 回退
+- 训练后端固定为远端 `CuPy`
 - 为减少重复 I/O，首次读取后将数据缓存到 `hw1/outputs/cache/`
 - 为避免过度工程化，不构建通用自动微分图系统，而是围绕 HW1 的三层 MLP 手写链式求导
 - 通过 `quick/default/full` 预设控制训练规模，减少命令行参数数量
+- 正式实验围绕三层 MLP 做宽度、激活函数、学习率、衰减、L2、梯度裁剪等系统化搜索
+- 报告先以 Markdown 简写形式沉淀，保留必要图表与数据，后续可再转 PDF
 
 ## 验证计划
 
 - 运行 `hw1/tests/test_core.py`
-- 本地执行 `numpy + quick` 训练 smoke test
-- 推送后在远端环境使用 `cupy` 再跑一次 smoke test
+- 推送后在远端环境使用 `cupy` 跑 smoke test
+- 在远端运行正式搜索与最终训练
+- 生成报告与结果汇总后再同步 GitHub/远端

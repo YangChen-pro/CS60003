@@ -11,7 +11,7 @@ from mlp_hw1.trainer import run_search
 def parse_args() -> argparse.Namespace:
     """Parse search arguments."""
     parser = argparse.ArgumentParser(description="为 EuroSAT MLP 执行超参数搜索")
-    parser.add_argument("--preset", default="quick", choices=["quick", "default"])
+    parser.add_argument("--preset", default="quick", choices=["quick", "default", "full"])
     parser.add_argument("--strategy", default="grid", choices=["grid", "random"])
     parser.add_argument("--max-trials", type=int, default=None)
     parser.add_argument("--rebuild-cache", action="store_true")
