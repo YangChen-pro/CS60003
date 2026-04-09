@@ -1,10 +1,10 @@
 {
-  "status": "in_progress",
-  "completed": 14,
+  "status": "completed",
+  "completed": 15,
   "failed": 0,
-  "pending": 1,
+  "pending": 0,
   "total": 15,
-  "percent": 93,
-  "current": "同步最终结果到 GitHub、远端与知识库",
-  "updated_at": "2026-04-09 19:15:00"
+  "percent": 100,
+  "current": "已完成",
+  "updated_at": "2026-04-09 19:25:00"
 }
