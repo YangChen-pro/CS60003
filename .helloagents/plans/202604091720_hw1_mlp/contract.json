@@ -1,0 +1,16 @@
+{
+  "name": "hw1_mlp",
+  "status": "in_progress",
+  "mode": "delegated",
+  "deliverables": [
+    "hw1 目录内的完整作业代码",
+    "可运行的 README 与依赖说明",
+    "本地验证结果",
+    "GitHub 推送结果",
+    "远端同步运行结果"
+  ],
+  "validation": [
+    "python -X utf8 -m unittest discover -s hw1/tests",
+    "python -X utf8 hw1/train.py --backend numpy --preset quick"
+  ]
+}

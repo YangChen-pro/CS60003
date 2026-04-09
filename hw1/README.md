@@ -1,67 +1,137 @@
-# HW1：从零开始构建三层神经网络分类器，实现地表覆盖图像分类
+# HW1：EuroSAT 三层 MLP 分类器
 
-## 1. 任务描述
+本目录给出一个不依赖 PyTorch / TensorFlow / JAX 自动微分能力的课程作业实现。核心思路是：
 
-手工搭建三层神经网络（MLP）分类器，在遥感图像数据集 **EuroSAT**（数据集文件见 `EuroSAT_RGB` 文件夹）上进行训练，实现基于卫星图像的土地覆盖分类。EuroSAT 包含 10 个类别（森林、河流、高速公路、住宅区等）。
+- 使用 `CuPy` 或 `NumPy` 作为底层数组后端
+- 手写三层 MLP 的前向传播、交叉熵损失和反向传播
+- 使用 SGD、学习率衰减和 L2 正则完成训练
+- 自动保存验证集最优权重
+- 生成训练曲线、混淆矩阵、第一层权重可视化和错例图
 
-## 2. 基本要求
+## 目录结构
 
-1. **自主实现自动微分与反向传播**  
-   本次作业不允许使用 PyTorch、TensorFlow、JAX 等现成的支持自动微分的深度学习框架（但可以使用 NumPy 进行矩阵运算）。
+```text
+hw1/
+├── EuroSAT_RGB/              # 数据集
+├── mlp_hw1/
+│   ├── backend.py            # CuPy / NumPy 后端切换
+│   ├── config.py             # 训练与搜索配置
+│   ├── data.py               # 数据加载、缓存、归一化、划分
+│   ├── metrics.py            # 准确率与混淆矩阵
+│   ├── model.py              # 手写三层 MLP 与反向传播
+│   ├── trainer.py            # 训练、评估、超参数搜索
+│   └── visualization.py      # 曲线、权重、错例可视化
+├── train.py                  # 训练入口
+├── evaluate.py               # 测试集评估入口
+├── search.py                 # 超参数搜索入口
+├── tests/
+│   └── test_core.py          # 不依赖数据集的基础单元测试
+└── requirements.txt
+```
 
-2. **代码结构**  
-   最终提交的代码中应至少包含以下五个模块：
-   - 数据加载与预处理
-   - 模型定义
-   - 训练循环
-   - 测试评估
-   - 超参数查找
+## 环境依赖
 
-   鼓励进行良好的面向对象 / 模块化设计。
+基础依赖写在 `requirements.txt` 中：
 
-3. **模型与优化细节**
+```bash
+python -m pip install -r "hw1/requirements.txt"
+```
 
-   - **模型部分**  
-     应允许自定义隐藏层大小（Hidden Dimension），支持至少两种激活函数（如 ReLU 和 Sigmoid / Tanh）的切换，并支持通过反向传播计算给定损失的梯度。
+如果要使用 GPU 后端，还需要准备和 CUDA 环境匹配的 `CuPy`。当前项目默认远端环境已经提供：
 
-   - **训练部分**  
-     需实现以下内容：
-     - SGD 优化器
-     - 学习率衰减策略（Learning Rate Decay）
-     - 交叉熵损失函数（Cross-Entropy Loss）
-     - L2 正则化（Weight Decay）
+- 远端主机：`135-3090-8`
+- conda 环境：`/data/yc/miniconda/envs/llm-26-gpu`
+- CuPy 版本：`14.0.1`
 
-     代码需能根据验证集（Validation Set）的准确率自动保存最优的模型权重。
+## 运行方式
 
-   - **参数查找**  
-     要求利用网格搜索或随机搜索调节学习率、隐藏层大小、正则化强度等超参数，观察并记录模型在不同超参数组合下的性能变化。
+以下命令默认在仓库根目录执行。
 
-   - **测试部分**  
-     需支持导入训练好的最优模型权重，输出在独立测试集上的分类准确率（Accuracy），并打印各分类的混淆矩阵（Confusion Matrix）。
+### 1. 快速检查训练流程
 
-## 3. 提交要求
+```bash
+python -X utf8 "hw1/train.py" --backend numpy --preset quick
+```
 
-1. **实验报告（PDF 格式）**  
-   报告中除对模型结构、数据集处理和实验结果的基本介绍外，必须可视化训练过程中：
-   - 训练集上的 Loss 曲线
-   - 验证集上的 Loss 曲线
-   - 验证集上的 Accuracy 曲线
+`quick` 预设只抽取少量样本并训练 2 个 epoch，适合验证代码能否跑通。
 
-2. **权重可视化与空间模式观察**  
-   将训练好的第一层隐藏层权重矩阵恢复成图像尺寸，并将其作为图像进行可视化。观察并讨论这些权重中是否提取到了某些特定的空间纹理或颜色模式（例如：针对“河流”或“森林”类别的权重是否有明显的色彩倾向或空间特征）。
+### 2. 常规训练
 
-3. **错例分析（Error Analysis）**  
-   从测试集中挑选出几个分类错误的卫星图像，结合地物特征简单分析其被分错的可能原因（例如：高速公路与河流的视觉相似性）。
+```bash
+python -X utf8 "hw1/train.py" --backend cupy --preset default
+```
 
-4. **代码提交**  
-   代码需提交到自己的 **Public GitHub Repo**，Repo 的 README 中应清晰指明：
-   - 环境依赖
-   - 如何运行训练和测试脚本
+可选地覆盖少量关键参数：
 
-   训练好的模型权重请上传到 Google Drive 等。实验报告内必须包含：
-   - GitHub Repo 链接
-   - 模型权重下载地址
+```bash
+python -X utf8 "hw1/train.py" --backend cupy --preset default --activation tanh --hidden-dim 768 --epochs 16
+```
 
-   最后更新时间应早于作业提交 deadline。
+### 3. 超参数搜索
 
-> 注意：本次作业是个人作业，不可组队。
+```bash
+python -X utf8 "hw1/search.py" --backend cupy --preset quick --strategy grid --max-trials 4
+```
+
+搜索结果会保存在 `hw1/outputs/search/...` 下，包括：
+
+- `results.csv`
+- `results.json`
+- `best_result.json`
+
+### 4. 评估最优模型
+
+```bash
+python -X utf8 "hw1/evaluate.py" --backend cupy --preset default --checkpoint "hw1/outputs/runs/<run_name>/best_model.npz"
+```
+
+## 输出产物
+
+每次训练会在 `hw1/outputs/runs/<run_name>/` 下生成：
+
+- `best_model.npz`：验证集最优权重
+- `history.json`：训练和验证曲线对应的数值
+- `summary.json`：训练配置与核心指标摘要
+- `confusion_matrix.json`：测试集混淆矩阵
+- `training_curves.png`：训练集/验证集 loss 曲线与验证准确率曲线
+- `confusion_matrix.png`：测试集混淆矩阵可视化
+- `first_layer_weights.png`：第一层隐藏层权重可视化
+- `misclassified_examples.png`：测试集错例分析图
+
+## 实现说明
+
+### 模型
+
+- 网络结构：`input -> hidden -> hidden -> output`
+- 默认两层隐藏层共用同一个 `hidden_dim`
+- 支持 `relu`、`tanh`、`sigmoid`
+- 反向传播由 `mlp_hw1/model.py` 中的手写链式法则完成
+
+### 训练
+
+- 优化器：纯手写 SGD
+- 损失函数：Softmax Cross-Entropy
+- 正则化：L2 Weight Decay
+- 学习率策略：`lr / (1 + decay * epoch)` 的逆时衰减
+- 选模标准：验证集准确率最高时自动保存权重
+
+### 数据处理
+
+- 从 `EuroSAT_RGB` 文件夹读取 64×64 RGB 图像
+- 按类别分层划分 train / val / test
+- 使用训练集均值和标准差做特征归一化
+- 首次运行会在 `hw1/outputs/cache/` 下生成缓存，减少重复读取图片的开销
+
+## 测试
+
+不依赖真实数据集的基础回归测试：
+
+```bash
+python -X utf8 -m unittest discover -s "hw1/tests"
+```
+
+## 说明
+
+- 本实现把 `CuPy` 仅作为数组计算后端，不使用现成自动微分或训练框架能力
+- 代码刻意保持“作业级工程化”：模块清晰、注释适量，但不过度抽象
+- 所有 HW1 相关代码都放在 `hw1/` 目录中，便于后续新增 `hw2/`
