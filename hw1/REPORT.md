@@ -6,6 +6,10 @@
 - 模型：主体仍然是三层 MLP，结构为 `input -> hidden1 -> hidden2 -> output`。
 - 实现约束：前向传播、Softmax 交叉熵、反向传播、SGD、学习率衰减、L2 正则和梯度裁剪均为手写实现，不依赖 PyTorch / TensorFlow / JAX 自动微分。
 - 运行环境：远端 `135-3090-8`，环境 `/data/yc/miniconda/envs/llm-26-gpu`，训练后端固定为 `CuPy`。
+- GitHub Repo：`https://github.com/YangChen-pro/CS60003`
+- ModelScope 权重地址：`https://www.modelscope.cn/models/youngchen/CS60003`
+- 正式提交模型权重：ModelScope 仓库中的 `final_p/best_model.npz`
+- 扩展实验模型权重：ModelScope 仓库中的 `final_o/best_model.npz`
 
 ## 2. 数据与实验设置
 
@@ -38,6 +42,12 @@
 
 ```bash
 python -X utf8 "hw1/train.py" --preset best
+```
+
+若直接使用已上传权重做评估，可先从 ModelScope 下载 `final_p/best_model.npz`，再运行：
+
+```bash
+python -X utf8 "hw1/evaluate.py" --preset best --checkpoint "/path/to/final_p/best_model.npz"
 ```
 
 ## 4. 搜索与优化结果

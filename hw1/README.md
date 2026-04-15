@@ -50,6 +50,15 @@ python -m pip install -r "hw1/requirements.txt"
 - 扩展上限实验：`final_o` 达到 `test acc = 0.6810`，但验证集略低于正式提交模型，因此报告中作为扩展实验给出
 - 简写实验报告见 `hw1/REPORT.md`
 
+## 仓库与权重地址
+
+- GitHub 仓库：`https://github.com/YangChen-pro/CS60003`
+- ModelScope 权重仓库：`https://www.modelscope.cn/models/youngchen/CS60003`
+- 正式提交模型：`final_p/best_model.npz`，对应 `val acc = 0.6901`，`test acc = 0.6758`
+- 扩展实验模型：`final_o/best_model.npz`，对应 `val acc = 0.6877`，`test acc = 0.6810`
+
+如需只做权重评估，可先从 ModelScope 下载对应文件，再将 `--checkpoint` 指向下载后的本地路径。
+
 ## 运行方式
 
 以下命令默认在仓库根目录执行。
@@ -95,8 +104,10 @@ python -X utf8 "hw1/search.py" --preset quick --strategy grid --max-trials 4
 ### 5. 评估最优模型
 
 ```bash
-python -X utf8 "hw1/evaluate.py" --preset best --checkpoint "hw1/outputs/runs/final_p/best_model.npz"
+python -X utf8 "hw1/evaluate.py" --preset best --checkpoint "/path/to/final_p/best_model.npz"
 ```
+
+若已将正式模型下载到仓库内，也可直接把 `--checkpoint` 指向 `hw1/outputs/runs/final_p/best_model.npz`。
 
 ## 输出产物
 
