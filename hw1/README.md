@@ -53,11 +53,11 @@ python -m pip install -r "hw1/requirements.txt"
 ## 仓库与权重地址
 
 - GitHub 仓库：`https://github.com/YangChen-pro/CS60003`
-- ModelScope 权重仓库：`https://www.modelscope.cn/models/youngchen/CS60003`
+- ModelScope 权重仓库：`https://modelscope.cn/models/youngchen/CS60003/`
 - 正式提交模型：`final_p/best_model.npz`，对应 `val acc = 0.6901`，`test acc = 0.6758`
 - 扩展实验模型：`final_o/best_model.npz`，对应 `val acc = 0.6877`，`test acc = 0.6810`
 
-如需只做权重评估，可先从 ModelScope 下载对应文件，再将 `--checkpoint` 指向下载后的本地路径。
+说明：由于权重已经上传到 ModelScope，仓库中的 `best_model.npz` 可以删除；如需评估，请先从 ModelScope 下载对应文件。
 
 ## 运行方式
 
@@ -101,13 +101,13 @@ python -X utf8 "hw1/search.py" --preset quick --strategy grid --max-trials 4
 - `results.json`
 - `best_result.json`
 
-### 5. 评估最优模型
+### 5. 评估已上传模型
 
 ```bash
 python -X utf8 "hw1/evaluate.py" --preset best --checkpoint "/path/to/final_p/best_model.npz"
 ```
 
-若已将正式模型下载到仓库内，也可直接把 `--checkpoint` 指向 `hw1/outputs/runs/final_p/best_model.npz`。
+如果你把权重下载回仓库目录，也可以把 `--checkpoint` 指向本地下载后的路径。
 
 ## 输出产物
 
