@@ -22,3 +22,5 @@ hw1/outputs/runs/final_p/*
 !hw1/outputs/runs/final_p/misclassified_examples.png
 !hw1/outputs/runs/final_p/summary.json
 !hw1/outputs/runs/final_p/training_curves.png
+
+hw1/release/
