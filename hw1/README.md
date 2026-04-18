@@ -57,7 +57,7 @@ python -m pip install -r "hw1/requirements.txt"
 - 正式提交模型：`final_p/best_model.npz`，对应 `val acc = 0.6901`，`test acc = 0.6758`
 - 扩展实验模型：`final_o/best_model.npz`，对应 `val acc = 0.6877`，`test acc = 0.6810`
 
-说明：由于权重已经上传到 ModelScope，仓库中的 `best_model.npz` 可以删除；如需评估，请先从 ModelScope 下载对应文件。
+说明：权重已经上传到 ModelScope，当前仓库默认不保留 `best_model.npz`；如需评估，请先从 ModelScope 下载对应文件。
 
 ## 运行方式
 
@@ -95,11 +95,13 @@ python -X utf8 "hw1/train.py" --preset best
 python -X utf8 "hw1/search.py" --preset quick --strategy grid --max-trials 4
 ```
 
-搜索结果会保存在 `hw1/outputs/search/...` 下，包括：
+运行搜索命令后，会在本地生成 `hw1/outputs/search/...`，包括：
 
 - `results.csv`
 - `results.json`
 - `best_result.json`
+
+当前提交版本默认不保留这些搜索中间结果；如果需要，可以重新运行搜索命令生成。
 
 ### 5. 评估已上传模型
 
@@ -121,6 +123,8 @@ python -X utf8 "hw1/evaluate.py" --preset best --checkpoint "/path/to/final_p/be
 - `confusion_matrix.png`：测试集混淆矩阵可视化
 - `first_layer_weights.png`：第一层隐藏层权重可视化
 - `misclassified_examples.png`：测试集错例分析图
+
+其中，正式提交所需权重已经单独上传到 ModelScope，仓库里主要保留图表和结果摘要文件。
 
 ## 实现说明
 
