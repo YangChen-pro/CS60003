@@ -120,6 +120,45 @@ def build_train_config(preset: str) -> TrainConfig:
             grad_clip=3.0,
             dropout_rate=0.0,
         )
+    if normalized == "final_k":
+        return TrainConfig(
+            hidden_dim=1280,
+            hidden_dim2=768,
+            batch_size=256,
+            eval_batch_size=512,
+            epochs=40,
+            learning_rate=0.012,
+            lr_decay=0.01,
+            weight_decay=2e-4,
+            grad_clip=3.0,
+            dropout_rate=0.10,
+        )
+    if normalized == "final_l":
+        return TrainConfig(
+            hidden_dim=1280,
+            hidden_dim2=768,
+            batch_size=256,
+            eval_batch_size=512,
+            epochs=40,
+            learning_rate=0.012,
+            lr_decay=0.01,
+            weight_decay=2e-4,
+            grad_clip=3.0,
+            dropout_rate=0.15,
+        )
+    if normalized == "final_n":
+        return TrainConfig(
+            hidden_dim=1280,
+            hidden_dim2=768,
+            batch_size=256,
+            eval_batch_size=512,
+            epochs=42,
+            learning_rate=0.012,
+            lr_decay=0.01,
+            weight_decay=2e-4,
+            grad_clip=3.0,
+            dropout_rate=0.12,
+        )
     if normalized in {"best", "final_p"}:
         return TrainConfig(
             hidden_dim=1280,

@@ -8,7 +8,7 @@ from mlp_hw1.config import build_train_config
 from mlp_hw1.trainer import train_model
 
 
-TRAIN_PRESETS = ["quick", "default", "full", "best", "final_a", "final_p", "final_o"]
+TRAIN_PRESETS = ["quick", "default", "full", "best", "final_a", "final_k", "final_l", "final_n", "final_p", "final_o"]
 
 
 def parse_args() -> argparse.Namespace:
@@ -27,7 +27,7 @@ def resolve_run_name(preset: str) -> str | None:
     normalized = preset.lower()
     if normalized == "best":
         return "final_p"
-    if normalized in {"final_a", "final_p", "final_o"}:
+    if normalized in {"final_a", "final_k", "final_l", "final_n", "final_p", "final_o"}:
         return normalized
     return None
 

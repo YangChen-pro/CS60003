@@ -81,6 +81,18 @@ class ThreeLayerMLPTest(unittest.TestCase):
         self.assertEqual(final_a.dropout_rate, 0.0)
         self.assertEqual(final_a.epochs, 36)
 
+        final_k = build_train_config("final_k")
+        self.assertEqual(final_k.dropout_rate, 0.10)
+        self.assertEqual(final_k.epochs, 40)
+
+        final_l = build_train_config("final_l")
+        self.assertEqual(final_l.dropout_rate, 0.15)
+        self.assertEqual(final_l.epochs, 40)
+
+        final_n = build_train_config("final_n")
+        self.assertEqual(final_n.dropout_rate, 0.12)
+        self.assertEqual(final_n.epochs, 42)
+
     def test_full_search_preset_builds(self) -> None:
         search_config = build_search_config("full")
         self.assertEqual(search_config.max_trials, 24)
@@ -93,6 +105,7 @@ class ThreeLayerMLPTest(unittest.TestCase):
         self.assertEqual({row["learning_rate"] for row in candidates}, set(build_search_config("full").learning_rates))
         self.assertEqual({row["hidden_dim"] for row in candidates}, set(build_search_config("full").hidden_dims))
         self.assertEqual({row["hidden_dim2"] for row in candidates}, set(build_search_config("full").hidden_dims2))
+        self.assertEqual({row["weight_decay"] for row in candidates}, set(build_search_config("full").weight_decays))
 
     def test_cache_stem_changes_with_split_ratio(self) -> None:
         base = build_cache_stem(seed=42, val_ratio=0.15, test_ratio=0.15, limit_per_class=None)

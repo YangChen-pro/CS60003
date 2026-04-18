@@ -324,10 +324,11 @@ def build_search_candidates(config: SearchConfig) -> list[dict]:
                 if candidate[key] == value and add_candidate(candidate):
                     break
 
-    # 先保证作业里最关键的三类超参数在候选集合里都有覆盖。
+    # 先保证作业里最关键的几类超参数在候选集合里都有覆盖。
     cover_dimension("learning_rate", config.learning_rates)
     cover_dimension("hidden_dim", config.hidden_dims)
     cover_dimension("hidden_dim2", config.hidden_dims2)
+    cover_dimension("weight_decay", config.weight_decays)
 
     for candidate in shuffled_candidates:
         add_candidate(candidate)
