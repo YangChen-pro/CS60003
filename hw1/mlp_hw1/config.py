@@ -1,4 +1,4 @@
-"""Configuration objects and preset builders."""
+"""配置对象与预设构建函数。"""
 
 from __future__ import annotations
 
@@ -9,12 +9,11 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = PROJECT_ROOT / "EuroSAT_RGB"
 OUTPUT_DIR = PROJECT_ROOT / "outputs"
-REPORT_PATH = PROJECT_ROOT / "REPORT.md"
 
 
 @dataclass
 class TrainConfig:
-    """Training configuration."""
+    """训练配置。"""
 
     data_dir: Path = DATA_DIR
     output_dir: Path = OUTPUT_DIR
@@ -36,23 +35,22 @@ class TrainConfig:
     force_rebuild_cache: bool = False
 
     def resolved_hidden_dim2(self) -> int:
-        """Return the second hidden width."""
+        """返回第二隐藏层宽度。"""
         return self.hidden_dim if self.hidden_dim2 is None else self.hidden_dim2
 
     def to_dict(self) -> dict:
-        """Serialize the config to a JSON-friendly dict."""
+        """将配置序列化为适合 JSON 的字典。"""
         payload = asdict(self)
-        payload["data_dir"] = str(self.data_dir)
-        payload["output_dir"] = str(self.output_dir)
+        payload["data_dir"] = _serialize_path(self.data_dir)
+        payload["output_dir"] = _serialize_path(self.output_dir)
         return payload
 
 
 @dataclass
 class SearchConfig:
-    """Hyper-parameter search configuration."""
+    """超参数搜索配置。"""
 
     train_config: TrainConfig
-    strategy: str = "grid"
     max_trials: int = 8
     learning_rates: tuple[float, ...] = (0.008, 0.012, 0.02)
     hidden_dims: tuple[int, ...] = (512, 768, 1024)
@@ -63,10 +61,9 @@ class SearchConfig:
     activations: tuple[str, ...] = ("relu", "tanh")
 
     def to_dict(self) -> dict:
-        """Serialize the config to a JSON-friendly dict."""
+        """将配置序列化为适合 JSON 的字典。"""
         return {
             "train_config": self.train_config.to_dict(),
-            "strategy": self.strategy,
             "max_trials": self.max_trials,
             "learning_rates": list(self.learning_rates),
             "hidden_dims": list(self.hidden_dims),
@@ -79,7 +76,7 @@ class SearchConfig:
 
 
 def build_train_config(preset: str) -> TrainConfig:
-    """Build a preset training config."""
+    """构建训练预设配置。"""
     normalized = preset.lower()
     if normalized == "quick":
         return TrainConfig(
@@ -110,7 +107,20 @@ def build_train_config(preset: str) -> TrainConfig:
             grad_clip=3.0,
             dropout_rate=0.0,
         )
-    if normalized == "best":
+    if normalized == "final_a":
+        return TrainConfig(
+            hidden_dim=1280,
+            hidden_dim2=768,
+            batch_size=256,
+            eval_batch_size=512,
+            epochs=36,
+            learning_rate=0.012,
+            lr_decay=0.01,
+            weight_decay=2e-4,
+            grad_clip=3.0,
+            dropout_rate=0.0,
+        )
+    if normalized in {"best", "final_p"}:
         return TrainConfig(
             hidden_dim=1280,
             hidden_dim2=768,
@@ -123,18 +133,30 @@ def build_train_config(preset: str) -> TrainConfig:
             grad_clip=3.0,
             dropout_rate=0.15,
         )
+    if normalized == "final_o":
+        return TrainConfig(
+            hidden_dim=1280,
+            hidden_dim2=768,
+            batch_size=256,
+            eval_batch_size=512,
+            epochs=42,
+            learning_rate=0.012,
+            lr_decay=0.01,
+            weight_decay=2e-4,
+            grad_clip=3.0,
+            dropout_rate=0.18,
+        )
     raise ValueError(f"未知预设: {preset}")
 
 
 def build_search_config(preset: str) -> SearchConfig:
-    """Build a preset hyper-parameter search config."""
+    """构建超参数搜索预设配置。"""
     train_config = build_train_config("quick" if preset == "quick" else "default")
     if preset == "quick":
         train_config.epochs = 2
         train_config.limit_per_class = 100
         return SearchConfig(
             train_config=train_config,
-            strategy="grid",
             max_trials=4,
             learning_rates=(0.01, 0.03),
             hidden_dims=(128, 256),
@@ -148,7 +170,6 @@ def build_search_config(preset: str) -> SearchConfig:
         train_config = build_train_config("full")
         return SearchConfig(
             train_config=train_config,
-            strategy="grid",
             max_trials=24,
             learning_rates=(0.006, 0.008, 0.01, 0.012),
             hidden_dims=(768, 1024, 1280),
@@ -159,3 +180,11 @@ def build_search_config(preset: str) -> SearchConfig:
             activations=("relu", "tanh"),
         )
     return SearchConfig(train_config=train_config, max_trials=18)
+
+
+def _serialize_path(path: Path) -> str:
+    """以适合仓库保存的方式序列化项目路径。"""
+    try:
+        return str(path.resolve().relative_to(PROJECT_ROOT))
+    except ValueError:
+        return str(path)

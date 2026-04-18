@@ -1,4 +1,4 @@
-"""EuroSAT data loading and preprocessing."""
+"""EuroSAT 数据加载与预处理。"""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ IMAGE_SHAPE = (64, 64, 3)
 
 @dataclass
 class DataSplit:
-    """A dataset split stored in CPU memory."""
+    """存放在 CPU 内存中的一个数据划分。"""
 
     images: np.ndarray
     labels: np.ndarray
@@ -23,7 +23,7 @@ class DataSplit:
 
 @dataclass
 class DatasetBundle:
-    """Train/validation/test splits and normalization stats."""
+    """训练、验证、测试划分及归一化统计量。"""
 
     train: DataSplit
     val: DataSplit
@@ -43,12 +43,12 @@ def load_dataset(
     limit_per_class: int | None = None,
     force_rebuild: bool = False,
 ) -> DatasetBundle:
-    """Load EuroSAT data from cache or rebuild the cache."""
+    """从缓存加载 EuroSAT 数据，或重新构建缓存。"""
     cache_dir = output_dir / "cache"
     cache_dir.mkdir(parents=True, exist_ok=True)
-    limit_tag = "full" if limit_per_class is None else f"limit{limit_per_class}"
-    cache_path = cache_dir / f"eurosat_seed{seed}_{limit_tag}.npz"
-    meta_path = cache_dir / f"eurosat_seed{seed}_{limit_tag}.json"
+    cache_stem = build_cache_stem(seed, val_ratio, test_ratio, limit_per_class)
+    cache_path = cache_dir / f"{cache_stem}.npz"
+    meta_path = cache_dir / f"{cache_stem}.json"
 
     if cache_path.exists() and meta_path.exists() and not force_rebuild:
         return _load_cached_bundle(cache_path, meta_path)
@@ -70,6 +70,10 @@ def load_dataset(
             {
                 "class_names": bundle.class_names,
                 "image_shape": list(bundle.image_shape),
+                "seed": seed,
+                "val_ratio": val_ratio,
+                "test_ratio": test_ratio,
+                "limit_per_class": limit_per_class,
             },
             ensure_ascii=False,
             indent=2,
@@ -80,9 +84,22 @@ def load_dataset(
 
 
 def normalize_images(images: np.ndarray, mean: np.ndarray, std: np.ndarray) -> np.ndarray:
-    """Normalize uint8 image batches to float32 feature vectors."""
+    """将 uint8 图像批次归一化为 float32 特征向量。"""
     features = images.astype(np.float32) / 255.0
     return (features - mean) / std
+
+
+def build_cache_stem(
+    seed: int,
+    val_ratio: float,
+    test_ratio: float,
+    limit_per_class: int | None,
+) -> str:
+    """构建会随数据划分方案变化的缓存文件名前缀。"""
+    limit_tag = "full" if limit_per_class is None else f"limit{limit_per_class}"
+    val_tag = _format_ratio_tag("val", val_ratio)
+    test_tag = _format_ratio_tag("test", test_ratio)
+    return f"eurosat_seed{seed}_{val_tag}_{test_tag}_{limit_tag}"
 
 
 def iterate_minibatches(
@@ -92,7 +109,7 @@ def iterate_minibatches(
     seed: int,
     shuffle: bool = True,
 ):
-    """Yield mini-batches from NumPy arrays."""
+    """从 NumPy 数组中按批次生成小批量数据。"""
     indices = np.arange(images.shape[0])
     if shuffle:
         rng = np.random.default_rng(seed)
@@ -103,7 +120,7 @@ def iterate_minibatches(
 
 
 def _load_cached_bundle(cache_path: Path, meta_path: Path) -> DatasetBundle:
-    """Load cached dataset arrays."""
+    """加载缓存的数据集数组。"""
     payload = np.load(cache_path)
     meta = json.loads(meta_path.read_text(encoding="utf-8"))
     return DatasetBundle(
@@ -117,6 +134,12 @@ def _load_cached_bundle(cache_path: Path, meta_path: Path) -> DatasetBundle:
     )
 
 
+def _format_ratio_tag(name: str, ratio: float) -> str:
+    """将划分比例转换为稳定且适合缓存命名的标签。"""
+    scaled = int(round(ratio * 1000))
+    return f"{name}{scaled:03d}"
+
+
 def _build_dataset(
     data_dir: Path,
     seed: int,
@@ -124,7 +147,7 @@ def _build_dataset(
     test_ratio: float,
     limit_per_class: int | None,
 ) -> DatasetBundle:
-    """Build the dataset from image folders."""
+    """从图像目录构建数据集。"""
     class_dirs = sorted(path for path in data_dir.iterdir() if path.is_dir())
     class_names = [path.name for path in class_dirs]
 
@@ -165,7 +188,7 @@ def _build_dataset(
 
 
 def _compute_mean_std(images: np.ndarray, chunk_size: int = 256) -> tuple[np.ndarray, np.ndarray]:
-    """Compute train-set normalization statistics in chunks."""
+    """分块计算训练集的归一化统计量。"""
     total = images.shape[0]
     channel_sum = np.zeros(IMAGE_SHAPE[2], dtype=np.float64)
     channel_sum_squares = np.zeros(IMAGE_SHAPE[2], dtype=np.float64)
@@ -189,7 +212,7 @@ def _stratified_split(
     test_ratio: float,
     seed: int,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """Split dataset indices while preserving class balance."""
+    """在保持类别平衡的前提下划分数据索引。"""
     rng = np.random.default_rng(seed)
     train_parts: list[np.ndarray] = []
     val_parts: list[np.ndarray] = []

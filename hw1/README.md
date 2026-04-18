@@ -1,12 +1,6 @@
 # HW1：EuroSAT 三层 MLP 分类器
 
-本目录给出一个不依赖 PyTorch / TensorFlow / JAX 自动微分能力的课程作业实现。运行前提已经固定为远端 GPU 环境，核心思路是：
-
-- 使用 `CuPy` 作为唯一底层数组后端
-- 手写三层 MLP 的前向传播、交叉熵损失和反向传播
-- 使用 SGD、学习率衰减和 L2 正则完成训练
-- 自动保存验证集最优权重
-- 生成训练曲线、混淆矩阵、第一层权重可视化和错例图
+本目录包含 HW1 的代码与实验文件。作业要求是在不使用现成自动微分框架的前提下，手写一个三层 MLP 完成 EuroSAT 十分类任务。本实现使用 `CuPy` 作为数组后端，前向传播、交叉熵损失、反向传播、SGD、学习率衰减和 L2 正则均为手写实现。
 
 ## 目录结构
 
@@ -31,125 +25,125 @@ hw1/
 
 ## 环境依赖
 
-基础依赖写在 `requirements.txt` 中，其中已经显式包含 `CuPy`：
+基础依赖写在 `requirements.txt` 中，其中包含已在远端 GPU 环境验证的 `cupy-cuda13x==14.0.1`：
 
 ```bash
 python -m pip install -r "hw1/requirements.txt"
 ```
 
-当前项目默认直接运行在远端 GPU 环境，已经提供可用的 `CuPy`：
+训练应放在支持 `CuPy` 的 GPU 环境中进行。本仓库仅支持 `CuPy + GPU` 环境复现，不提供 `NumPy` 训练回退。
 
-- 远端主机：`135-3090-8`
-- conda 环境：`/data/yc/miniconda/envs/llm-26-gpu`
-- CuPy 版本：`14.0.1`
+远端验证环境：
 
-## 当前正式结果
+- Python：`3.12.13`
+- CuPy：`cupy-cuda13x==14.0.1`
+- GPU：`NVIDIA GeForce RTX 3090`
+- 代码目录：`/data/yc/CS60003`
+- 已验证仓库形态：该目录本身是一个 git 工作树
 
-- 按验证集选出的正式提交模型：`best` 预设，对应 `1280 -> 768 + dropout 0.15`
-- 正式提交模型指标：`val acc = 0.6901`，`test acc = 0.6758`
-- 扩展上限实验：`final_o` 达到 `test acc = 0.6810`，但验证集略低于正式提交模型，因此报告中作为扩展实验给出
-- 简写实验报告见 `hw1/REPORT.md`
+如需执行最小规模验证，可运行：
 
-## 仓库与权重地址
+```bash
+python -X utf8 "hw1/train.py" --preset quick
+python -X utf8 -m unittest discover -s "hw1/tests"
+```
 
-- GitHub 仓库：`https://github.com/YangChen-pro/CS60003`
-- ModelScope 权重仓库：`https://modelscope.cn/models/youngchen/CS60003/`
-- 正式提交模型：`final_p/best_model.npz`，对应 `val acc = 0.6901`，`test acc = 0.6758`
-- 扩展实验模型：`final_o/best_model.npz`，对应 `val acc = 0.6877`，`test acc = 0.6810`
+## 仓库与权重
 
-说明：权重已经上传到 ModelScope，当前仓库默认不保留 `best_model.npz`；如需评估，请先从 ModelScope 下载对应文件。
+- GitHub 仓库：[https://github.com/YangChen-pro/CS60003](https://github.com/YangChen-pro/CS60003)
+- ModelScope 权重仓库：[https://modelscope.cn/models/youngchen/CS60003/](https://modelscope.cn/models/youngchen/CS60003/)
+
+仓库默认不保留 `best_model.npz`，权重单独存放在 ModelScope。用于报告结果展示的摘要文件、训练曲线、混淆矩阵、权重图和错例图保留在以下路径：
+
+- `hw1/outputs/runs/final_a/`
+- `hw1/outputs/runs/final_p/`
+- `hw1/outputs/runs/final_o/summary.json`
+
+仓库当前保留的文件中，`final_a` 和 `final_p` 对应报告中的表格与图片；`final_o` 保留结果摘要，完整权重与产物可重新生成。
+
+实验列表：
+
+| 实验 | 训练入口 | 验证集准确率 | 测试集准确率 | 说明 |
+| --- | --- | --- | --- | --- |
+| `final_a` | `python -X utf8 "hw1/train.py" --preset final_a` | 68.49% | 66.69% | 不加 dropout 的对照组 |
+| `final_p` | `python -X utf8 "hw1/train.py" --preset final_p` | 69.01% | 67.58% | 正式提交模型 |
+| `final_o` | `python -X utf8 "hw1/train.py" --preset final_o` | 68.77% | 68.10% | 扩展实验，测试集准确率高于 `final_p`，验证集准确率低于 `final_p` |
 
 ## 运行方式
 
-以下命令默认在仓库根目录执行。
+下面的命令默认在仓库根目录执行。
 
-### 1. 快速检查训练流程
+### 1. 快速检查
 
 ```bash
 python -X utf8 "hw1/train.py" --preset quick
 ```
 
-`quick` 预设只抽取少量样本并训练 2 个 epoch，适合先在远端验证代码链路。
+`quick` 预设使用 `limit_per_class=120` 并训练 `2` 个 epoch，用于验证训练、评估和输出流程是否可正常执行。
 
-### 2. 常规训练
-
-```bash
-python -X utf8 "hw1/train.py" --preset default
-```
-
-可选地覆盖少量关键参数：
-
-```bash
-python -X utf8 "hw1/train.py" --preset default --activation tanh --hidden-dim 768 --epochs 16
-```
-
-### 3. 复现实验报告中的正式提交模型
+### 2. 训练正式模型
 
 ```bash
 python -X utf8 "hw1/train.py" --preset best
 ```
 
-### 4. 超参数搜索
+如需运行默认训练配置，可执行：
 
 ```bash
-python -X utf8 "hw1/search.py" --preset quick --strategy grid --max-trials 4
+python -X utf8 "hw1/train.py" --preset default
 ```
 
-运行搜索命令后，会在本地生成 `hw1/outputs/search/...`，包括：
+如需复现报告中列出的 3 组实验，请保持对应 preset、默认数据划分比例以及随机种子 `42` 不变：
 
-- `results.csv`
-- `results.json`
-- `best_result.json`
+```bash
+python -X utf8 "hw1/train.py" --preset final_a
+python -X utf8 "hw1/train.py" --preset final_p
+python -X utf8 "hw1/train.py" --preset final_o
+```
 
-当前提交版本默认不保留这些搜索中间结果；如果需要，可以重新运行搜索命令生成。
+这 3 条命令会分别将结果输出到：
 
-### 5. 评估已上传模型
+- `hw1/outputs/runs/final_a/`
+- `hw1/outputs/runs/final_p/`
+- `hw1/outputs/runs/final_o/`
+
+其中 `best` 预设和 `final_p` 使用同一组训练配置。
+
+### 3. 超参数搜索
+
+```bash
+python -X utf8 "hw1/search.py" --preset quick --max-trials 4
+```
+
+如需在完整数据上重新执行一次 24 组组合的抽样网格搜索，可运行：
+
+```bash
+python -X utf8 "hw1/search.py" --preset full --max-trials 24
+```
+
+`full` 表示在完整数据上执行一次包含 `24` 组组合的抽样网格搜索，而不是穷举全部组合；抽样过程使用固定随机种子，并覆盖学习率、第一层宽度和第二层宽度这三类核心超参数。
+
+运行后会在 `hw1/outputs/search/...` 下保存搜索结果。仓库当前不保留这些中间文件，需要时可以重新生成。
+
+### 4. 评估已上传模型
 
 ```bash
 python -X utf8 "hw1/evaluate.py" --preset best --checkpoint "/path/to/final_p/best_model.npz"
 ```
 
-如果你把权重下载回仓库目录，也可以把 `--checkpoint` 指向本地下载后的路径。
+将下载后的权重路径传给 `--checkpoint`。
 
-## 输出产物
+若使用扩展实验权重，则将 `--preset` 设置为 `final_o`。
 
-每次训练会在 `hw1/outputs/runs/<run_name>/` 下生成：
+## 简要说明
 
-- `best_model.npz`：验证集最优权重
-- `history.json`：训练和验证曲线对应的数值
-- `summary.json`：训练配置与核心指标摘要
-- `confusion_matrix.json`：测试集混淆矩阵
-- `training_curves.png`：训练集/验证集 loss 曲线与验证准确率曲线
-- `confusion_matrix.png`：测试集混淆矩阵可视化
-- `first_layer_weights.png`：第一层隐藏层权重可视化
-- `misclassified_examples.png`：测试集错例分析图
-
-其中，正式提交所需权重已经单独上传到 ModelScope，仓库里主要保留图表和结果摘要文件。
-
-## 实现说明
-
-### 模型
-
-- 网络结构：`input -> hidden -> hidden -> output`
-- 支持分别设置第一、第二隐藏层宽度，正式提交模型使用 `1280 -> 768`
-- 支持训练阶段可选 dropout，当前正式提交模型使用 `dropout=0.15`
-- 支持 `relu`、`tanh`、`sigmoid`
-- 反向传播由 `mlp_hw1/model.py` 中的手写链式法则完成
-
-### 训练
-
-- 优化器：纯手写 SGD
-- 损失函数：Softmax Cross-Entropy
-- 正则化：L2 Weight Decay
-- 学习率策略：`lr / (1 + decay * epoch)` 的逆时衰减
-- 选模标准：验证集准确率最高时自动保存权重
-
-### 数据处理
-
-- 从 `EuroSAT_RGB` 文件夹读取 64×64 RGB 图像
-- 按类别分层划分 train / val / test
-- 使用训练集均值和标准差做特征归一化
-- 首次运行会在 `hw1/outputs/cache/` 下生成缓存，减少重复读取图片的开销
+- 模型结构是 `input -> hidden -> hidden -> output`
+- 支持 `relu`、`tanh`、`sigmoid` 三种激活函数
+- 训练时实现了 SGD、交叉熵损失、学习率衰减和 L2 正则
+- 数据按类别分层划分为 train / val / test，并使用训练集统计量做归一化
+- 数据缓存文件名会把 `seed`、`val_ratio`、`test_ratio`、`limit_per_class` 一起编码进去，避免在划分比例变化后复用不匹配的旧缓存
+- 验证集准确率最高时会自动保存权重
+- 训练后会在 `hw1/outputs/runs/<run_name>/` 下生成本次实验结果
 
 ## 测试
 
@@ -159,8 +153,9 @@ python -X utf8 "hw1/evaluate.py" --preset best --checkpoint "/path/to/final_p/be
 python -X utf8 -m unittest discover -s "hw1/tests"
 ```
 
-## 说明
+## 备注
 
-- 本实现把 `CuPy` 作为唯一数组计算后端，不保留 `NumPy` 训练回退
-- 代码刻意保持“作业级工程化”：模块清晰、注释适量，但不过度抽象
-- 所有 HW1 相关代码都放在 `hw1/` 目录中，便于后续新增 `hw2/`
+- 本实现只使用 `CuPy`，不保留 `NumPy` 训练回退
+- 所有 HW1 相关文件位于 `hw1/` 目录下
+- 报告以 PDF 形式提交
+- `summary.json` 里如果出现绝对路径，表示训练时的运行路径记录

@@ -1,4 +1,4 @@
-"""Run hyper-parameter search for HW1."""
+"""执行 HW1 的超参数搜索。"""
 
 from __future__ import annotations
 
@@ -9,20 +9,18 @@ from mlp_hw1.trainer import run_search
 
 
 def parse_args() -> argparse.Namespace:
-    """Parse search arguments."""
+    """解析搜索参数。"""
     parser = argparse.ArgumentParser(description="为 EuroSAT MLP 执行超参数搜索")
     parser.add_argument("--preset", default="quick", choices=["quick", "default", "full"])
-    parser.add_argument("--strategy", default="grid", choices=["grid", "random"])
     parser.add_argument("--max-trials", type=int, default=None)
     parser.add_argument("--rebuild-cache", action="store_true")
     return parser.parse_args()
 
 
 def main() -> None:
-    """Entrypoint for hyper-parameter search."""
+    """超参数搜索入口函数。"""
     args = parse_args()
     config = build_search_config(args.preset)
-    config.strategy = args.strategy
     if args.max_trials is not None:
         config.max_trials = args.max_trials
     config.train_config.force_rebuild_cache = args.rebuild_cache

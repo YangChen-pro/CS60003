@@ -1,0 +1,26 @@
+{
+  "backend": "cupy",
+  "best_val_accuracy": 0.6877,
+  "test_accuracy": 0.681,
+  "notes": "final_o 是扩展实验，对应 report 中的 dropout=0.18 版本。仓库默认不跟踪它的权重文件，如需完整产物可运行 python -X utf8 \"hw1/train.py\" --preset final_o 重新生成。",
+  "config": {
+    "data_dir": "EuroSAT_RGB",
+    "output_dir": "outputs",
+    "seed": 42,
+    "hidden_dim": 1280,
+    "hidden_dim2": 768,
+    "activation": "relu",
+    "batch_size": 256,
+    "eval_batch_size": 512,
+    "epochs": 42,
+    "learning_rate": 0.012,
+    "lr_decay": 0.01,
+    "weight_decay": 0.0002,
+    "grad_clip": 3.0,
+    "dropout_rate": 0.18,
+    "val_ratio": 0.15,
+    "test_ratio": 0.15,
+    "limit_per_class": null,
+    "force_rebuild_cache": false
+  }
+}

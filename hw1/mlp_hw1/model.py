@@ -1,10 +1,9 @@
-"""Three-layer MLP with hand-written backward pass."""
+"""带手写反向传播的三层 MLP。"""
 
 from __future__ import annotations
 
 import json
 import warnings
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -13,16 +12,8 @@ import numpy as np
 from .backend import to_numpy
 
 
-@dataclass
-class LayerGrads:
-    """Gradient buffers for a linear layer."""
-
-    weight: Any
-    bias: Any
-
-
 class ThreeLayerMLP:
-    """A simple MLP: input -> hidden -> hidden -> output."""
+    """一个简单的 MLP：input -> hidden -> hidden -> output。"""
 
     def __init__(
         self,
@@ -66,7 +57,7 @@ class ThreeLayerMLP:
         self.cache: dict[str, Any] = {}
 
     def forward(self, inputs: Any, training: bool = False) -> Any:
-        """Run the forward pass and cache intermediates."""
+        """执行前向传播并缓存中间结果。"""
         inputs = inputs.astype(self.dtype, copy=False)
         z1 = self._matmul(inputs, self.w1) + self.b1
         h1 = self._activate(z1)
@@ -88,7 +79,7 @@ class ThreeLayerMLP:
         return logits
 
     def compute_loss(self, inputs: Any, targets: Any, weight_decay: float = 0.0) -> float:
-        """Compute the current loss without updating gradients."""
+        """在不更新梯度的情况下计算当前损失。"""
         logits = self.forward(inputs, training=False)
         loss, _ = self._softmax_loss(logits, targets)
         reg = 0.5 * weight_decay * (
@@ -99,7 +90,7 @@ class ThreeLayerMLP:
         return float(to_numpy(loss + reg))
 
     def loss_and_backward(self, inputs: Any, targets: Any, weight_decay: float) -> float:
-        """Run forward, compute loss, and back-propagate gradients."""
+        """执行前向传播、计算损失并反向传播梯度。"""
         logits = self.forward(inputs, training=True)
         loss, grad_logits = self._softmax_loss(logits, targets)
         self._backward(grad_logits, weight_decay)
@@ -111,12 +102,12 @@ class ThreeLayerMLP:
         return float(to_numpy(loss + reg))
 
     def predict(self, inputs: Any) -> Any:
-        """Predict labels for a batch of features."""
+        """为一批输入特征预测标签。"""
         logits = self.forward(inputs, training=False)
         return self.xp.argmax(logits, axis=1)
 
     def step(self, learning_rate: float, grad_clip: float = 5.0) -> None:
-        """Apply one SGD update."""
+        """执行一次 SGD 参数更新。"""
         clipped = {name: self.xp.clip(grad, -grad_clip, grad_clip) for name, grad in self.grads.items()}
         # 这里做一个很轻的梯度裁剪，避免小批量训练时数值突然发散。
         self.w1 -= learning_rate * clipped["w1"]
@@ -127,7 +118,7 @@ class ThreeLayerMLP:
         self.b3 -= learning_rate * clipped["b3"]
 
     def save(self, checkpoint_path: Path) -> None:
-        """Save model weights and metadata to an .npz file."""
+        """将模型权重与元数据保存到 `.npz` 文件。"""
         checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
         metadata = {
             "input_dim": self.input_dim,
@@ -150,7 +141,7 @@ class ThreeLayerMLP:
 
     @classmethod
     def load(cls, checkpoint_path: Path, xp: Any) -> "ThreeLayerMLP":
-        """Load a model checkpoint."""
+        """加载模型检查点。"""
         payload = np.load(checkpoint_path, allow_pickle=False)
         metadata = json.loads(str(payload["metadata"]))
         model = cls(
@@ -171,7 +162,7 @@ class ThreeLayerMLP:
         return model
 
     def _backward(self, grad_logits: Any, weight_decay: float) -> None:
-        """Back-propagate gradients through the network."""
+        """在网络中反向传播梯度。"""
         h2 = self.cache["h2"]
         h1 = self.cache["h1"]
         z2 = self.cache["z2"]
@@ -194,7 +185,7 @@ class ThreeLayerMLP:
         self.grads["b1"] = self.xp.sum(grad_z1, axis=0)
 
     def _softmax_loss(self, logits: Any, targets: Any) -> tuple[Any, Any]:
-        """Compute softmax cross-entropy and the gradient on logits."""
+        """计算 softmax 交叉熵以及 logits 上的梯度。"""
         shifted = logits - self.xp.max(logits, axis=1, keepdims=True)
         exp_scores = self.xp.exp(shifted)
         probs = exp_scores / self.xp.sum(exp_scores, axis=1, keepdims=True)
@@ -208,7 +199,7 @@ class ThreeLayerMLP:
         return loss, grad_logits
 
     def _activate(self, inputs: Any) -> Any:
-        """Apply the configured activation."""
+        """应用当前配置的激活函数。"""
         if self.activation == "relu":
             return self.xp.maximum(inputs, 0.0)
         if self.activation == "tanh":
@@ -218,7 +209,7 @@ class ThreeLayerMLP:
         raise ValueError(f"不支持的激活函数: {self.activation}")
 
     def _activation_grad(self, inputs: Any) -> Any:
-        """Derivative of the configured activation."""
+        """计算当前配置激活函数的导数。"""
         if self.activation == "relu":
             return (inputs > 0).astype(inputs.dtype)
         if self.activation == "tanh":
@@ -230,7 +221,7 @@ class ThreeLayerMLP:
         raise ValueError(f"不支持的激活函数: {self.activation}")
 
     def _matmul(self, left: Any, right: Any) -> Any:
-        """Compute matrix multiplication and suppress known NumPy matmul warnings."""
+        """执行矩阵乘法，并屏蔽已知的 NumPy matmul 警告。"""
         if self.xp is np:
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", message=".*encountered in matmul", category=RuntimeWarning)
@@ -238,7 +229,7 @@ class ThreeLayerMLP:
         return left @ right
 
     def _apply_dropout(self, inputs: Any, training: bool) -> tuple[Any, Any]:
-        """Apply inverted dropout during training only."""
+        """仅在训练阶段应用 inverted dropout。"""
         if (not training) or self.dropout_rate <= 0.0:
             ones = self.xp.ones_like(inputs)
             return inputs, ones

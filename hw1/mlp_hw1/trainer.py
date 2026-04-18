@@ -1,12 +1,12 @@
-"""Training, evaluation, and search loops."""
+"""训练、评估与搜索流程。"""
 
 from __future__ import annotations
 
 import csv
 import json
+from itertools import product
 from dataclasses import replace
 from datetime import datetime
-from pathlib import Path
 
 import numpy as np
 
@@ -15,7 +15,6 @@ from .config import SearchConfig, TrainConfig
 from .data import DataSplit, iterate_minibatches, load_dataset, normalize_images
 from .metrics import accuracy_score, confusion_matrix, per_class_accuracy
 from .model import ThreeLayerMLP
-from .reporting import build_report
 from .visualization import (
     plot_confusion_matrix,
     plot_first_layer_weights,
@@ -29,7 +28,7 @@ def train_model(
     run_name: str | None = None,
     generate_reports: bool = True,
 ) -> dict:
-    """Train a model and persist artifacts."""
+    """训练模型并保存实验产物。"""
     xp = get_array_module()
     seed_everything(config.seed)
 
@@ -165,7 +164,7 @@ def evaluate_model(
     checkpoint_path: Path,
     output_dir: Path | None = None,
 ) -> dict:
-    """Evaluate a saved model on the test split."""
+    """在测试集上评估已保存的模型。"""
     xp = get_array_module()
     dataset = load_dataset(
         data_dir=config.data_dir,
@@ -214,29 +213,8 @@ def evaluate_model(
 
 
 def run_search(config: SearchConfig) -> dict:
-    """Run a simple grid/random search over hyper-parameters."""
-    candidates = [
-        {
-            "learning_rate": learning_rate,
-            "hidden_dim": hidden_dim,
-            "hidden_dim2": hidden_dim2,
-            "weight_decay": weight_decay,
-            "lr_decay": lr_decay,
-            "grad_clip": grad_clip,
-            "activation": activation,
-        }
-        for learning_rate in config.learning_rates
-        for hidden_dim in config.hidden_dims
-        for hidden_dim2 in config.hidden_dims2
-        for weight_decay in config.weight_decays
-        for lr_decay in config.lr_decays
-        for grad_clip in config.grad_clips
-        for activation in config.activations
-    ]
-    if config.strategy == "random":
-        rng = np.random.default_rng(config.train_config.seed)
-        rng.shuffle(candidates)
-    candidates = candidates[: config.max_trials]
+    """执行带确定性采样的网格超参数搜索。"""
+    candidates = build_search_candidates(config)
 
     search_dir = config.train_config.output_dir / "search" / datetime.now().strftime("%Y%m%d_%H%M%S")
     search_dir.mkdir(parents=True, exist_ok=True)
@@ -291,15 +269,71 @@ def run_search(config: SearchConfig) -> dict:
     (search_dir / "results.json").write_text(json.dumps(rows, ensure_ascii=False, indent=2), encoding="utf-8")
     if best_row is not None:
         (search_dir / "best_result.json").write_text(json.dumps(best_row, ensure_ascii=False, indent=2), encoding="utf-8")
-        top_trials = sorted(rows, key=lambda item: item["best_val_accuracy"], reverse=True)[:5]
-        best_run_dir = Path(best_row["run_dir"])
-        best_summary = json.loads((best_run_dir / "summary.json").read_text(encoding="utf-8"))
-        build_report(best_run_dir=best_run_dir, best_summary=best_summary, search_dir=search_dir, top_trials=top_trials)
     return {
         "search_dir": str(search_dir),
         "results": rows,
         "best_result": best_row,
     }
+
+
+def build_search_candidates(config: SearchConfig) -> list[dict]:
+    """构造一个能覆盖整体搜索空间的确定性候选子集。"""
+    all_candidates = [
+        {
+            "learning_rate": learning_rate,
+            "hidden_dim": hidden_dim,
+            "hidden_dim2": hidden_dim2,
+            "weight_decay": weight_decay,
+            "lr_decay": lr_decay,
+            "grad_clip": grad_clip,
+            "activation": activation,
+        }
+        for learning_rate, hidden_dim, hidden_dim2, weight_decay, lr_decay, grad_clip, activation in product(
+            config.learning_rates,
+            config.hidden_dims,
+            config.hidden_dims2,
+            config.weight_decays,
+            config.lr_decays,
+            config.grad_clips,
+            config.activations,
+        )
+    ]
+    if config.max_trials >= len(all_candidates):
+        return all_candidates
+
+    rng = np.random.default_rng(config.train_config.seed)
+    shuffled_indices = rng.permutation(len(all_candidates))
+    shuffled_candidates = [all_candidates[int(index)] for index in shuffled_indices]
+
+    selected: list[dict] = []
+    seen: set[tuple] = set()
+
+    def add_candidate(candidate: dict) -> bool:
+        if len(selected) >= config.max_trials:
+            return False
+        key = tuple(candidate.items())
+        if key in seen:
+            return False
+        selected.append(candidate)
+        seen.add(key)
+        return True
+
+    def cover_dimension(key: str, values: tuple) -> None:
+        for value in values:
+            for candidate in shuffled_candidates:
+                if candidate[key] == value and add_candidate(candidate):
+                    break
+
+    # 先保证作业里最关键的三类超参数在候选集合里都有覆盖。
+    cover_dimension("learning_rate", config.learning_rates)
+    cover_dimension("hidden_dim", config.hidden_dims)
+    cover_dimension("hidden_dim2", config.hidden_dims2)
+
+    for candidate in shuffled_candidates:
+        add_candidate(candidate)
+        if len(selected) >= config.max_trials:
+            break
+    return selected
 
 
 def evaluate_split(
@@ -310,8 +344,9 @@ def evaluate_split(
     batch_size: int,
     return_predictions: bool = False,
 ) -> dict:
-    """Evaluate a split in mini-batches."""
-    losses: list[float] = []
+    """按小批量方式评估一个数据划分。"""
+    total_loss = 0.0
+    total_samples = 0
     predictions: list[np.ndarray] = []
     targets: list[np.ndarray] = []
     for batch_images, batch_labels in iterate_minibatches(
@@ -324,7 +359,9 @@ def evaluate_split(
         features = normalize_images(batch_images, mean, std)
         batch_x = model.xp.asarray(features)
         batch_y = model.xp.asarray(batch_labels)
-        losses.append(model.compute_loss(batch_x, batch_y))
+        batch_size_actual = int(batch_labels.shape[0])
+        total_loss += float(model.compute_loss(batch_x, batch_y)) * batch_size_actual
+        total_samples += batch_size_actual
         preds = to_numpy(model.predict(batch_x))
         predictions.append(preds.astype(np.int64))
         targets.append(batch_labels.astype(np.int64))
@@ -332,7 +369,7 @@ def evaluate_split(
     y_pred = np.concatenate(predictions)
     y_true = np.concatenate(targets)
     result = {
-        "loss": float(np.mean(losses)),
+        "loss": total_loss / max(total_samples, 1),
         "accuracy": accuracy_score(y_true, y_pred),
     }
     if return_predictions:

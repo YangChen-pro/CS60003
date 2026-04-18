@@ -1,4 +1,4 @@
-"""Visualization helpers for curves and error analysis."""
+"""用于曲线与错误分析的可视化工具。"""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 
 def plot_training_curves(history: dict, output_path: Path) -> None:
-    """Plot train/val loss and val accuracy curves."""
+    """绘制训练/验证损失与验证准确率曲线。"""
     epochs = history["epoch"]
     fig, axes = plt.subplots(1, 3, figsize=(15, 4))
     axes[0].plot(epochs, history["train_loss"], label="train")
@@ -38,7 +38,7 @@ def plot_training_curves(history: dict, output_path: Path) -> None:
 
 
 def plot_confusion_matrix(matrix: np.ndarray, class_names: list[str], output_path: Path) -> None:
-    """Draw a confusion matrix heatmap."""
+    """绘制混淆矩阵热力图。"""
     fig, ax = plt.subplots(figsize=(8, 7))
     image = ax.imshow(matrix, cmap="Blues")
     fig.colorbar(image, ax=ax, fraction=0.046, pad=0.04)
@@ -66,7 +66,7 @@ def plot_first_layer_weights(
     output_path: Path,
     max_filters: int = 16,
 ) -> None:
-    """Visualize the first-layer weights as RGB image patterns."""
+    """将第一层权重可视化为 RGB 图像模式。"""
     count = min(max_filters, weights.shape[1])
     cols = 4
     rows = int(np.ceil(count / cols))
@@ -96,7 +96,7 @@ def plot_misclassified_examples(
     output_path: Path,
     max_examples: int = 12,
 ) -> None:
-    """Save a grid of misclassified test examples."""
+    """保存一组测试集误分类样本的网格图。"""
     wrong_indices = np.where(y_true != y_pred)[0][:max_examples]
     if wrong_indices.size == 0:
         return

@@ -32,8 +32,8 @@
   "val_samples": 4050,
   "test_samples": 4050,
   "config": {
-    "data_dir": "/data/yc/CS60003/hw1/EuroSAT_RGB",
-    "output_dir": "/data/yc/CS60003/hw1/outputs",
+    "data_dir": "EuroSAT_RGB",
+    "output_dir": "outputs",
     "seed": 42,
     "hidden_dim": 1280,
     "hidden_dim2": 768,
