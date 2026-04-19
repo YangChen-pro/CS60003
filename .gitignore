@@ -4,10 +4,12 @@ __pycache__/
 hw1/outputs/*
 !hw1/outputs/runs/
 hw1/outputs/runs/*
+!hw1/outputs/runs/manifest.csv
 !hw1/outputs/runs/final_a/
 hw1/outputs/runs/final_a/*
 !hw1/outputs/runs/final_a/confusion_matrix.json
 !hw1/outputs/runs/final_a/confusion_matrix.png
+!hw1/outputs/runs/final_a/config.json
 !hw1/outputs/runs/final_a/first_layer_weights.png
 !hw1/outputs/runs/final_a/history.json
 !hw1/outputs/runs/final_a/misclassified_examples.png
@@ -17,6 +19,7 @@ hw1/outputs/runs/final_a/*
 hw1/outputs/runs/final_p/*
 !hw1/outputs/runs/final_p/confusion_matrix.json
 !hw1/outputs/runs/final_p/confusion_matrix.png
+!hw1/outputs/runs/final_p/config.json
 !hw1/outputs/runs/final_p/first_layer_weights.png
 !hw1/outputs/runs/final_p/history.json
 !hw1/outputs/runs/final_p/misclassified_examples.png
@@ -24,11 +27,13 @@ hw1/outputs/runs/final_p/*
 !hw1/outputs/runs/final_p/training_curves.png
 
 hw1/release/
+hw1/model_weights/
 
 !hw1/outputs/runs/final_k/
 hw1/outputs/runs/final_k/*
 !hw1/outputs/runs/final_k/confusion_matrix.json
 !hw1/outputs/runs/final_k/confusion_matrix.png
+!hw1/outputs/runs/final_k/config.json
 !hw1/outputs/runs/final_k/first_layer_weights.png
 !hw1/outputs/runs/final_k/history.json
 !hw1/outputs/runs/final_k/misclassified_examples.png
@@ -38,6 +43,7 @@ hw1/outputs/runs/final_k/*
 hw1/outputs/runs/final_l/*
 !hw1/outputs/runs/final_l/confusion_matrix.json
 !hw1/outputs/runs/final_l/confusion_matrix.png
+!hw1/outputs/runs/final_l/config.json
 !hw1/outputs/runs/final_l/first_layer_weights.png
 !hw1/outputs/runs/final_l/history.json
 !hw1/outputs/runs/final_l/misclassified_examples.png
@@ -47,6 +53,7 @@ hw1/outputs/runs/final_l/*
 hw1/outputs/runs/final_n/*
 !hw1/outputs/runs/final_n/confusion_matrix.json
 !hw1/outputs/runs/final_n/confusion_matrix.png
+!hw1/outputs/runs/final_n/config.json
 !hw1/outputs/runs/final_n/first_layer_weights.png
 !hw1/outputs/runs/final_n/history.json
 !hw1/outputs/runs/final_n/misclassified_examples.png
@@ -55,6 +62,7 @@ hw1/outputs/runs/final_n/*
 !hw1/outputs/runs/final_o/
 !hw1/outputs/runs/final_o/confusion_matrix.json
 !hw1/outputs/runs/final_o/confusion_matrix.png
+!hw1/outputs/runs/final_o/config.json
 !hw1/outputs/runs/final_o/first_layer_weights.png
 !hw1/outputs/runs/final_o/history.json
 !hw1/outputs/runs/final_o/misclassified_examples.png
@@ -68,3 +76,9 @@ hw1/outputs/search/20260409_100323/*
 !hw1/outputs/search/20260409_100536/
 hw1/outputs/search/20260409_100536/*
 !hw1/outputs/search/20260409_100536/search_config.json
+!hw1/outputs/search/20260419_045438/
+hw1/outputs/search/20260419_045438/*
+!hw1/outputs/search/20260419_045438/search_config.json
+!hw1/outputs/search/20260419_045438/results.csv
+!hw1/outputs/search/20260419_045438/results.json
+!hw1/outputs/search/20260419_045438/best_result.json

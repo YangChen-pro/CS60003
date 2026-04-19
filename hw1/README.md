@@ -18,6 +18,7 @@ hw1/
 ├── train.py                  # 训练入口
 ├── evaluate.py               # 测试集评估入口
 ├── search.py                 # 超参数搜索入口
+├── download_weights.py       # ModelScope 权重下载与 SHA256 校验
 ├── tests/
 │   └── test_core.py          # 不依赖数据集的基础单元测试
 └── requirements.txt
@@ -25,7 +26,7 @@ hw1/
 
 ## 环境依赖
 
-基础依赖写在 `requirements.txt` 中，其中包含已在远端 GPU 环境验证的 `cupy-cuda13x==14.0.1`：
+基础依赖写在 `requirements.txt` 中，其中包含已在远端 GPU 环境验证的 `cupy-cuda13x==14.0.1`，以及用于下载和校验 ModelScope 权重的 `modelscope`：
 
 ```bash
 python -m pip install -r "hw1/requirements.txt"
@@ -39,13 +40,21 @@ python -m pip install -r "hw1/requirements.txt"
 - CuPy：`cupy-cuda13x==14.0.1`
 - GPU：`NVIDIA GeForce RTX 3090`
 - 代码目录：`/data/yc/CS60003`
-- 已验证仓库形态：该目录本身是一个 git 工作树
+- 已验证解释器：`/data/yc/miniconda/envs/llm-26-gpu/bin/python`
+
+在 135 上建议显式使用该解释器，避免误用系统默认 Python：
+
+```bash
+cd "/data/yc/CS60003"
+PY="/data/yc/miniconda/envs/llm-26-gpu/bin/python"
+"$PY" -X utf8 -c "import cupy; print(cupy.__version__)"
+```
 
 如需执行最小规模验证，可运行：
 
 ```bash
-python -X utf8 "hw1/train.py" --preset quick
-python -X utf8 -m unittest discover -s "hw1/tests"
+"$PY" -X utf8 "hw1/train.py" --preset quick
+"$PY" -X utf8 -m unittest discover -s "hw1/tests"
 ```
 
 ## 仓库与权重
@@ -61,18 +70,25 @@ python -X utf8 -m unittest discover -s "hw1/tests"
 - `hw1/outputs/runs/final_n/`
 - `hw1/outputs/runs/final_p/`
 - `hw1/outputs/runs/final_o/`
+- `hw1/outputs/runs/manifest.csv`
 - `hw1/outputs/search/20260409_100323/search_config.json`
 - `hw1/outputs/search/20260409_100536/search_config.json`
+- `hw1/outputs/search/20260419_045438/search_config.json`
+- `hw1/outputs/search/20260419_045438/results.csv`
+- `hw1/outputs/search/20260419_045438/results.json`
+- `hw1/outputs/search/20260419_045438/best_result.json`
 
-其中 `final_a`、`final_p` 和 `final_o` 是报告正文直接分析的核心实验；`final_k`、`final_l`、`final_n` 是围绕同一组隐藏层宽度与优化参数补跑的邻域实验，用于补强选模证据。两份 `search_config.json` 是历史搜索配置快照，只用于保留搜索来源记录，不代表仓库中保留了完整 trial 级搜索结果。
+其中 `final_a`、`final_p` 和 `final_o` 是报告正文直接分析的核心实验；`final_k`、`final_l`、`final_n` 是围绕同一组隐藏层宽度与优化参数补跑的邻域实验，用于补强选模证据。`manifest.csv` 汇总了 135 上保留过摘要文件的全部历史 run，用于避免只展示局部实验造成的选择性呈现。`20260409_100323` 与 `20260409_100536` 下的两份 `search_config.json` 是历史搜索配置快照，只用于保留搜索来源记录。
+
+当前代码版本下重新执行的 `24` 组 full search 结果保留在 `hw1/outputs/search/20260419_045438/`。其中 `results.csv` 与 `results.json` 记录每个 trial 的超参数和验证/测试准确率，`best_result.json` 记录该次抽样搜索中的最优 trial。该最优 trial 使用 `1280 -> 768` 的隐藏层宽度、`learning_rate=0.012`、`weight_decay=0.0002`、`lr_decay=0.01`、`grad_clip=3.0` 和 `relu`，验证集准确率为 68.37%。后续邻域补跑在同一主配置附近加入 dropout 与轮数调整，最终得到验证集更高的 `final_p`。
 
 实验列表：
 
 | 实验 | 训练入口 | 验证集准确率 | 测试集准确率 | 说明 |
 | --- | --- | --- | --- | --- |
-| `final_a` | `python -X utf8 "hw1/train.py" --preset final_a` | 68.49% | 66.69% | 不加 dropout 的对照组 |
-| `final_p` | `python -X utf8 "hw1/train.py" --preset final_p` | 69.01% | 67.58% | 正式提交模型 |
-| `final_o` | `python -X utf8 "hw1/train.py" --preset final_o` | 68.77% | 68.10% | 扩展实验，测试集准确率高于 `final_p`，验证集准确率低于 `final_p` |
+| `final_a` | `"$PY" -X utf8 "hw1/train.py" --preset final_a` | 68.49% | 66.69% | 不加 dropout 的对照组 |
+| `final_p` | `"$PY" -X utf8 "hw1/train.py" --preset final_p` | 69.01% | 67.58% | 正式提交模型 |
+| `final_o` | `"$PY" -X utf8 "hw1/train.py" --preset final_o` | 68.77% | 68.10% | 扩展实验，测试集准确率高于 `final_p`，验证集准确率低于 `final_p` |
 
 此外，仓库还保留了 3 组邻域补跑产物，用于说明正式模型并不是只在 `final_a / final_p / final_o` 这 3 个点之间做选择：
 
@@ -82,16 +98,16 @@ python -X utf8 -m unittest discover -s "hw1/tests"
 | `final_l` | 68.86% | 67.14% | `dropout=0.15`，`epochs=40` |
 | `final_n` | 68.44% | 66.84% | `dropout=0.12`，`epochs=42` |
 
-`final_k`、`final_l`、`final_n` 现在也已作为命名 preset 保留在 `train.py` 中；如需复核其配置，既可以直接运行对应 preset，也可以对照各自 `summary.json` 中的 `config` 字段。
+`final_a`、`final_k`、`final_l`、`final_n`、`final_p`、`final_o` 现在都保留了 `config.json` 与 `summary.json`。如需复核配置，既可以直接运行对应 preset，也可以对照对应目录下的配置和摘要文件。
 
 ## 运行方式
 
-下面的命令默认在仓库根目录执行。
+下面的命令默认在仓库根目录执行。正式训练、搜索和评估默认使用上一节定义的远端解释器变量 `$PY`；如只在本机运行单元测试，可使用文末给出的 `conda run -n nlp ...` 命令。
 
 ### 1. 快速检查
 
 ```bash
-python -X utf8 "hw1/train.py" --preset quick
+"$PY" -X utf8 "hw1/train.py" --preset quick
 ```
 
 `quick` 预设使用 `limit_per_class=120` 并训练 `2` 个 epoch，用于验证训练、评估和输出流程是否可正常执行。
@@ -99,21 +115,21 @@ python -X utf8 "hw1/train.py" --preset quick
 ### 2. 训练正式模型
 
 ```bash
-python -X utf8 "hw1/train.py" --preset best
+"$PY" -X utf8 "hw1/train.py" --preset best
 ```
 
 如需运行默认训练配置，可执行：
 
 ```bash
-python -X utf8 "hw1/train.py" --preset default
+"$PY" -X utf8 "hw1/train.py" --preset default
 ```
 
 如需复现报告中列出的 3 组实验，请保持对应 preset、默认数据划分比例以及随机种子 `42` 不变：
 
 ```bash
-python -X utf8 "hw1/train.py" --preset final_a
-python -X utf8 "hw1/train.py" --preset final_p
-python -X utf8 "hw1/train.py" --preset final_o
+"$PY" -X utf8 "hw1/train.py" --preset final_a
+"$PY" -X utf8 "hw1/train.py" --preset final_p
+"$PY" -X utf8 "hw1/train.py" --preset final_o
 ```
 
 这 3 条命令会分别将结果输出到：
@@ -127,31 +143,44 @@ python -X utf8 "hw1/train.py" --preset final_o
 如需复核报告中用于补强选模证据的邻域实验，也可以直接运行：
 
 ```bash
-python -X utf8 "hw1/train.py" --preset final_k
-python -X utf8 "hw1/train.py" --preset final_l
-python -X utf8 "hw1/train.py" --preset final_n
+"$PY" -X utf8 "hw1/train.py" --preset final_k
+"$PY" -X utf8 "hw1/train.py" --preset final_l
+"$PY" -X utf8 "hw1/train.py" --preset final_n
 ```
 
 ### 3. 超参数搜索
 
 ```bash
-python -X utf8 "hw1/search.py" --preset quick --max-trials 4
+"$PY" -X utf8 "hw1/search.py" --preset quick --max-trials 4
 ```
 
 如需在完整数据上重新执行一次 24 组组合的抽样网格搜索，可运行：
 
 ```bash
-python -X utf8 "hw1/search.py" --preset full --max-trials 24
+"$PY" -X utf8 "hw1/search.py" --preset full --max-trials 24
 ```
 
 `full` 表示在完整数据上执行一次包含 `24` 组组合的抽样网格搜索，而不是穷举全部组合；抽样过程使用固定随机种子，并优先覆盖学习率、两层隐藏层宽度和权重衰减这几类核心超参数。
 
-运行后会在 `hw1/outputs/search/...` 下保存搜索结果。当前仓库只保留了 `20260409_100323` 与 `20260409_100536` 两份历史 `search_config.json` 配置快照，用于说明不同阶段的搜索 provenance；完整 trial 级搜索结果文件未随仓库保留，需要时应按当前代码重新生成。
+运行后会在 `hw1/outputs/search/...` 下保存搜索结果。当前仓库保留了 `20260419_045438` 这次完整 `24` trial 搜索的 `results.csv`、`results.json` 和 `best_result.json`，同时保留 `20260409_100323` 与 `20260409_100536` 两份历史 `search_config.json` 配置快照。为补充历史选模证据，`hw1/outputs/runs/manifest.csv` 已列出 135 上保留摘要的全部历史 run，并显示 `final_p` 是其中验证集准确率最高的模型。
 
-### 4. 评估已上传模型
+### 4. 下载并校验已上传权重
 
 ```bash
-python -X utf8 "hw1/evaluate.py" --preset best --checkpoint "/path/to/final_p/best_model.npz"
+"$PY" -X utf8 "hw1/download_weights.py" "hw1/model_weights"
+```
+
+该命令只下载 ModelScope 仓库中的两个权重文件，并自动校验 SHA256。ModelScope 仓库中的固定文件路径和下载后的本地路径如下：
+
+| ModelScope 路径 | 下载后本地路径 | SHA256 |
+| --- | --- | --- |
+| `final_p/best_model.npz` | `hw1/model_weights/final_p/best_model.npz` | `1d33521419a060a4670b86be58926522c5febffc5a64a1d63ec2d30793325d2a` |
+| `final_o/best_model.npz` | `hw1/model_weights/final_o/best_model.npz` | `e1295599ece6be23a20016c110dbca63359ebc82cb715d7db4a154b30b2457f5` |
+
+### 5. 评估已上传模型
+
+```bash
+"$PY" -X utf8 "hw1/evaluate.py" --preset best --checkpoint "hw1/model_weights/final_p/best_model.npz"
 ```
 
 将下载后的权重路径传给 `--checkpoint`。在 ModelScope 仓库中，正式提交模型对应 `final_p/best_model.npz`，扩展实验对应 `final_o/best_model.npz`。
@@ -173,7 +202,7 @@ python -X utf8 "hw1/evaluate.py" --preset best --checkpoint "/path/to/final_p/be
 不依赖真实数据集的基础回归测试：
 
 ```bash
-python -X utf8 -m unittest discover -s "hw1/tests"
+conda run -n nlp python -X utf8 -m unittest discover -s "hw1/tests"
 ```
 
 ## 备注
