@@ -78,9 +78,9 @@ PY="/data/yc/miniconda/envs/llm-26-gpu/bin/python"
 - `hw1/outputs/search/20260419_045438/results.json`
 - `hw1/outputs/search/20260419_045438/best_result.json`
 
-其中 `final_a`、`final_p` 和 `final_o` 是报告正文直接分析的核心实验；`final_k`、`final_l`、`final_n` 是围绕同一组隐藏层宽度与优化参数补跑的邻域实验，用于补强选模证据。`manifest.csv` 汇总了 135 上保留过摘要文件的全部历史 run，用于避免只展示局部实验造成的选择性呈现。`20260409_100323` 与 `20260409_100536` 下的两份 `search_config.json` 是历史搜索配置快照，只用于保留搜索来源记录。
+其中 `final_a`、`final_p` 和 `final_o` 是报告正文直接分析的核心实验；`final_k`、`final_l`、`final_n` 是围绕同一组隐藏层宽度与优化参数补跑的邻域实验，用于补强选模证据。`manifest.csv` 现在按“历史实验台账”整理，新增了 `source_group` 与 `tracked_in_repo` 两列：前者区分实验来源，后者标明该条记录是否在当前仓库中保留了可直接点击核验的产物。`20260409_100323` 与 `20260409_100536` 下的两份 `search_config.json` 是历史搜索配置快照，只用于保留搜索来源记录。
 
-当前代码版本下重新执行的 `24` 组 full search 结果保留在 `hw1/outputs/search/20260419_045438/`。其中 `results.csv` 与 `results.json` 记录每个 trial 的超参数和验证/测试准确率，`best_result.json` 记录该次抽样搜索中的最优 trial。该最优 trial 使用 `1280 -> 768` 的隐藏层宽度、`learning_rate=0.012`、`weight_decay=0.0002`、`lr_decay=0.01`、`grad_clip=3.0` 和 `relu`，验证集准确率为 68.37%。后续邻域补跑在同一主配置附近加入 dropout 与轮数调整，最终得到验证集更高的 `final_p`。
+当前代码版本下重新执行的 `24` 组 full search 结果保留在 `hw1/outputs/search/20260419_045438/`。其中 `results.csv` 与 `results.json` 记录每个 trial 的超参数和验证/测试准确率，`best_result.json` 记录该次抽样搜索中的最优 trial。该最优 trial 使用 `1280 -> 768` 的隐藏层宽度、`learning_rate=0.012`、`weight_decay=0.0002`、`lr_decay=0.01`、`grad_clip=3.0` 和 `relu`，验证集准确率为 68.37%。为闭合这一条证据链，仓库额外保留了对应的 `hw1/outputs/runs/trial_04/config.json`、`history.json`、`summary.json` 和 `confusion_matrix.json`；这组文件与 `best_result.json`、`results.csv` 中的 `trial=4` 完全对应。后续邻域补跑在同一主配置附近加入 dropout 与轮数调整，最终得到验证集更高的 `final_p`。
 
 实验列表：
 
@@ -162,7 +162,7 @@ PY="/data/yc/miniconda/envs/llm-26-gpu/bin/python"
 
 `full` 表示在完整数据上执行一次包含 `24` 组组合的抽样网格搜索，而不是穷举全部组合；抽样过程使用固定随机种子，并优先覆盖学习率、两层隐藏层宽度和权重衰减这几类核心超参数。
 
-运行后会在 `hw1/outputs/search/...` 下保存搜索结果。当前仓库保留了 `20260419_045438` 这次完整 `24` trial 搜索的 `results.csv`、`results.json` 和 `best_result.json`，同时保留 `20260409_100323` 与 `20260409_100536` 两份历史 `search_config.json` 配置快照。为补充历史选模证据，`hw1/outputs/runs/manifest.csv` 已列出 135 上保留摘要的全部历史 run，并显示 `final_p` 是其中验证集准确率最高的模型。
+运行后会在 `hw1/outputs/search/...` 下保存搜索结果。当前仓库保留了 `20260419_045438` 这次完整 `24` trial 搜索的 `results.csv`、`results.json` 和 `best_result.json`，同时保留 `20260409_100323` 与 `20260409_100536` 两份历史 `search_config.json` 配置快照。当前 full search 的主证据应以这三个结果文件为准；为便于直接核验最优 trial，仓库另外保留了 `hw1/outputs/runs/trial_04/` 下的 4 个 JSON 文件。`hw1/outputs/runs/manifest.csv` 只作为历史实验台账使用：其中 `source_group=full_search_20260419_045438` 的 `trial_04` 与本次 full search 一一对应，`archive_trial_*` 则是早期搜索留档别名，不能与当前 full search 的同名 trial 直接视为同一个 run。
 
 ### 4. 下载并校验已上传权重
 
