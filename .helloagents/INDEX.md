@@ -15,13 +15,13 @@
 
 | 模块 | 关键词 | 摘要 |
 |------|--------|------|
-| hw1 | EuroSAT, MLP, CuPy, 135-3090-8, llm-26-gpu, final_p, final_o | 记录 HW1 的默认远端执行环境、后端选择与最新性能结论。 |
+| hw1 | EuroSAT, MLP, CuPy, 135-3090-8, llm-26-gpu, final_p, final_o, trial_04, manifest, A+ | 记录 HW1 的默认远端执行环境、最终提交流程、证据链与最新性能结论。 |
 
 ## 知识库状态
 
 ```yaml
 kb_version: unknown
-最后更新: 2026-04-09 11:15
+最后更新: 2026-04-19 15:05
 模块数量: 1
 待执行方案: 0
 ```
@@ -33,6 +33,7 @@ kb_version: unknown
   1. 先读取 context.md
   2. 再读取 modules/hw1.md
   3. 默认优先使用远端 ssh 135-3090-8 的 llm-26-gpu 环境
+  4. 最终提交时仅以 GitHub 链接和最终 PDF 报告为准
 
 涉及其他任务:
   - 先读取 context.md 获取项目上下文

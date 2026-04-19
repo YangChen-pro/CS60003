@@ -2,7 +2,7 @@
 
 主线目标：收口 HW1 的最终提交版本，使代码、README、输出证据与 PDF 报告完全一致，并达到 A+ 水准。
 
-正在做什么：已补齐 full search 最优 trial 的轻量证据链，README、manifest 与 PDF 报告已同步修订；严格复现复审已给出 A+。
+正在做什么：知识库已同步到 HW1 最终提交状态，当前准备提交并推送本轮 KB 更新；严格复现复审已给出 A+。
 
 关键上下文：
 - 主实现使用手写反向传播，`CuPy` 仅作为数组后端
@@ -12,7 +12,7 @@
 - 当前 full search 主证据为 `hw1/outputs/search/20260419_045438/results.csv`、`results.json` 与 `best_result.json`
 - 为闭合证据链，`hw1/outputs/runs/trial_04/` 已保留 `config.json`、`history.json`、`summary.json` 与 `confusion_matrix.json`
 - `hw1/outputs/runs/manifest.csv` 是历史实验台账，`source_group` 区分实验来源，`tracked_in_repo` 标明是否保留可直接核验产物
-- 本机与 135 已同步到提交 `9d8987ae4`；本机测试命令此前通过：`conda run -n nlp python -X utf8 -m unittest discover -s "hw1/tests"`
+- 本机当前提交为 `a9e4fc09a`，推送后会同步到 GitHub 与 135；本机测试命令此前通过：`conda run -n nlp python -X utf8 -m unittest discover -s "hw1/tests"`
 - 最终报告 PDF 位于 `/Users/yangchen/Documents/Latex_Project/CS60003_HW1_Report/out/elegantpaper-cn.pdf`
 
 下一步：如需最终提交，提交 GitHub 链接 `https://github.com/YangChen-pro/CS60003` 与最终报告 PDF。

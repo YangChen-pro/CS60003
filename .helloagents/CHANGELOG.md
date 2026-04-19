@@ -3,6 +3,11 @@
 ## [Unreleased]
 
 ### 快速修改
+- **[kb]**: 同步 HW1 的最终提交状态到知识库，补齐 full search 最优 trial 证据链、最终提交口径和 A+ 复审结论 — by YangChen-pro
+  - 类型: 知识库同步
+  - 文件: .helloagents/context.md, .helloagents/INDEX.md, .helloagents/modules/_index.md, .helloagents/modules/hw1.md, .helloagents/CHANGELOG.md, .helloagents/STATE.md
+
+### 历史记录
 - **[hw1]**: 初始化项目知识库，并记录 HW1 的默认远端执行环境与 CuPy 方案选择 — by YangChen-pro
   - 类型: 快速修改（无方案包）
   - 文件: .helloagents/INDEX.md:1-35, .helloagents/context.md:1-55, .helloagents/modules/_index.md:1-18, .helloagents/modules/hw1.md:1-54, .helloagents/CHANGELOG.md:1-8
