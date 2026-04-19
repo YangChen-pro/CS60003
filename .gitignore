@@ -9,14 +9,8 @@ hw1/release/
 
 # 数据缓存和模型权重文件体积较大，不进入 Git
 hw1/outputs/cache/
-hw1/outputs/runs/*/best_model.npz
 
-# 临时训练与搜索产物
-hw1/outputs/runs/trial_*/
-hw1/outputs/runs/quick/
-hw1/outputs/runs/default/
-hw1/outputs/runs/[0-9]*_*/
-
-# 评估脚本可能在权重目录旁生成的临时文件
-hw1/outputs/runs/*/evaluation_summary.json
-hw1/outputs/runs/*/evaluation_confusion_matrix.png
+# 新生成的实验与搜索目录默认不进入 Git。
+# 已经纳入 Git 的证据文件仍会继续被跟踪。
+hw1/outputs/runs/*/
+hw1/outputs/search/*/
