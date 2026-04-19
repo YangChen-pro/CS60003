@@ -12,7 +12,7 @@
 - 当前 full search 主证据为 `hw1/outputs/search/20260419_045438/results.csv`、`results.json` 与 `best_result.json`
 - 为闭合证据链，`hw1/outputs/runs/trial_04/` 已保留 `config.json`、`history.json`、`summary.json` 与 `confusion_matrix.json`
 - `hw1/outputs/runs/manifest.csv` 是历史实验台账，`source_group` 区分实验来源，`tracked_in_repo` 标明是否保留可直接核验产物
-- 本机、GitHub 与 135 当前同步到提交 `790ef40d7`；本机测试命令此前通过：`conda run -n nlp python -X utf8 -m unittest discover -s "hw1/tests"`
+- 本机、GitHub 与 135 已同步到当前 `main` 最新提交；本机测试命令此前通过：`conda run -n nlp python -X utf8 -m unittest discover -s "hw1/tests"`
 - 最终报告 PDF 位于 `/Users/yangchen/Documents/Latex_Project/CS60003_HW1_Report/out/elegantpaper-cn.pdf`
 
 下一步：如需最终提交，提交 GitHub 链接 `https://github.com/YangChen-pro/CS60003` 与最终报告 PDF。
