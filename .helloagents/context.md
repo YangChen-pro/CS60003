@@ -95,7 +95,7 @@ HW2 数据集:
   Flowers102: hw2/Flowers102/
   RoadVehicleImages: hw2/RoadVehicleImages/
   StanfordBackground: hw2/StanfordBackground/
-  数据说明: hw2/DATASETS.md
+  数据说明: .helloagents/modules/hw2.md
 GitHub 仓库: https://github.com/YangChen-pro/CS60003
 最终报告 PDF: /Users/yangchen/Documents/Latex_Project/CS60003_HW1_Report/out/elegantpaper-cn.pdf
 README 状态: 已与最终代码、输出证据和报告对齐

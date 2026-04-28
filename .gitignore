@@ -14,5 +14,3 @@ hw1/outputs/cache/
 # 已经纳入 Git 的证据文件仍会继续被跟踪。
 hw1/outputs/runs/*/
 hw1/outputs/search/*/
-
-hw2/DATASETS.md

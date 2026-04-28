@@ -3,6 +3,14 @@
 ## [Unreleased]
 
 ### 快速修改
+- **[hw2]**: 删除已同步到知识库的 `hw2/DATASETS.md` 原始说明文件，并移除对应 `.gitignore` 规则 — by YangChen-pro
+  - 类型: 文档收口
+  - 文件: hw2/DATASETS.md, .gitignore, .helloagents/context.md, .helloagents/modules/hw2.md, .helloagents/STATE.md, .helloagents/CHANGELOG.md
+
+- **[hw2]**: 将 `hw2/DATASETS.md` 中的数据集说明同步到 HW2 知识库模块 — by YangChen-pro
+  - 类型: 知识库同步
+  - 文件: .helloagents/modules/hw2.md, .helloagents/CHANGELOG.md
+
 - **[hw2]**: 下载并整理期中作业所需的 Flowers102、Road Vehicle Images 与 Stanford Background 数据集，补充本地数据说明与忽略规则 — by YangChen-pro
   - 类型: 数据集准备
   - 文件: hw2/Flowers102/, hw2/RoadVehicleImages/, hw2/StanfordBackground/, hw2/DATASETS.md, .gitignore, .helloagents/context.md, .helloagents/modules/_index.md, .helloagents/modules/hw2.md, .helloagents/CHANGELOG.md, .helloagents/STATE.md

@@ -12,10 +12,10 @@
   - `hw2/RoadVehicleImages/`：Kaggle Road Vehicle Images Dataset，含 `trafic_data/train/`、`trafic_data/valid/`
   - `hw2/StanfordBackground/`：Stanford Background Dataset，含 `iccv09Data/images/`、`iccv09Data/labels/`
 - Road Vehicle 原始 `data_1.yaml` 路径可能不适合当前目录层级，已生成本地配置 `hw2/RoadVehicleImages/trafic_data/data_hw2.yaml`
-- 数据说明已写入 `hw2/DATASETS.md`
+- 数据说明已同步到 `.helloagents/modules/hw2.md`，原始 `hw2/DATASETS.md` 已删除
 - 用户已确认删除 HW2 数据集目录的 `.gitignore` 规则；数据集可被 Git 发现，但会显著增大仓库体积。
 
-下一步：后续进入 HW2 实现阶段时，先基于 `hw2/DATASETS.md` 读取数据位置；任务 2 仍需准备 10–30 秒测试视频。
+下一步：后续进入 HW2 实现阶段时，先基于 `.helloagents/modules/hw2.md` 读取数据位置；任务 2 仍需准备 10–30 秒测试视频。
 
 阻塞项：
 - 无
