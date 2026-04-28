@@ -4,9 +4,9 @@
 
 ```yaml
 名称: CS60003
-描述: 课程作业工作区，当前重点是 HW1 的 EuroSAT 三层 MLP 分类任务
+描述: 课程作业工作区，HW1 已完成，当前开始准备 HW2 期中作业数据集
 类型: 课程作业仓库
-状态: HW1 已完成并达到最终提交状态
+状态: HW1 已完成并达到最终提交状态；HW2 数据集已下载到本地
 ```
 
 ## 2. 技术上下文
@@ -29,6 +29,7 @@
 ### 核心功能
 - 完成 HW1：在 EuroSAT 上手写三层 MLP 分类器
 - 在满足作业要求前提下使用远端 CuPy 作为唯一训练后端
+- 为 HW2 期中作业准备 Flowers102、Road Vehicle Images、Stanford Background 三个数据集
 - 保留 README、实验输出、报告 PDF 与知识库之间的一致证据链
 - 记录训练环境、后端决策与性能结论，便于后续直接复用
 
@@ -90,6 +91,11 @@
 ## 6. 当前交付状态
 
 ```yaml
+HW2 数据集:
+  Flowers102: hw2/Flowers102/
+  RoadVehicleImages: hw2/RoadVehicleImages/
+  StanfordBackground: hw2/StanfordBackground/
+  数据说明: hw2/DATASETS.md
 GitHub 仓库: https://github.com/YangChen-pro/CS60003
 最终报告 PDF: /Users/yangchen/Documents/Latex_Project/CS60003_HW1_Report/out/elegantpaper-cn.pdf
 README 状态: 已与最终代码、输出证据和报告对齐
