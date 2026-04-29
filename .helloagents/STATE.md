@@ -2,7 +2,7 @@
 
 主线目标：HW2 Task1 Flowers102 冲分优化已完成，最佳 `test_acc=0.9608`。
 
-正在做什么：Task1 SwanLab 实验记录已补齐，远程 135 已完成历史正式实验回放上传。
+正在做什么：ModelScope 权重目录迁移和 HW1 报告源文件引用更新已完成；等待按需重新编译 HW1 PDF 或继续 HW2。
 
 关键上下文：
 - 题面文件：`hw2/hw2.md`
@@ -25,8 +25,9 @@
 - SwanLab 上传结果：项目 <https://swanlab.cn/@youngchen/cs60003-hw2-task1>，13 个正式实验修正版回放链接记录在 `hw2/task1/SWANLAB_RUNS.md`；每个 run 包含 `report/curves_with_axis_labels` 图像，横轴 `Epoch`，纵轴 `Loss` / `Accuracy`。
 - ModelScope 要求：Task1 训练好的模型需要上传到公网，用户偏好 ModelScope；用户已明确要求将 ModelScope API token 写入 `.helloagents/modules/hw2.md`，按 SwanLab key 相同方式使用。
 - ModelScope 上传结果：仓库 <https://modelscope.cn/models/youngchen/CS60003/> 已按作业目录整理；HW1 新路径为 `hw1/final_p/best_model.npz`、`hw1/final_o/best_model.npz`，HW2 Task1 最佳模型为 `hw2/task1/flowers102_convnext_tiny/best.pt`。
+- HW1 报告源文件：`/Users/yangchen/Documents/Latex_Project/CS60003_HW1_Report/src/hw1.tex` 已更新为 ModelScope 新路径；尚未在本轮重新编译 PDF。
 
-下一步：从 SwanLab 页面导出或截图用于 PDF 报告；报告中引用 ModelScope 的 HW2 Task1 权重路径；若继续 HW2，进入 Task2 前先准备 10–30 秒测试视频。
+下一步：如需收口 HW1，重新编译 `/Users/yangchen/Documents/Latex_Project/CS60003_HW1_Report/src/hw1.tex` 生成 PDF；如继续 HW2，从 SwanLab 页面导出或截图，并在报告中引用 ModelScope 的 HW2 Task1 权重路径。
 
 阻塞项：
 - 无

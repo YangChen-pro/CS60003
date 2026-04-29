@@ -102,6 +102,8 @@
 
 - 最终 GitHub 仓库: `https://github.com/YangChen-pro/CS60003`
 - 最终报告 PDF: `/Users/yangchen/Documents/Latex_Project/CS60003_HW1_Report/out/elegantpaper-cn.pdf`
+- 最终报告源文件: `/Users/yangchen/Documents/Latex_Project/CS60003_HW1_Report/src/hw1.tex`
+  - 当前状态: 已更新 ModelScope 权重路径到 `hw1/final_p/best_model.npz` 和 `hw1/final_o/best_model.npz`；PDF 如需提交最终版需重新编译。
 - ModelScope 权重: `https://modelscope.cn/models/youngchen/CS60003/`
   - 正式提交模型: `hw1/final_p/best_model.npz`
   - 扩展实验模型: `hw1/final_o/best_model.npz`

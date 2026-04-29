@@ -76,6 +76,8 @@
 扩展上限实验: final_o（1280 -> 768, dropout=0.18）test_acc=0.6810
 选模原则: 以验证集最优为正式提交结果，不按测试集反选
 最终报告路径: /Users/yangchen/Documents/Latex_Project/CS60003_HW1_Report/out/elegantpaper-cn.pdf
+最终报告源文件: /Users/yangchen/Documents/Latex_Project/CS60003_HW1_Report/src/hw1.tex
+报告源文件状态: 已更新 ModelScope 新权重路径，PDF 需按需重新编译
 模型权重发布: https://modelscope.cn/models/youngchen/CS60003/
 模型权重路径: HW1 `hw1/final_p/best_model.npz`、`hw1/final_o/best_model.npz`；HW2 Task1 `hw2/task1/flowers102_convnext_tiny/best.pt`
 ```

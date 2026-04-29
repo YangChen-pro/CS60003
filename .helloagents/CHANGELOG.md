@@ -3,6 +3,10 @@
 ## [Unreleased]
 
 ### 快速修改
+- **[hw1]**: 同步 HW1 正式报告源文件的 ModelScope 新权重路径状态到知识库，记录 PDF 需按需重新编译 — by YangChen-pro
+  - 类型: 知识库同步
+  - 文件: .helloagents/STATE.md, .helloagents/context.md, .helloagents/modules/hw1.md, .helloagents/CHANGELOG.md
+
 - **[hw1/hw2]**: 整理 ModelScope `youngchen/CS60003` 仓库结构，将 HW1 权重迁移到 `hw1/` 目录并上传 HW2 Task1 最佳模型，同时更新所有仓库内引用 — by YangChen-pro
   - 类型: 公网模型发布与引用迁移
   - 结果: HW1 `hw1/final_p/best_model.npz` / `hw1/final_o/best_model.npz`，HW2 Task1 `hw2/task1/flowers102_convnext_tiny/best.pt`
