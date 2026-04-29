@@ -1,11 +1,11 @@
 experiment:
-  name: task3_unetpp_b64_320_lovasz_ds_tta
+  name: task3_unetpp_b64_384_lovasz_ds_tta
   seed: 7
   output_root: hw2/task3/outputs
 
 data:
-  image_size: [320, 416]
-  batch_size: 2
+  image_size: [384, 512]
+  batch_size: 4
   augment:
     horizontal_flip: 0.5
     color_jitter: 0.18
@@ -54,4 +54,4 @@ logging:
     project: cs60003-hw2-task3
     group: single-model-075-push
     tags: [hw2, task3, unet-plus-plus, base64, scse, aspp, lovasz, deep-supervision, ema, single-model]
-    description: Aggressive from-scratch U-Net++ base64 run with 320x416 input, scSE, ASPP, deep supervision and CE+Dice+Lovasz.
+    description: Aggressive from-scratch U-Net++ base64 run with 384x512 input, scSE, ASPP, deep supervision and CE+Dice+Lovasz.

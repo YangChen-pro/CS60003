@@ -1,10 +1,10 @@
 experiment:
-  name: task3_attention_unet_b64_320_lovasz_ema_tta
+  name: task3_attention_unet_b64_480_lovasz_ema_tta
   seed: 7
   output_root: hw2/task3/outputs
 
 data:
-  image_size: [320, 416]
+  image_size: [480, 640]
   batch_size: 4
   augment:
     horizontal_flip: 0.5
@@ -50,4 +50,4 @@ logging:
     project: cs60003-hw2-task3
     group: single-model-075-push
     tags: [hw2, task3, attention-unet, high-res, lovasz, ema, class-aware, single-model]
-    description: Aggressive single-model Attention U-Net run with 320x416 input, CE+Dice+Lovasz, EMA and class-aware crop.
+    description: Aggressive single-model Attention U-Net run with 480x640 input, CE+Dice+Lovasz, EMA and class-aware crop.
