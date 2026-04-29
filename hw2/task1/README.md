@@ -117,3 +117,15 @@ hw2/Flowers102/
 - 随机初始化与 ImageNet 预训练的 accuracy 差异。
 - SE 注意力模型与 Baseline 的 accuracy 差异。
 - 每组实验的配置、best epoch 和 checkpoint 路径。
+
+## 当前正式结果
+
+远程正式实验已完成，结果详见 `hw2/task1/RESULTS.md`。
+
+| 实验 | best val acc | test acc |
+|---|---:|---:|
+| Baseline ResNet-18 | 0.7186 | 0.6819 |
+| 低学习率 ResNet-18 | 0.4873 | 0.4506 |
+| 短训练 ResNet-18 | 0.5725 | 0.5307 |
+| 随机初始化 ResNet-18 | 0.1794 | 0.1571 |
+| SE-ResNet-18 | 0.4500 | 0.4245 |

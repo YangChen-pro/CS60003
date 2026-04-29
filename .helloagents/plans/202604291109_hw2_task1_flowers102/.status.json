@@ -1,10 +1,10 @@
 {
-  "status": "in_progress",
-  "completed": 1,
+  "status": "completed",
+  "completed": 7,
   "failed": 0,
-  "pending": 6,
+  "pending": 0,
   "total": 7,
-  "percent": 14,
-  "current": "已确认 HW2 Task1 远程正式实验与 Git 同步方案，开始实现 Task1 工程。",
-  "updated_at": "2026-04-29 11:09:00"
+  "percent": 100,
+  "current": "HW2 Task1 代码、Git 同步、远程正式实验与结果整理已完成。",
+  "updated_at": "2026-04-29 11:35:00"
 }

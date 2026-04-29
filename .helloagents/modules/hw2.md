@@ -29,6 +29,8 @@ StanfordBackground: hw2/StanfordBackground/
   - Task1 方案包：`.helloagents/plans/202604291109_hw2_task1_flowers102/`
   - 执行约束：不在本机 smoke test；代码通过 Git 同步到远程 `135-3090-8` 后直接做正式实验；远程使用前检查 Git 身份为 `YangChen-pro <1369792882@qq.com>`。
   - 远程优先环境：`/data/yc/miniconda/envs/llm-26-gpu`，正式运行前需确认 PyTorch、torchvision 和 CUDA 可用。
+  - Task1 正式结果：`hw2/task1/RESULTS.md`
+  - Task1 当前最佳：Baseline ResNet-18，`best_val_acc=0.7186`，`test_acc=0.6819`
 - `hw2/RoadVehicleImages/`
   - 来源：Kaggle Road Vehicle Images Dataset
   - 内容：`trafic_data/train/`、`trafic_data/valid/`、`trafic_data/data_1.yaml`
@@ -42,5 +44,4 @@ StanfordBackground: hw2/StanfordBackground/
 ## 待补充
 
 - 任务 2 仍需用户准备 10–30 秒测试视频；题面允许使用手机拍摄校园或路口视频。
-- Task1 正式实验完成后，需将 `metrics.json` 中的 `best_val_acc`、`test_acc` 和曲线路径补充到本模块与 README。
 - 后续 Task2 / Task3 仍需决定是否统一使用 PyTorch + torchvision + ultralytics，并规划实验记录方式（wandb 或 swanlab）。
