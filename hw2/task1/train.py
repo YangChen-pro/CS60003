@@ -16,6 +16,7 @@ from flowers102_task1.config import load_config, resolve_repo_path
 from flowers102_task1.data import build_loaders, validate_dataset
 from flowers102_task1.engine import evaluate, fit
 from flowers102_task1.models import build_model, build_parameter_groups
+from flowers102_task1.swanlab_utils import create_swanlab_logger
 from flowers102_task1.utils import make_run_dir, save_json, set_seed
 
 
@@ -49,30 +50,43 @@ def main() -> None:
     print(f"run_dir={run_dir}", flush=True)
     print(f"device={device}", flush=True)
 
-    summary = fit(
-        model=model,
-        loaders=loaders,
-        criterion=criterion,
-        optimizer=optimizer,
-        scheduler=scheduler,
-        device=device,
-        config=config,
-        run_dir=run_dir,
-    )
-    checkpoint = torch.load(summary["best_checkpoint"], map_location=device)
-    model.load_state_dict(checkpoint["model"])
-    test_metrics = evaluate(
-        model=model,
-        loader=loaders["test"],
-        criterion=criterion,
-        device=device,
-        num_classes=int(config["model"].get("num_classes", 102)),
-        tta=bool(config.get("eval", {}).get("tta", False)),
-    )
-    final_metrics = {**summary, "test_loss": test_metrics["loss"], "test_acc": test_metrics["acc"]}
-    save_json(run_dir / "metrics.json", final_metrics)
-    save_json(run_dir / "test_details.json", test_metrics)
-    print(f"best_val_acc={summary['best_val_acc']:.4f} test_acc={test_metrics['acc']:.4f}", flush=True)
+    logger = create_swanlab_logger(config, run_dir)
+    try:
+        summary = fit(
+            model=model,
+            loaders=loaders,
+            criterion=criterion,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            device=device,
+            config=config,
+            run_dir=run_dir,
+            logger=logger,
+        )
+        checkpoint = torch.load(summary["best_checkpoint"], map_location=device)
+        model.load_state_dict(checkpoint["model"])
+        test_metrics = evaluate(
+            model=model,
+            loader=loaders["test"],
+            criterion=criterion,
+            device=device,
+            num_classes=int(config["model"].get("num_classes", 102)),
+            tta=bool(config.get("eval", {}).get("tta", False)),
+        )
+        final_metrics = {**summary, "test_loss": test_metrics["loss"], "test_acc": test_metrics["acc"]}
+        logger.log(
+            {
+                "best/epoch": int(summary["best_epoch"]),
+                "best/val_accuracy": float(summary["best_val_acc"]),
+                "test/loss": float(test_metrics["loss"]),
+                "test/accuracy": float(test_metrics["acc"]),
+            }
+        )
+        save_json(run_dir / "metrics.json", final_metrics)
+        save_json(run_dir / "test_details.json", test_metrics)
+        print(f"best_val_acc={summary['best_val_acc']:.4f} test_acc={test_metrics['acc']:.4f}", flush=True)
+    finally:
+        logger.finish()
 
 
 def _resolve_paths(config: dict, output_root: str | None) -> None:

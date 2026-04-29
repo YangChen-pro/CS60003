@@ -121,6 +121,7 @@ def fit(
     device: torch.device,
     config: dict[str, Any],
     run_dir: Path,
+    logger: Any | None = None,
 ) -> dict[str, Any]:
     """Train a model and save best checkpoint plus metrics."""
     epochs = int(config["train"]["epochs"])
@@ -152,6 +153,7 @@ def fit(
             scheduler.step()
 
         append_history(history_csv, _history_row(epoch, train_result, val_result, optimizer))
+        _log_epoch(logger, epoch, train_result, val_result, optimizer)
         _print_epoch_summary(epoch, epochs, train_result, val_result)
 
         if float(val_result["acc"]) > best_val_acc:
@@ -197,6 +199,28 @@ def _history_row(
         "lr_backbone": f"{optimizer.param_groups[0]['lr']:.8f}",
         "lr_classifier": f"{optimizer.param_groups[-1]['lr']:.8f}",
     }
+
+
+def _log_epoch(
+    logger: Any | None,
+    epoch: int,
+    train_result: EpochResult,
+    val_result: dict[str, Any],
+    optimizer: Optimizer,
+) -> None:
+    if logger is None:
+        return
+    logger.log(
+        {
+            "train/loss": train_result.loss,
+            "train/accuracy": train_result.acc,
+            "val/loss": float(val_result["loss"]),
+            "val/accuracy": float(val_result["acc"]),
+            "lr/backbone": float(optimizer.param_groups[0]["lr"]),
+            "lr/classifier": float(optimizer.param_groups[-1]["lr"]),
+        },
+        step=epoch,
+    )
 
 
 def _print_epoch_summary(

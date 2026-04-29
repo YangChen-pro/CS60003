@@ -3,6 +3,10 @@
 ## [Unreleased]
 
 ### 快速修改
+- **[hw2-task1]**: 接入 SwanLab 训练记录与历史实验回放工具，支持将已有正式实验曲线上传用于报告截图 — by YangChen-pro
+  - 类型: 实验记录补齐
+  - 文件: hw2/task1/train.py, hw2/task1/upload_swanlab_history.py, hw2/task1/flowers102_task1/swanlab_utils.py, hw2/task1/flowers102_task1/engine.py, hw2/task1/flowers102_task1/config.py, hw2/task1/README.md, hw2/task1/RESULTS.md, hw2/task1/requirements.txt, .helloagents/modules/hw2.md, .helloagents/STATE.md, .helloagents/CHANGELOG.md
+
 - **[hw2-task1]**: 记录 Task1 后续报告需接入 SwanLab，可视化凭据通过 `SWANLAB_API_KEY` 运行时环境变量提供，不写入 Git 跟踪文件 — by YangChen-pro
   - 类型: 项目要求记录
   - 文件: .helloagents/modules/hw2.md, .helloagents/STATE.md, .gitignore, .helloagents/CHANGELOG.md

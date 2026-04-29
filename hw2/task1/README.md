@@ -96,6 +96,30 @@ hw2/Flowers102/
   --device auto
 ```
 
+## SwanLab 记录
+
+训练代码已支持 SwanLab。默认配置不强制开启，避免复现实验时误连云端；需要重新训练并实时记录时，在 YAML 中加入：
+
+```yaml
+logging:
+  swanlab:
+    enabled: true
+    project: cs60003-hw2-task1
+    mode: cloud
+    group: task1-live
+```
+
+也可以不重跑训练，直接把已有正式实验的 `history.csv`、`metrics.json` 回放到 SwanLab，生成报告所需的 train / val loss、train / val accuracy 曲线：
+
+```bash
+/data/yc/miniconda/envs/llm-26-gpu/bin/python hw2/task1/upload_swanlab_history.py \
+  --all \
+  --project cs60003-hw2-task1 \
+  --group task1-history-replay
+```
+
+SwanLab API key 按用户要求记录在 `.helloagents/modules/hw2.md`；运行时也可优先使用 `SWANLAB_API_KEY` 环境变量。
+
 ## 输出
 
 每次训练会在 `hw2/task1/outputs/{timestamp}_{experiment_name}/` 下保存：
@@ -108,6 +132,7 @@ hw2/Flowers102/
 - `best.pt`：按验证集 accuracy 选择的最佳模型
 - `metrics.json`：best epoch、best val accuracy、test loss、test accuracy
 - `test_details.json`：测试集详细指标和混淆矩阵
+- SwanLab 开启时，同步记录每轮 `train/loss`、`train/accuracy`、`val/loss`、`val/accuracy` 和最终 test 指标。
 
 ## 单独评估
 

@@ -47,6 +47,17 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "eval": {
         "tta": False,
     },
+    "logging": {
+        "swanlab": {
+            "enabled": False,
+            "project": "cs60003-hw2-task1",
+            "workspace": None,
+            "mode": "cloud",
+            "group": None,
+            "tags": ["hw2", "task1", "flowers102"],
+            "description": None,
+        },
+    },
 }
 
 

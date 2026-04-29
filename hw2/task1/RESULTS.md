@@ -69,6 +69,15 @@ hw2/task1/outputs/20260429_035700_opt_resnet50_sgd_320_ra_ls/
 - `metrics.json`
 - `test_details.json`
 
+## SwanLab 记录
+
+已补充 SwanLab 接入代码：
+
+- 重新训练时，可在 YAML 中开启 `logging.swanlab.enabled: true`，实时记录 train / val loss、train / val accuracy 和最终 test 指标。
+- 不重跑训练时，可运行 `hw2/task1/upload_swanlab_history.py --all`，把已有正式实验的 `history.csv` 和 `metrics.json` 回放到 SwanLab，用于报告截图。
+- SwanLab 项目名：`cs60003-hw2-task1`
+- 建议回放分组：`task1-history-replay`
+
 ## 报告建议口径
 
 - Baseline 使用 ImageNet 预训练 ResNet-18，分类头学习率 `1e-3`，backbone 学习率 `1e-4`，40 epochs。

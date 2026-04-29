@@ -33,7 +33,8 @@ StanfordBackground: hw2/StanfordBackground/
   - Task1 原始 Baseline：ResNet-18，`best_val_acc=0.7186`，`test_acc=0.6819`
   - Task1 当前最佳：ConvNeXt-Tiny 优化，`best_val_acc=0.9784`，`test_acc=0.9608`
   - Task1 最有效优化：更强 ImageNet 预训练 backbone（ConvNeXt-Tiny / EfficientNet-B0 / ResNet-50）+ AdamW + label smoothing + TTA。
-  - Task1 报告要求：后续训练/复现实验需接入 SwanLab 记录 loss、accuracy 曲线和最终指标。
+  - Task1 报告要求：训练/复现实验需接入 SwanLab 记录 loss、accuracy 曲线和最终指标。
+  - SwanLab 接入：`hw2/task1/train.py` 支持 YAML 开启实时记录；`hw2/task1/upload_swanlab_history.py --all` 可把已有正式实验 `history.csv` / `metrics.json` 回放到 SwanLab。
   - SwanLab API key（用户明确要求写入仓库文件并允许 Git 同步）：`cxNFTo8J6hPt2s9PVEcYe`
 - `hw2/RoadVehicleImages/`
   - 来源：Kaggle Road Vehicle Images Dataset
@@ -48,5 +49,5 @@ StanfordBackground: hw2/StanfordBackground/
 ## 待补充
 
 - 任务 2 仍需用户准备 10–30 秒测试视频；题面允许使用手机拍摄校园或路口视频。
-- Task1 仍需补 SwanLab 可视化截图或链接，用于满足题面“wandb 或 swanlab 可视化截图”要求。
+- Task1 已有 SwanLab 代码接入，仍需从 SwanLab 页面导出或截图用于最终 PDF 报告。
 - 后续 Task2 / Task3 仍需决定是否统一使用 PyTorch + torchvision + ultralytics，并规划实验记录方式（wandb 或 swanlab）。
