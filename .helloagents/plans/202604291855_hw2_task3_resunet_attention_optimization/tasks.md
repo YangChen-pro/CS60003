@@ -1,0 +1,12 @@
+# HW2 Task3 ResUNet / Attention U-Net 冲分 — 任务分解
+
+## 任务列表
+- [√] 任务1：实现手写 ResUNet / Attention U-Net 结构（涉及文件：`hw2/task3/stanford_unet/models.py`；完成标准：`build_model` 支持四种 U-Net 家族变体；验证方式：本机 `py_compile`）。
+- [√] 任务2：新增冲分配置（涉及文件：`hw2/task3/configs/opt_*resunet*.yaml`, `opt_attention_unet_b64_tta.yaml`；完成标准：配置可加载；验证方式：远程配置读取和小张量检查）。
+- [ ] 任务3：Git 同步并远程正式训练（涉及远程 `/data/yc/CS60003`；完成标准：远程 HEAD 与本机一致，至少 3 组训练完成；验证方式：`metrics.json`）。
+- [ ] 任务4：汇总最佳并上传 ModelScope（涉及 `hw2/task3/outputs`、ModelScope `youngchen/CS60003`；完成标准：若刷新最佳则新路径存在；验证方式：ModelScope file_exists）。
+- [ ] 任务5：更新文档与知识库（涉及 `README.md`、`RESULTS.md`、`.helloagents`；完成标准：最佳结果、SwanLab、ModelScope 路径一致）。
+
+## 进度
+- [√] 本机已实现模型变体并新增配置。
+- [ ] 等待提交、推送、远程训练和结果汇总。

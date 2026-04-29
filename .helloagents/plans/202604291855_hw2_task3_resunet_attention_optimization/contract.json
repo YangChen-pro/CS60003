@@ -1,0 +1,40 @@
+{
+  "updatedAt": "2026-04-29T18:55:00+08:00",
+  "version": 1,
+  "source": "~auto",
+  "originCommand": "auto",
+  "verifyMode": "test-first",
+  "reviewerFocus": [
+    "确认 ResUNet / Attention U-Net 为手写 U-Net 家族变体，未使用预训练或现成分割网络",
+    "确认验证集只用于评估和选模，不参与训练",
+    "确认 ModelScope 路径与文档引用一致"
+  ],
+  "testerFocus": [
+    "本机 py_compile 通过",
+    "远程模型 shape 检查通过",
+    "正式训练产出 metrics.json/history.csv/best.pt/SwanLab run",
+    "若刷新最佳 mIoU，ModelScope file_exists 通过"
+  ],
+  "ui": {
+    "required": false,
+    "designContract": false,
+    "sourcePriority": [],
+    "styleAdvisor": {
+      "required": false,
+      "reason": "",
+      "focus": []
+    },
+    "visualValidation": {
+      "required": false,
+      "reason": "",
+      "screens": [],
+      "states": []
+    }
+  },
+  "advisor": {
+    "required": false,
+    "reason": "",
+    "focus": [],
+    "preferredSources": []
+  }
+}
