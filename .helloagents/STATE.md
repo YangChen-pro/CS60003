@@ -20,7 +20,7 @@
 - 本轮优化方向：AdamW、label smoothing、RandAugment/RandomErasing、ResNet-34/50、EfficientNet-B0、ConvNeXt-Tiny、TTA
 - 最佳优化结果：ConvNeXt-Tiny，`best_val_acc=0.9784`，`test_acc=0.9608`
 - 相比原始 Baseline `test_acc=0.6819` 提升 `+27.89` 个百分点。
-- SwanLab 要求：后续 Task1 复现实验或报告补充需接入 SwanLab；使用运行时环境变量 `SWANLAB_API_KEY`，不要把实际 key 写入 Git 跟踪文件。
+- SwanLab 要求：后续 Task1 复现实验或报告补充需接入 SwanLab；用户已明确要求将临时 API key 写入 `.helloagents/modules/hw2.md` 并允许 Git 同步，作业完成后删除。
 
 下一步：若写报告，先补 SwanLab 可视化截图或链接，再使用 `hw2/task1/RESULTS.md` 和远程最佳产物 `hw2/task1/outputs/20260429_034831_opt_convnext_tiny_strong/`；若继续 HW2，进入 Task2 前先准备 10–30 秒测试视频。
 

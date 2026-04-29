@@ -33,7 +33,8 @@ StanfordBackground: hw2/StanfordBackground/
   - Task1 原始 Baseline：ResNet-18，`best_val_acc=0.7186`，`test_acc=0.6819`
   - Task1 当前最佳：ConvNeXt-Tiny 优化，`best_val_acc=0.9784`，`test_acc=0.9608`
   - Task1 最有效优化：更强 ImageNet 预训练 backbone（ConvNeXt-Tiny / EfficientNet-B0 / ResNet-50）+ AdamW + label smoothing + TTA。
-  - Task1 报告要求：后续训练/复现实验需接入 SwanLab 记录 loss、accuracy 曲线和最终指标；凭据通过运行时环境变量 `SWANLAB_API_KEY` 提供，不写入 Git 跟踪文件。
+  - Task1 报告要求：后续训练/复现实验需接入 SwanLab 记录 loss、accuracy 曲线和最终指标。
+  - SwanLab 临时 API key（用户明确要求写入仓库文件并允许 Git 同步，作业完成后删除）：`cxNFTo8J6hPt2s9PVEcYe`
 - `hw2/RoadVehicleImages/`
   - 来源：Kaggle Road Vehicle Images Dataset
   - 内容：`trafic_data/train/`、`trafic_data/valid/`、`trafic_data/data_1.yaml`
