@@ -1,0 +1,42 @@
+{
+  "updatedAt": "2026-04-29T08:47:24.757Z",
+  "version": 1,
+  "source": "~auto",
+  "originCommand": "auto",
+  "verifyMode": "test-first",
+  "reviewerFocus": [
+    "确认 U-Net 与 Dice Loss 为项目代码手写实现，未使用预训练或现成分割网络",
+    "确认 labels 中 -1 unknown 像素在损失和 mIoU / pixel accuracy 中均被 ignore",
+    "确认 SwanLab 曲线和本地 curves.png 具备明确横纵轴标注",
+    "确认大型 outputs / best.pt 不进入 Git，最佳权重发布到 ModelScope"
+  ],
+  "testerFocus": [
+    "远程 compileall 通过",
+    "远程小张量检查 Dice Loss、mIoU、ignore_index 行为正确",
+    "远程完成 ce / dice / ce_dice 三组正式实验并生成 metrics.json/history.csv/curves.png/best.pt",
+    "RESULTS.md 汇总三组验证集 mIoU、pixel accuracy、per-class IoU 和推荐报告口径",
+    "SwanLab 项目中存在 Task3 三组实验曲线，ModelScope 存在最佳模型权重"
+  ],
+  "ui": {
+    "required": false,
+    "designContract": false,
+    "sourcePriority": [],
+    "styleAdvisor": {
+      "required": false,
+      "reason": "",
+      "focus": []
+    },
+    "visualValidation": {
+      "required": false,
+      "reason": "",
+      "screens": [],
+      "states": []
+    }
+  },
+  "advisor": {
+    "required": false,
+    "reason": "",
+    "focus": [],
+    "preferredSources": []
+  }
+}

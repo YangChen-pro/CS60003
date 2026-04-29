@@ -39,6 +39,10 @@
   - 文件: .helloagents/modules/hw2.md, .helloagents/STATE.md, .helloagents/CHANGELOG.md
 
 ### 方案开发
+- **[hw2-task3]**: 新增 Stanford Background U-Net 语义分割方案包，规划手写 U-Net、手写 Dice Loss、三组 loss 对比、SwanLab 记录与 ModelScope 发布路径 — by YangChen-pro
+  - 类型: 标准流程（方案包：.helloagents/plans/202604291645_hw2_task3_unet_segmentation）
+  - 文件: .helloagents/plans/202604291645_hw2_task3_unet_segmentation/*, .helloagents/STATE.md, .helloagents/modules/hw2.md, .helloagents/CHANGELOG.md
+
 - **[hw2-task1]**: 多维优化 Flowers102 分类实验，新增 ConvNeXt / EfficientNet / ResNet-50 等配置并将最佳 `test_acc` 提升到 `0.9608` — by YangChen-pro
   - 类型: 标准流程（方案包：.helloagents/plans/202604291137_hw2_task1_optimization）
   - 结果: ConvNeXt-Tiny `best_val_acc=0.9784`, `test_acc=0.9608`

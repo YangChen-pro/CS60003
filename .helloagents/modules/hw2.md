@@ -48,6 +48,12 @@ StanfordBackground: hw2/StanfordBackground/
   - 来源：Stanford Background Dataset
   - 内容：`iccv09Data/images/`、`iccv09Data/labels/`、`horizons.txt`、`README`
   - 当前图片数：715
+  - Task3 方案包：`.helloagents/plans/202604291645_hw2_task3_unet_segmentation/`
+  - Task3 计划工程：`hw2/task3/`
+  - Task3 核心要求：从零手写 U-Net，不使用预训练；手写 Dice Loss；训练 `ce` / `dice` / `ce_dice` 三组并比较验证集 mIoU。
+  - Task3 数据处理：使用 `labels/*.regions.txt` 的 8 类语义标签，`-1` unknown 像素在损失和指标中 ignore。
+  - Task3 执行约束：不在本机 smoke test；代码通过 Git 同步到远程 `135-3090-8` 后在 `/data/yc/miniconda/envs/llm-26-gpu` 做正式实验。
+  - Task3 记录与发布：使用 SwanLab 记录 loss / mIoU / pixel accuracy 曲线；最佳权重后续上传到 ModelScope `youngchen/CS60003/hw2/task3/`。
 
 ## 待补充
 

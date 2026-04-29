@@ -1,0 +1,166 @@
+"""Stanford Background dataset loading for U-Net segmentation."""
+
+from __future__ import annotations
+
+import random
+from pathlib import Path
+from typing import Any
+
+import numpy as np
+import torch
+from PIL import Image, ImageEnhance
+from torch.utils.data import DataLoader, Dataset
+
+from .config import CLASS_NAMES, IGNORE_INDEX
+
+_RESAMPLING = getattr(Image, "Resampling", Image)
+_TRANSPOSE = getattr(Image, "Transpose", Image)
+
+
+class StanfordBackgroundDataset(Dataset):
+    """Read Stanford Background images and semantic `.regions.txt` masks."""
+
+    def __init__(self, data_config: dict[str, Any], split: str, train: bool) -> None:
+        self.root = Path(data_config["root"])
+        self.split_file = Path(data_config["split_dir"]) / f"{split}.txt"
+        self.image_size = tuple(int(v) for v in data_config.get("image_size", [240, 320]))
+        self.ignore_index = int(data_config.get("ignore_index", IGNORE_INDEX))
+        self.mean = torch.tensor(data_config.get("mean", [0.485, 0.456, 0.406]), dtype=torch.float32)
+        self.std = torch.tensor(data_config.get("std", [0.229, 0.224, 0.225]), dtype=torch.float32)
+        self.augment = data_config.get("augment", {}) if train else {}
+        self.ids = _read_split(self.split_file)
+        if not self.ids:
+            raise ValueError(f"Empty split file: {self.split_file}")
+        self._validate_paths()
+
+    def __len__(self) -> int:
+        """Return the number of images in this split."""
+        return len(self.ids)
+
+    def __getitem__(self, index: int) -> tuple[torch.Tensor, torch.Tensor, str]:
+        """Return normalized image tensor, target mask tensor and image id."""
+        image_id = self.ids[index]
+        image = Image.open(self.root / "images" / f"{image_id}.jpg").convert("RGB")
+        mask = _load_mask(self.root / "labels" / f"{image_id}.regions.txt", self.ignore_index)
+        image, mask = _resize_pair(image, mask, self.image_size)
+        image, mask = self._augment(image, mask)
+        return _image_to_tensor(image, self.mean, self.std), torch.from_numpy(mask.astype(np.int64)), image_id
+
+    def _augment(self, image: Image.Image, mask: np.ndarray) -> tuple[Image.Image, np.ndarray]:
+        flip_prob = float(self.augment.get("horizontal_flip", 0.0))
+        if flip_prob > 0 and random.random() < flip_prob:
+            image = image.transpose(_TRANSPOSE.FLIP_LEFT_RIGHT)
+            mask = np.fliplr(mask).copy()
+
+        jitter = float(self.augment.get("color_jitter", 0.0))
+        if jitter > 0:
+            image = _apply_color_jitter(image, jitter)
+        return image, mask
+
+    def _validate_paths(self) -> None:
+        missing: list[str] = []
+        for image_id in self.ids[:10]:
+            if not (self.root / "images" / f"{image_id}.jpg").is_file():
+                missing.append(f"images/{image_id}.jpg")
+            if not (self.root / "labels" / f"{image_id}.regions.txt").is_file():
+                missing.append(f"labels/{image_id}.regions.txt")
+        if missing:
+            raise FileNotFoundError(f"Missing Stanford Background files: {missing[:3]}")
+
+
+def build_loaders(data_config: dict[str, Any], device: torch.device) -> dict[str, DataLoader]:
+    """Build train and validation DataLoaders."""
+    split_dir = Path(data_config["split_dir"])
+    create_splits(Path(data_config["root"]), split_dir, float(data_config.get("train_ratio", 0.8)))
+    batch_size = int(data_config.get("batch_size", 8))
+    num_workers = int(data_config.get("num_workers", 4))
+    pin_memory = bool(data_config.get("pin_memory", True)) and device.type == "cuda"
+    train_set = StanfordBackgroundDataset(data_config, split="train", train=True)
+    val_set = StanfordBackgroundDataset(data_config, split="val", train=False)
+    return {
+        "train": DataLoader(
+            train_set,
+            batch_size=batch_size,
+            shuffle=True,
+            num_workers=num_workers,
+            pin_memory=pin_memory,
+            drop_last=False,
+        ),
+        "val": DataLoader(
+            val_set,
+            batch_size=batch_size,
+            shuffle=False,
+            num_workers=num_workers,
+            pin_memory=pin_memory,
+            drop_last=False,
+        ),
+    }
+
+
+def create_splits(data_root: Path, split_dir: Path, train_ratio: float, seed: int = 42) -> None:
+    """Create deterministic train/val split files if they are missing."""
+    train_path = split_dir / "train.txt"
+    val_path = split_dir / "val.txt"
+    if train_path.is_file() and val_path.is_file():
+        return
+    image_ids = sorted(path.stem for path in (data_root / "images").glob("*.jpg"))
+    if not image_ids:
+        raise FileNotFoundError(f"No Stanford Background images found under {data_root / 'images'}")
+    rng = random.Random(seed)
+    rng.shuffle(image_ids)
+    train_count = int(round(len(image_ids) * train_ratio))
+    train_ids = sorted(image_ids[:train_count])
+    val_ids = sorted(image_ids[train_count:])
+    split_dir.mkdir(parents=True, exist_ok=True)
+    train_path.write_text("\n".join(train_ids) + "\n", encoding="utf-8")
+    val_path.write_text("\n".join(val_ids) + "\n", encoding="utf-8")
+
+
+def validate_dataset(data_root: str | Path, split_dir: str | Path) -> dict[str, Any]:
+    """Return lightweight dataset statistics used in experiment records."""
+    root = Path(data_root)
+    split_path = Path(split_dir)
+    image_ids = sorted(path.stem for path in (root / "images").glob("*.jpg"))
+    region_ids = sorted(path.name.replace(".regions.txt", "") for path in (root / "labels").glob("*.regions.txt"))
+    train_ids = _read_split(split_path / "train.txt") if (split_path / "train.txt").is_file() else []
+    val_ids = _read_split(split_path / "val.txt") if (split_path / "val.txt").is_file() else []
+    return {
+        "num_images": len(image_ids),
+        "num_region_labels": len(region_ids),
+        "matched_pairs": len(set(image_ids) & set(region_ids)),
+        "train_size": len(train_ids),
+        "val_size": len(val_ids),
+        "classes": CLASS_NAMES,
+        "ignore_index": IGNORE_INDEX,
+    }
+
+
+def _read_split(path: Path) -> list[str]:
+    if not path.is_file():
+        return []
+    return [line.strip() for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+
+
+def _load_mask(path: Path, ignore_index: int) -> np.ndarray:
+    mask = np.loadtxt(path, dtype=np.int64)
+    return np.where(mask < 0, ignore_index, mask).astype(np.uint8)
+
+
+def _resize_pair(image: Image.Image, mask: np.ndarray, image_size: tuple[int, int]) -> tuple[Image.Image, np.ndarray]:
+    height, width = image_size
+    image = image.resize((width, height), _RESAMPLING.BILINEAR)
+    mask_image = Image.fromarray(mask, mode="L").resize((width, height), _RESAMPLING.NEAREST)
+    return image, np.asarray(mask_image, dtype=np.uint8)
+
+
+def _image_to_tensor(image: Image.Image, mean: torch.Tensor, std: torch.Tensor) -> torch.Tensor:
+    array = np.asarray(image, dtype=np.float32) / 255.0
+    tensor = torch.from_numpy(array).permute(2, 0, 1)
+    return (tensor - mean[:, None, None]) / std[:, None, None]
+
+
+def _apply_color_jitter(image: Image.Image, strength: float) -> Image.Image:
+    for enhancer in (ImageEnhance.Brightness, ImageEnhance.Contrast, ImageEnhance.Color):
+        factor = 1.0 + random.uniform(-strength, strength)
+        image = enhancer(image).enhance(factor)
+    return image
