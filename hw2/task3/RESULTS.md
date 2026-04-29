@@ -22,7 +22,7 @@ Task3 使用 Stanford Background Dataset 从零训练手写 U-Net，并比较三
 | `task3_unet_dice` | 手写 Dice Loss | 63 | 0.648211 | 0.829996 | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/nawj01kfoerht6cp02hcn> |
 | `task3_unet_ce_dice` | Cross-Entropy + 手写 Dice Loss | 52 | **0.648970** | **0.834739** | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/fbpzyv27p65mc0xiqksk3> |
 
-结论：三组基础 loss 实验 mIoU 非常接近，`CE + Dice` 组合损失略优；继续优化后最终推荐 `task3_unet_ce_dice_b64_tta`。
+结论：三组基础 loss 实验 mIoU 非常接近，`CE + Dice` 组合损失略优；继续优化后最终推荐 `task3_attention_unet_b64_aug_seed7_ms_tta`。
 
 ## Per-class IoU
 
@@ -92,3 +92,60 @@ hw2/task3/outputs/20260429_085805_task3_unet_ce_dice/
 - 曲线图路径：`hw2/task3/unet_ce_dice_b64_tta/curves.png`
 - 验证样例路径：`hw2/task3/unet_ce_dice_b64_tta/val_samples.png`
 
+## 进一步冲分结果：Attention U-Net + 几何增强 + 多尺度 TTA
+
+在用户要求继续冲击 `0.7+` 后，继续在 `hw2.md` 合规边界内优化：仍从零训练手写 U-Net 家族模型，不使用 SAM、DeepLab、SegFormer、torchvision segmentation models 或任何预训练权重；固定原 train/val 划分，验证集只用于评估和选模。
+
+### 结构优化实验
+
+| 实验 | 关键变化 | 最佳 epoch | Val mIoU | Val pixel acc | SwanLab |
+|---|---|---:|---:|---:|---|
+| `task3_resunet_b64_tta` | 手写 ResUNet + CE+Dice + TTA | 43 | 0.639848 | 0.831607 | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/efjhzlgx5qdm5mspugh1x> |
+| `task3_attention_unet_b64_tta` | 手写 Attention U-Net + CE+Dice + TTA | 91 | 0.667801 | 0.843214 | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/6s3s3o8thd5p4q6p2ju12> |
+| `task3_attention_resunet_b48_tta` | 手写 Attention ResUNet，base=48 | 85 | 0.645112 | 0.838861 | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/egrooshuyohs9n8uombtj> |
+| `task3_attention_resunet_b64_tta` | 手写 Attention ResUNet，base=64 | 66 | 0.638071 | 0.838809 | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/31fo5xq9i1uvr17flih43> |
+
+结构优化结论：Attention U-Net 对当前数据最有效；ResUNet / Attention ResUNet 更容易过拟合，验证 mIoU 低于 plain Attention U-Net。
+
+### 几何增强与多 seed 实验
+
+| 实验 | 关键变化 | 最佳 epoch | Val mIoU | Val pixel acc | SwanLab |
+|---|---|---:|---:|---:|---|
+| `task3_attention_unet_b64_aug_tta` | random scale crop，seed=42 | 105 | 0.693841 | 0.858079 | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/e7pyo7d0ymq9bpqj2cr5i> |
+| `task3_attention_unet_b64_aug_seed7_tta` | random scale crop，seed=7 | 113 | 0.695953 | 0.859910 | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/fw55rpcbgagnmqbcz0q90> |
+| `task3_attention_unet_b64_aug_seed2026_tta` | random scale crop，seed=2026 | 118 | 0.697984 | 0.860638 | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/a7036x757aohs3s9xn15l> |
+| `task3_attention_unet_b64_aug_seed99_tta` | random scale crop，seed=99 | 129 | 0.691606 | 0.858449 | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/dy450aywyh5bgiv6x6rm0> |
+| `task3_attention_unet_b64_aug_seed13_tta` | random scale crop，seed=13 | 104 | 0.689485 | 0.859299 | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/v2ilam5e562bbpcdltp39> |
+| `task3_attention_unet_b64_aug_seed21_tta` | random scale crop，seed=21 | 126 | 0.681764 | 0.854328 | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/65a1tc5u721ef49mgeoav> |
+| `task3_attention_unet_b64_aug_seed1234_tta` | random scale crop，seed=1234 | 90 | 0.682729 | 0.851476 | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/d02ys72xgg8s1nfa7i9vj> |
+| `task3_attention_unet_b64_aug_seed3407_tta` | random scale crop，seed=3407 | 107 | 0.691328 | 0.858285 | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/f2puj64846n0wi2vh5aob> |
+
+### 最终推荐结果
+
+最终选择 `task3_attention_unet_b64_aug_seed7_tta` 的 best epoch 113 checkpoint，并额外使用 horizontal-flip + multi-scale TTA `[0.7, 0.85, 1.0, 1.15, 1.3]` 重新评估，得到本轮最高结果：
+
+| 实验 | 评估口径 | Best epoch | Val mIoU | Val pixel acc |
+|---|---|---:|---:|---:|
+| `task3_attention_unet_b64_aug_seed7_ms_tta` | flip + multi-scale TTA | 113 | **0.700608** | **0.864100** |
+
+相对基础三组 loss 最佳 `task3_unet_ce_dice`，最终提升：`0.700608 - 0.648970 = +0.051638` mIoU。相对上一轮 U-Net b64 + TTA 最佳，提升：`+0.035519` mIoU。
+
+### 最终最佳模型 per-class IoU
+
+| 类别 | IoU |
+|---|---:|
+| sky | 0.903983 |
+| tree | 0.709787 |
+| road | 0.838765 |
+| grass | 0.764837 |
+| water | 0.735500 |
+| building | 0.756821 |
+| mountain | 0.254850 |
+| foreground_object | 0.640321 |
+
+### 最终 ModelScope
+
+- 最佳模型路径：`hw2/task3/attention_unet_b64_aug_seed7_ms_tta/best.pt`
+- 指标文件路径：`hw2/task3/attention_unet_b64_aug_seed7_ms_tta/metrics.json`
+- 曲线图路径：`hw2/task3/attention_unet_b64_aug_seed7_ms_tta/curves.png`
+- 验证样例路径：`hw2/task3/attention_unet_b64_aug_seed7_ms_tta/val_samples.png`

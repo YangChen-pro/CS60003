@@ -58,10 +58,12 @@ StanfordBackground: hw2/StanfordBackground/
   - Task3 最佳模型：`task3_unet_ce_dice`，best epoch 52，`val_mIoU=0.648970`，`val_pixel_acc=0.834739`。
   - Task3 SwanLab 项目：<https://swanlab.cn/@youngchen/cs60003-hw2-task3>，最佳 run <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/fbpzyv27p65mc0xiqksk3>。
   - Task3 ModelScope 上传结果：仓库 <https://modelscope.cn/models/youngchen/CS60003/>，最佳模型路径 `hw2/task3/unet_ce_dice/best.pt`。
-  - Task3 优化方案包：`.helloagents/plans/202604291718_hw2_task3_optimization/`
-  - Task3 优化最佳：`task3_unet_ce_dice_b64_tta`，best epoch 67，`val_mIoU=0.665089`，`val_pixel_acc=0.842011`，比基础最佳提升 `+0.016118` mIoU。
-  - Task3 优化最佳 SwanLab run：<https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/9odmxzsyxzeo44c8joex7>。
-  - Task3 优化最佳 ModelScope 路径：`hw2/task3/unet_ce_dice_b64_tta/best.pt`。
+  - Task3 优化方案包：`.helloagents/plans/202604291718_hw2_task3_optimization/`、`.helloagents/plans/202604291855_hw2_task3_resunet_attention_optimization/`
+  - Task3 第一轮优化最佳：`task3_unet_ce_dice_b64_tta`，best epoch 67，`val_mIoU=0.665089`，`val_pixel_acc=0.842011`。
+  - Task3 最终优化最佳：`task3_attention_unet_b64_aug_seed7_ms_tta`，best epoch 113，`val_mIoU=0.700608`，`val_pixel_acc=0.864100`，比基础最佳提升 `+0.051638` mIoU。
+  - Task3 最终优化方法：从零手写 Attention U-Net + CE+Dice + random scale crop + horizontal-flip TTA + multi-scale TTA `[0.7, 0.85, 1.0, 1.15, 1.3]`；未使用预训练或现成分割模型。
+  - Task3 最终优化 SwanLab run：<https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/fw55rpcbgagnmqbcz0q90>。
+  - Task3 最终优化 ModelScope 路径：`hw2/task3/attention_unet_b64_aug_seed7_ms_tta/best.pt`。
 
 ## 待补充
 

@@ -1,10 +1,10 @@
 {
-  "status": "in_progress",
-  "completed": 3,
+  "status": "completed",
+  "completed": 6,
   "failed": 0,
-  "pending": 3,
+  "pending": 0,
   "total": 6,
-  "percent": 50,
-  "current": "第一批结构优化完成，最佳 Attention U-Net b64 val_mIoU=0.667801；已新增 random scale crop 增强配置，准备第二轮正式训练。",
-  "updated_at": "2026-04-29 18:58:00"
+  "percent": 100,
+  "current": "Task3 最终冲分完成：Attention U-Net + random scale crop + multi-scale TTA，val_mIoU=0.700608，已上传 ModelScope。",
+  "updated_at": "2026-04-29 13:58:00"
 }

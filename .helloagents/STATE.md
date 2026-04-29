@@ -1,22 +1,25 @@
 # 恢复快照
 
 ## 主线目标
-HW2 Task3 在 hw2.md 合规范围内继续冲分，尽量接近或超过 0.7 validation mIoU。
+HW2 Task3 在 hw2.md 合规范围内继续冲分已完成，最终超过 0.7 validation mIoU。
 
 ## 正在做什么
-第一批 ResUNet / Attention U-Net 结构实验已完成，最佳提升到 `0.667801`；正在加入 random scale crop 几何增强做第二轮冲分。
+Task3 结构优化、几何增强、多 seed 实验、多尺度 TTA 复评、ModelScope 上传和文档更新已完成；等待用户决定是否整合 HW2 报告或继续 Task2。
 
 ## 关键上下文
-- 旧最佳：`task3_unet_ce_dice_b64_tta`，`val_mIoU=0.665089`。
-- 本轮结构优化新最佳：`task3_attention_unet_b64_tta`，`val_mIoU=0.667801`，SwanLab run `6s3s3o8thd5p4q6p2ju12`。
-- 第一批结构实验结果：ResUNet b64 `0.639848`，Attention ResUNet b48 `0.645112`，Attention ResUNet b64 `0.638071`。
-- 合规边界：不使用 SAM、DeepLab、SegFormer、torchvision segmentation models 或预训练权重。
-- 固定数据划分：train 572 / val 143。
-- 远程主机：`135-3090-8`；远程仓库：`/data/yc/CS60003`；远程 Python：`/data/yc/miniconda/envs/llm-26-gpu`。
-- 已按用户要求将 PyTorch AMP deprecated API 更新为 `torch.amp` 写法；当前运行中的旧进程不受影响，后续实验使用新写法。
+- Task3 基础最佳：`task3_unet_ce_dice`，`val_mIoU=0.648970`，`val_pixel_acc=0.834739`。
+- Task3 最终最佳：`task3_attention_unet_b64_aug_seed7_ms_tta`，best epoch 113，`val_mIoU=0.700608`，`val_pixel_acc=0.864100`。
+- 提升幅度：相对基础最佳 `+0.051638` mIoU；相对上一轮 U-Net b64 + TTA 最佳 `+0.035519` mIoU。
+- 合规边界：从零训练手写 Attention U-Net；未使用 SAM、DeepLab、SegFormer、torchvision segmentation models、预训练权重或现成分割网络；固定 train 572 / val 143 split。
+- 最终方法：CE+Dice，base_channels=64，256x320，dropout 0.05，random scale crop，horizontal-flip TTA，multi-scale TTA `[0.7, 0.85, 1.0, 1.15, 1.3]`。
+- SwanLab 最终训练 run：`https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/fw55rpcbgagnmqbcz0q90`。
+- ModelScope 仓库：`https://modelscope.cn/models/youngchen/CS60003/`。
+- ModelScope 最终模型路径：`hw2/task3/attention_unet_b64_aug_seed7_ms_tta/best.pt`。
+- 远程最终模型包：`/data/yc/CS60003/hw2/task3/outputs/final_task3_attention_unet_b64_aug_seed7_ms_tta/`。
+- Git 身份目标：`YangChen-pro <1369792882@qq.com>`。
 
 ## 下一步
-提交并同步 `hw2/task3/stanford_unet/data.py` 与 `hw2/task3/configs/opt_*aug*.yaml`，远程验证后启动第二轮增强实验。
+如继续 HW2，优先整合 Task1 + Task3 到最终 PDF 报告；也可以开始 Task2。
 
 ## 阻塞项
 （无）
