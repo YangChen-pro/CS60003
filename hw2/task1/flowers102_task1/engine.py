@@ -29,7 +29,7 @@ def train_one_epoch(
     criterion: nn.Module,
     optimizer: Optimizer,
     device: torch.device,
-    scaler: torch.cuda.amp.GradScaler | None,
+    scaler: torch.amp.GradScaler | None,
     log_interval: int,
     grad_clip_norm: float,
     epoch: int,
@@ -45,7 +45,7 @@ def train_one_epoch(
         targets = targets.to(device, non_blocking=True)
         optimizer.zero_grad(set_to_none=True)
 
-        with torch.cuda.amp.autocast(enabled=scaler is not None):
+        with torch.amp.autocast(device_type=device.type, enabled=scaler is not None):
             logits = model(images)
             loss = criterion(logits, targets)
 
@@ -129,7 +129,7 @@ def fit(
     log_interval = int(config["train"].get("log_interval", 20))
     grad_clip_norm = float(config["train"].get("grad_clip_norm", 0.0))
     use_amp = bool(config["train"].get("amp", True)) and device.type == "cuda"
-    scaler = torch.cuda.amp.GradScaler(enabled=True) if use_amp else None
+    scaler = torch.amp.GradScaler("cuda", enabled=True) if use_amp else None
     history_csv = run_dir / "history.csv"
 
     best_val_acc = -1.0
