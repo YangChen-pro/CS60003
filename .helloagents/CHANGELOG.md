@@ -3,6 +3,11 @@
 ## [Unreleased]
 
 ### 快速修改
+- **[hw1/hw2]**: 整理 ModelScope `youngchen/CS60003` 仓库结构，将 HW1 权重迁移到 `hw1/` 目录并上传 HW2 Task1 最佳模型，同时更新所有仓库内引用 — by YangChen-pro
+  - 类型: 公网模型发布与引用迁移
+  - 结果: HW1 `hw1/final_p/best_model.npz` / `hw1/final_o/best_model.npz`，HW2 Task1 `hw2/task1/flowers102_convnext_tiny/best.pt`
+  - 文件: hw1/download_weights.py, hw1/README.md, hw2/task1/README.md, hw2/task1/RESULTS.md, .helloagents/context.md, .helloagents/modules/hw1.md, .helloagents/modules/hw2.md, .helloagents/STATE.md, .helloagents/CHANGELOG.md
+
 - **[hw2-task1]**: 按用户明确要求将 ModelScope API token 写入 `.helloagents/modules/hw2.md`，用于后续上传 Task1 模型权重到公网 — by YangChen-pro
   - 类型: 项目要求记录（含临时凭据）
   - 文件: .helloagents/modules/hw2.md, .helloagents/STATE.md, .helloagents/CHANGELOG.md

@@ -80,6 +80,14 @@ hw2/task1/outputs/20260429_035700_opt_resnet50_sgd_320_ra_ls/
 - 每个 run 额外包含 `report/curves_with_axis_labels` 图像，横轴为 `Epoch`，纵轴为 `Loss` / `Accuracy`。
 - 逐实验链接：`hw2/task1/SWANLAB_RUNS.md`
 
+## ModelScope 模型权重
+
+Task1 最佳 ConvNeXt-Tiny 权重和关键评估产物已上传到 ModelScope：
+
+- 仓库：<https://modelscope.cn/models/youngchen/CS60003/>
+- 最佳模型：`hw2/task1/flowers102_convnext_tiny/best.pt`
+- 同目录产物：`source_config.yaml`、`config.json`、`metrics.json`、`test_details.json`、`history.csv`、`curves.png`、`swanlab_report_curves.png`
+
 ## 报告建议口径
 
 - Baseline 使用 ImageNet 预训练 ResNet-18，分类头学习率 `1e-3`，backbone 学习率 `1e-4`，40 epochs。

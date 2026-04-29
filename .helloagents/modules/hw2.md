@@ -36,6 +36,7 @@ StanfordBackground: hw2/StanfordBackground/
   - Task1 报告要求：训练/复现实验需接入 SwanLab 记录 loss、accuracy 曲线和最终指标。
   - SwanLab 接入：`hw2/task1/train.py` 支持 YAML 开启实时记录；`hw2/task1/upload_swanlab_history.py --all` 可把已有正式实验 `history.csv` / `metrics.json` 回放到 SwanLab。
   - SwanLab 上传结果：项目 <https://swanlab.cn/@youngchen/cs60003-hw2-task1>，13 个正式实验修正版回放链接见 `hw2/task1/SWANLAB_RUNS.md`；每个 run 包含横轴/纵轴明确标注的 `report/curves_with_axis_labels` 图像。
+  - ModelScope 上传结果：仓库 <https://modelscope.cn/models/youngchen/CS60003/>，最佳模型路径 `hw2/task1/flowers102_convnext_tiny/best.pt`。
   - SwanLab API key（用户明确要求写入仓库文件并允许 Git 同步）：`cxNFTo8J6hPt2s9PVEcYe`
   - ModelScope API token（用户明确要求写入仓库文件并允许按 SwanLab key 相同方式使用）：`ms-11d617a2-f67c-4e6c-ac54-e6ec7d016fb5`
 - `hw2/RoadVehicleImages/`

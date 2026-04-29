@@ -62,7 +62,7 @@ PY="/data/yc/miniconda/envs/llm-26-gpu/bin/python"
 - GitHub 仓库：[https://github.com/YangChen-pro/CS60003](https://github.com/YangChen-pro/CS60003)
 - ModelScope 权重仓库：[https://modelscope.cn/models/youngchen/CS60003/](https://modelscope.cn/models/youngchen/CS60003/)
 
-仓库默认不保留 `best_model.npz`，`final_p` 与 `final_o` 的权重单独存放在 ModelScope。当前仓库中用于复核实验结论的摘要文件、训练曲线、混淆矩阵、权重图和错例图保留在以下路径：
+仓库默认不保留 `best_model.npz`，`final_p` 与 `final_o` 的权重单独存放在 ModelScope 的 `hw1/` 目录下。当前仓库中用于复核实验结论的摘要文件、训练曲线、混淆矩阵、权重图和错例图保留在以下路径：
 
 - `hw1/outputs/runs/final_a/`
 - `hw1/outputs/runs/final_k/`
@@ -174,16 +174,16 @@ PY="/data/yc/miniconda/envs/llm-26-gpu/bin/python"
 
 | ModelScope 路径 | 下载后本地路径 | SHA256 |
 | --- | --- | --- |
-| `final_p/best_model.npz` | `hw1/model_weights/final_p/best_model.npz` | `1d33521419a060a4670b86be58926522c5febffc5a64a1d63ec2d30793325d2a` |
-| `final_o/best_model.npz` | `hw1/model_weights/final_o/best_model.npz` | `e1295599ece6be23a20016c110dbca63359ebc82cb715d7db4a154b30b2457f5` |
+| `hw1/final_p/best_model.npz` | `hw1/model_weights/hw1/final_p/best_model.npz` | `1d33521419a060a4670b86be58926522c5febffc5a64a1d63ec2d30793325d2a` |
+| `hw1/final_o/best_model.npz` | `hw1/model_weights/hw1/final_o/best_model.npz` | `e1295599ece6be23a20016c110dbca63359ebc82cb715d7db4a154b30b2457f5` |
 
 ### 5. 评估已上传模型
 
 ```bash
-"$PY" -X utf8 "hw1/evaluate.py" --preset best --checkpoint "hw1/model_weights/final_p/best_model.npz"
+"$PY" -X utf8 "hw1/evaluate.py" --preset best --checkpoint "hw1/model_weights/hw1/final_p/best_model.npz"
 ```
 
-将下载后的权重路径传给 `--checkpoint`。在 ModelScope 仓库中，正式提交模型对应 `final_p/best_model.npz`，扩展实验对应 `final_o/best_model.npz`。
+将下载后的权重路径传给 `--checkpoint`。在 ModelScope 仓库中，正式提交模型对应 `hw1/final_p/best_model.npz`，扩展实验对应 `hw1/final_o/best_model.npz`。
 
 若使用扩展实验权重，则将 `--preset` 设置为 `final_o`。
 

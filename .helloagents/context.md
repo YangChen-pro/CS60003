@@ -77,6 +77,7 @@
 选模原则: 以验证集最优为正式提交结果，不按测试集反选
 最终报告路径: /Users/yangchen/Documents/Latex_Project/CS60003_HW1_Report/out/elegantpaper-cn.pdf
 模型权重发布: https://modelscope.cn/models/youngchen/CS60003/
+模型权重路径: HW1 `hw1/final_p/best_model.npz`、`hw1/final_o/best_model.npz`；HW2 Task1 `hw2/task1/flowers102_convnext_tiny/best.pt`
 ```
 
 ## 5. 当前约束（源自已确认决策）

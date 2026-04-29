@@ -12,8 +12,8 @@ from modelscope.hub.snapshot_download import snapshot_download
 
 MODEL_ID = "youngchen/CS60003"
 WEIGHTS = {
-    "final_p/best_model.npz": "1d33521419a060a4670b86be58926522c5febffc5a64a1d63ec2d30793325d2a",
-    "final_o/best_model.npz": "e1295599ece6be23a20016c110dbca63359ebc82cb715d7db4a154b30b2457f5",
+    "hw1/final_p/best_model.npz": "1d33521419a060a4670b86be58926522c5febffc5a64a1d63ec2d30793325d2a",
+    "hw1/final_o/best_model.npz": "e1295599ece6be23a20016c110dbca63359ebc82cb715d7db4a154b30b2457f5",
 }
 
 
