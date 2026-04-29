@@ -27,6 +27,13 @@ class SwanLabLogger:
             return
         self._module.log(_scalar_metrics(metrics), step=step)
 
+    def log_image(self, key: str, image_path: Path, caption: str) -> None:
+        """Log one image to SwanLab if an active run exists."""
+        if not self.enabled:
+            return
+        image = self._module.Image(str(image_path), caption=caption)
+        self._module.log({key: image})
+
     def finish(self) -> None:
         """Close the active SwanLab run."""
         if self.enabled:

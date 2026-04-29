@@ -10,6 +10,7 @@ from typing import Any
 
 from flowers102_task1.config import deep_update, resolve_repo_path
 from flowers102_task1.swanlab_utils import create_swanlab_logger
+from flowers102_task1.utils import plot_history
 
 
 def parse_args() -> argparse.Namespace:
@@ -21,6 +22,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--workspace", default=None)
     parser.add_argument("--group", default="task1-history-replay")
     parser.add_argument("--mode", default="cloud", choices=("cloud", "local", "offline", "disabled"))
+    parser.add_argument("--skip-curves-image", action="store_true", help="Only upload scalar histories.")
     return parser.parse_args()
 
 
@@ -55,6 +57,8 @@ def _upload_run(run_dir: Path, args: argparse.Namespace) -> None:
     try:
         last_epoch = _upload_history(logger, history_path)
         _upload_final_metrics(logger, run_dir / "metrics.json", last_epoch)
+        if not args.skip_curves_image:
+            _upload_curves_image(logger, run_dir, history_path)
     finally:
         logger.finish()
     print(f"uploaded {run_dir}", flush=True)
@@ -87,6 +91,10 @@ def _upload_history(logger: Any, history_path: Path) -> int:
                     "train/accuracy": float(row["train_acc"]),
                     "val/loss": float(row["val_loss"]),
                     "val/accuracy": float(row["val_acc"]),
+                    "Loss/train": float(row["train_loss"]),
+                    "Loss/validation": float(row["val_loss"]),
+                    "Accuracy/train": float(row["train_acc"]),
+                    "Accuracy/validation": float(row["val_acc"]),
                     "lr/backbone": float(row["lr_backbone"]),
                     "lr/classifier": float(row["lr_classifier"]),
                 },
@@ -106,6 +114,16 @@ def _upload_final_metrics(logger: Any, metrics_path: Path, step: int) -> None:
             "test/accuracy": float(metrics.get("test_acc", 0.0)),
         },
         step=step,
+    )
+
+
+def _upload_curves_image(logger: Any, run_dir: Path, history_path: Path) -> None:
+    image_path = run_dir / "swanlab_report_curves.png"
+    plot_history(history_path, image_path)
+    logger.log_image(
+        "report/curves_with_axis_labels",
+        image_path,
+        "Task1 training curves: x-axis is Epoch; y-axes are Loss and Accuracy.",
     )
 
 
