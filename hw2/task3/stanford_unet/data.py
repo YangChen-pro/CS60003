@@ -9,7 +9,7 @@ from typing import Any
 import numpy as np
 import torch
 from PIL import Image, ImageEnhance
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader, Dataset, WeightedRandomSampler
 
 from .config import CLASS_NAMES, IGNORE_INDEX
 
@@ -44,7 +44,14 @@ class StanfordBackgroundDataset(Dataset):
         mask = _load_mask(self.root / "labels" / f"{image_id}.regions.txt", self.ignore_index)
         scale_range = self.augment.get("random_scale")
         if scale_range:
-            image, mask = _random_resized_crop_pair(image, mask, self.image_size, scale_range, self.ignore_index)
+            image, mask = _random_resized_crop_pair(
+                image,
+                mask,
+                self.image_size,
+                scale_range,
+                self.ignore_index,
+                self.augment.get("rare_class_crop"),
+            )
         else:
             image, mask = _resize_pair(image, mask, self.image_size)
         image, mask = self._augment(image, mask)
@@ -81,11 +88,13 @@ def build_loaders(data_config: dict[str, Any], device: torch.device) -> dict[str
     pin_memory = bool(data_config.get("pin_memory", True)) and device.type == "cuda"
     train_set = StanfordBackgroundDataset(data_config, split="train", train=True)
     val_set = StanfordBackgroundDataset(data_config, split="val", train=False)
+    train_sampler = _build_train_sampler(train_set, data_config)
     return {
         "train": DataLoader(
             train_set,
             batch_size=batch_size,
-            shuffle=True,
+            shuffle=train_sampler is None,
+            sampler=train_sampler,
             num_workers=num_workers,
             pin_memory=pin_memory,
             drop_last=False,
@@ -173,6 +182,24 @@ def compute_class_weights(
     return [float(value) for value in weights]
 
 
+def _build_train_sampler(
+    dataset: StanfordBackgroundDataset,
+    data_config: dict[str, Any],
+) -> WeightedRandomSampler | None:
+    sampler_config = data_config.get("sampler", {})
+    if not isinstance(sampler_config, dict) or not bool(sampler_config.get("enabled", False)):
+        return None
+    class_id = int(sampler_config.get("rare_class_id", 6))
+    positive_weight = float(sampler_config.get("rare_class_weight", 2.0))
+    epoch_multiplier = float(sampler_config.get("epoch_multiplier", 1.0))
+    weights: list[float] = []
+    for image_id in dataset.ids:
+        mask = _load_mask(dataset.root / "labels" / f"{image_id}.regions.txt", dataset.ignore_index)
+        weights.append(positive_weight if np.any(mask == class_id) else 1.0)
+    num_samples = max(len(weights), int(round(len(weights) * epoch_multiplier)))
+    return WeightedRandomSampler(torch.as_tensor(weights, dtype=torch.double), num_samples=num_samples, replacement=True)
+
+
 def _read_split(path: Path) -> list[str]:
     if not path.is_file():
         return []
@@ -187,7 +214,7 @@ def _load_mask(path: Path, ignore_index: int) -> np.ndarray:
 def _resize_pair(image: Image.Image, mask: np.ndarray, image_size: tuple[int, int]) -> tuple[Image.Image, np.ndarray]:
     height, width = image_size
     image = image.resize((width, height), _RESAMPLING.BILINEAR)
-    mask_image = Image.fromarray(mask, mode="L").resize((width, height), _RESAMPLING.NEAREST)
+    mask_image = Image.fromarray(mask).resize((width, height), _RESAMPLING.NEAREST)
     return image, np.asarray(mask_image, dtype=np.uint8)
 
 
@@ -197,6 +224,7 @@ def _random_resized_crop_pair(
     image_size: tuple[int, int],
     scale_range: list[float] | tuple[float, float],
     ignore_index: int,
+    rare_class_crop: dict[str, Any] | None = None,
 ) -> tuple[Image.Image, np.ndarray]:
     target_h, target_w = image_size
     min_scale, max_scale = float(scale_range[0]), float(scale_range[1])
@@ -204,7 +232,7 @@ def _random_resized_crop_pair(
     resized_h = max(1, int(round(target_h * scale)))
     resized_w = max(1, int(round(target_w * scale)))
     image = image.resize((resized_w, resized_h), _RESAMPLING.BILINEAR)
-    mask_image = Image.fromarray(mask, mode="L").resize((resized_w, resized_h), _RESAMPLING.NEAREST)
+    mask_image = Image.fromarray(mask).resize((resized_w, resized_h), _RESAMPLING.NEAREST)
 
     canvas_w = max(target_w, resized_w)
     canvas_h = max(target_h, resized_h)
@@ -217,10 +245,51 @@ def _random_resized_crop_pair(
         mask_canvas.paste(mask_image, (left, top))
         image, mask_image = image_canvas, mask_canvas
 
-    left = random.randint(0, image.size[0] - target_w)
-    top = random.randint(0, image.size[1] - target_h)
-    box = (left, top, left + target_w, top + target_h)
+    box = _sample_crop_box(mask_image, (target_h, target_w), rare_class_crop)
     return image.crop(box), np.asarray(mask_image.crop(box), dtype=np.uint8)
+
+
+def _sample_crop_box(
+    mask_image: Image.Image,
+    image_size: tuple[int, int],
+    rare_class_crop: dict[str, Any] | None,
+) -> tuple[int, int, int, int]:
+    target_h, target_w = image_size
+    width, height = mask_image.size
+    if rare_class_crop and random.random() < float(rare_class_crop.get("probability", 0.0)):
+        mask = np.asarray(mask_image, dtype=np.uint8)
+        class_id = int(rare_class_crop.get("class_id", 6))
+        min_pixels = int(rare_class_crop.get("min_pixels", 64))
+        attempts = int(rare_class_crop.get("attempts", 12))
+        coords = np.argwhere(mask == class_id)
+        best_box: tuple[int, int, int, int] | None = None
+        best_pixels = 0
+        for _ in range(max(attempts, 1)):
+            if coords.size == 0:
+                break
+            y, x = coords[random.randrange(len(coords))]
+            left = _sample_offset_containing_point(int(x), target_w, width)
+            top = _sample_offset_containing_point(int(y), target_h, height)
+            box = (left, top, left + target_w, top + target_h)
+            rare_pixels = int(np.count_nonzero(mask[top : top + target_h, left : left + target_w] == class_id))
+            if rare_pixels >= min_pixels:
+                return box
+            if rare_pixels > best_pixels:
+                best_pixels = rare_pixels
+                best_box = box
+        if best_box is not None and best_pixels > 0:
+            return best_box
+    left = random.randint(0, width - target_w)
+    top = random.randint(0, height - target_h)
+    return left, top, left + target_w, top + target_h
+
+
+def _sample_offset_containing_point(point: int, crop_size: int, full_size: int) -> int:
+    min_offset = max(0, point - crop_size + 1)
+    max_offset = min(point, full_size - crop_size)
+    if min_offset > max_offset:
+        return random.randint(0, full_size - crop_size)
+    return random.randint(min_offset, max_offset)
 
 
 def _image_to_tensor(image: Image.Image, mean: torch.Tensor, std: torch.Tensor) -> torch.Tensor:

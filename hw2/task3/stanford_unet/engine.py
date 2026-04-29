@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -29,6 +30,27 @@ class EpochResult:
     confusion_matrix: list[list[int]]
 
 
+class ModelEma:
+    """Maintain an exponential moving average copy of model weights."""
+
+    def __init__(self, model: nn.Module, decay: float) -> None:
+        self.module = copy.deepcopy(model).eval()
+        self.decay = decay
+        for parameter in self.module.parameters():
+            parameter.requires_grad_(False)
+
+    @torch.no_grad()
+    def update(self, model: nn.Module) -> None:
+        """Update EMA weights and floating buffers from the source model."""
+        model_state = model.state_dict()
+        for name, ema_value in self.module.state_dict().items():
+            model_value = model_state[name].detach()
+            if torch.is_floating_point(ema_value):
+                ema_value.mul_(self.decay).add_(model_value, alpha=1.0 - self.decay)
+            else:
+                ema_value.copy_(model_value)
+
+
 def train_one_epoch(
     model: nn.Module,
     loader: DataLoader,
@@ -40,6 +62,7 @@ def train_one_epoch(
     grad_clip_norm: float,
     epoch: int,
     num_classes: int,
+    ema: ModelEma | None = None,
 ) -> EpochResult:
     """Run one training epoch."""
     model.train()
@@ -67,6 +90,8 @@ def train_one_epoch(
                 _clip_gradients(model, grad_clip_norm)
             scaler.step(optimizer)
             scaler.update()
+        if ema is not None:
+            ema.update(model)
 
         batch_size = int(images.size(0))
         total_loss += float(loss.item()) * batch_size
@@ -155,6 +180,7 @@ def fit(
     use_amp = bool(train_config.get("amp", True)) and device.type == "cuda"
     scaler = torch.amp.GradScaler("cuda", enabled=True) if use_amp else None
     history_csv = run_dir / "history.csv"
+    ema = _build_ema(model, train_config)
 
     best_miou = -1.0
     best_epoch = 0
@@ -173,9 +199,11 @@ def fit(
             grad_clip_norm,
             epoch,
             num_classes,
+            ema,
         )
+        eval_model = ema.module if ema is not None else model
         val_result = evaluate(
-            model,
+            eval_model,
             loaders["val"],
             criterion,
             device,
@@ -194,7 +222,7 @@ def fit(
             best_miou = val_result.miou
             best_epoch = epoch
             epochs_without_improvement = 0
-            _save_checkpoint(best_path, epoch, model, config, val_result)
+            _save_checkpoint(best_path, epoch, eval_model, config, val_result)
         else:
             epochs_without_improvement += 1
             if patience > 0 and epochs_without_improvement >= patience:
@@ -211,8 +239,19 @@ def fit(
         "best_val_miou": best_miou,
         "best_checkpoint": str(best_path),
     }
+    if ema is not None:
+        summary["ema_decay"] = ema.decay
     save_json(run_dir / "metrics.json", summary)
     return summary
+
+
+def _build_ema(model: nn.Module, train_config: dict[str, Any]) -> ModelEma | None:
+    decay = float(train_config.get("ema_decay", 0.0))
+    if decay <= 0.0:
+        return None
+    if not 0.0 < decay < 1.0:
+        raise ValueError("train.ema_decay must be between 0 and 1.")
+    return ModelEma(model, decay)
 
 
 def _forward_eval(model: nn.Module, images: torch.Tensor, tta: bool, tta_scales: list[float] | None = None) -> torch.Tensor:
