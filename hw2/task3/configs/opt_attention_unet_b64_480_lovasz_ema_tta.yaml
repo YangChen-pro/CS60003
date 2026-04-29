@@ -5,7 +5,7 @@ experiment:
 
 data:
   image_size: [480, 640]
-  batch_size: 4
+  batch_size: 8
   augment:
     horizontal_flip: 0.5
     color_jitter: 0.20
@@ -34,7 +34,7 @@ train:
   loss: ce_dice_lovasz
   lovasz_weight: 0.35
   epochs: 150
-  lr: 0.00018
+  lr: 0.00022
   weight_decay: 0.0001
   grad_clip_norm: 1.0
   early_stopping_patience: 35

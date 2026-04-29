@@ -5,7 +5,7 @@ experiment:
 
 data:
   image_size: [480, 640]
-  batch_size: 4
+  batch_size: 6
   augment:
     horizontal_flip: 0.5
     color_jitter: 0.18
@@ -38,7 +38,7 @@ train:
   deep_supervision: true
   deep_supervision_weights: [0.2, 0.3, 0.5, 1.0]
   epochs: 160
-  lr: 0.00016
+  lr: 0.00018
   weight_decay: 0.0001
   grad_clip_norm: 1.0
   early_stopping_patience: 38
