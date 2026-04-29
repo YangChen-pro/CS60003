@@ -22,6 +22,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--checkpoint", required=True, help="Path to best.pt checkpoint.")
     parser.add_argument("--device", default="auto", help="auto, cuda, cuda:0, or cpu.")
     parser.add_argument("--output-dir", default=None, help="Directory for evaluation outputs.")
+    parser.add_argument("--tta-scales", nargs="*", type=float, default=None, help="Optional multi-scale TTA factors.")
     return parser.parse_args()
 
 
@@ -31,6 +32,9 @@ def main() -> None:
     checkpoint_path = Path(args.checkpoint)
     checkpoint = torch.load(checkpoint_path, map_location="cpu")
     config: dict[str, Any] = checkpoint["config"]
+    if args.tta_scales:
+        config.setdefault("eval", {})["tta"] = True
+        config["eval"]["tta_scales"] = args.tta_scales
     set_seed(int(config["experiment"].get("seed", 42)))
     device = _select_device(args.device)
 
@@ -54,6 +58,7 @@ def main() -> None:
         mean=config["data"].get("mean"),
         std=config["data"].get("std"),
         tta=bool(config.get("eval", {}).get("tta", False)),
+        tta_scales=config.get("eval", {}).get("tta_scales"),
     )
     metrics = {
         "checkpoint": str(checkpoint_path),

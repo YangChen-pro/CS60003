@@ -78,6 +78,7 @@ def main() -> None:
             mean=config["data"].get("mean"),
             std=config["data"].get("std"),
             tta=bool(config.get("eval", {}).get("tta", False)),
+            tta_scales=config.get("eval", {}).get("tta_scales"),
         )
         final_metrics: dict[str, Any] = {
             **summary,

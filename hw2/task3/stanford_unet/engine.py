@@ -8,6 +8,7 @@ from typing import Any
 
 import torch
 from torch import nn
+import torch.nn.functional as F
 from torch.optim import Optimizer
 from torch.utils.data import DataLoader
 
@@ -95,6 +96,7 @@ def evaluate(
     mean: list[float] | None = None,
     std: list[float] | None = None,
     tta: bool = False,
+    tta_scales: list[float] | None = None,
 ) -> EpochResult:
     """Evaluate a segmentation model and optionally save prediction samples."""
     model.eval()
@@ -106,7 +108,7 @@ def evaluate(
     for images, masks, ids in loader:
         images = images.to(device, non_blocking=True)
         masks = masks.to(device, non_blocking=True)
-        logits = _forward_eval(model, images, tta)
+        logits = _forward_eval(model, images, tta, tta_scales)
         loss = criterion(logits, masks)
         preds = logits.argmax(dim=1)
 
@@ -179,6 +181,7 @@ def fit(
             device,
             num_classes,
             tta=bool(config.get("eval", {}).get("tta", False)),
+            tta_scales=config.get("eval", {}).get("tta_scales"),
         )
         if scheduler is not None:
             scheduler.step()
@@ -212,13 +215,38 @@ def fit(
     return summary
 
 
-def _forward_eval(model: nn.Module, images: torch.Tensor, tta: bool) -> torch.Tensor:
-    logits = model(images)
-    if not tta:
+def _forward_eval(model: nn.Module, images: torch.Tensor, tta: bool, tta_scales: list[float] | None = None) -> torch.Tensor:
+    scales = tta_scales or [1.0]
+    logits_sum: torch.Tensor | None = None
+    count = 0
+    for scale in scales:
+        scaled_images = _scale_images(images, float(scale))
+        logits = _resize_logits(model(scaled_images), images.shape[-2:])
+        logits_sum = logits if logits_sum is None else logits_sum + logits
+        count += 1
+        if tta:
+            flipped_images = torch.flip(scaled_images, dims=[3])
+            flipped_logits = torch.flip(model(flipped_images), dims=[3])
+            logits_sum = logits_sum + _resize_logits(flipped_logits, images.shape[-2:])
+            count += 1
+    if logits_sum is None:
+        return model(images)
+    return logits_sum / count
+
+
+def _scale_images(images: torch.Tensor, scale: float) -> torch.Tensor:
+    if abs(scale - 1.0) < 1.0e-6:
+        return images
+    height, width = images.shape[-2:]
+    scaled_h = max(16, int(round(height * scale / 16)) * 16)
+    scaled_w = max(16, int(round(width * scale / 16)) * 16)
+    return F.interpolate(images, size=(scaled_h, scaled_w), mode="bilinear", align_corners=False)
+
+
+def _resize_logits(logits: torch.Tensor, spatial_size: torch.Size) -> torch.Tensor:
+    if logits.shape[-2:] == spatial_size:
         return logits
-    flipped_images = torch.flip(images, dims=[3])
-    flipped_logits = torch.flip(model(flipped_images), dims=[3])
-    return (logits + flipped_logits) * 0.5
+    return F.interpolate(logits, size=spatial_size, mode="bilinear", align_corners=False)
 
 
 def _epoch_result(total_loss: float, total_seen: int, confusion: torch.Tensor, num_classes: int) -> EpochResult:
