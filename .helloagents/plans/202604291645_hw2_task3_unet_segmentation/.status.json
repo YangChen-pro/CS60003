@@ -1,0 +1,10 @@
+{
+  "status": "in_progress",
+  "completed": 2,
+  "failed": 0,
+  "pending": 6,
+  "total": 8,
+  "percent": 25,
+  "current": "Task3 工程代码已创建，等待 Git 同步到远程 135 后执行远程检查和正式实验。",
+  "updated_at": "2026-04-29 17:05:00"
+}
