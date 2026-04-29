@@ -58,6 +58,10 @@ StanfordBackground: hw2/StanfordBackground/
   - Task3 最佳模型：`task3_unet_ce_dice`，best epoch 52，`val_mIoU=0.648970`，`val_pixel_acc=0.834739`。
   - Task3 SwanLab 项目：<https://swanlab.cn/@youngchen/cs60003-hw2-task3>，最佳 run <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/fbpzyv27p65mc0xiqksk3>。
   - Task3 ModelScope 上传结果：仓库 <https://modelscope.cn/models/youngchen/CS60003/>，最佳模型路径 `hw2/task3/unet_ce_dice/best.pt`。
+  - Task3 优化方案包：`.helloagents/plans/202604291718_hw2_task3_optimization/`
+  - Task3 优化最佳：`task3_unet_ce_dice_b64_tta`，best epoch 67，`val_mIoU=0.665089`，`val_pixel_acc=0.842011`，比基础最佳提升 `+0.016118` mIoU。
+  - Task3 优化最佳 SwanLab run：<https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/9odmxzsyxzeo44c8joex7>。
+  - Task3 优化最佳 ModelScope 路径：`hw2/task3/unet_ce_dice_b64_tta/best.pt`。
 
 ## 待补充
 

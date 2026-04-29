@@ -22,7 +22,7 @@ Task3 使用 Stanford Background Dataset 从零训练手写 U-Net，并比较三
 | `task3_unet_dice` | 手写 Dice Loss | 63 | 0.648211 | 0.829996 | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/nawj01kfoerht6cp02hcn> |
 | `task3_unet_ce_dice` | Cross-Entropy + 手写 Dice Loss | 52 | **0.648970** | **0.834739** | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/fbpzyv27p65mc0xiqksk3> |
 
-结论：三组实验 mIoU 非常接近，`CE + Dice` 组合损失略优，作为最终推荐模型。
+结论：三组基础 loss 实验 mIoU 非常接近，`CE + Dice` 组合损失略优；继续优化后最终推荐 `task3_unet_ce_dice_b64_tta`。
 
 ## Per-class IoU
 
@@ -58,3 +58,37 @@ hw2/task3/outputs/20260429_085805_task3_unet_ce_dice/
 - 指标文件路径：`hw2/task3/unet_ce_dice/metrics.json`
 - 曲线图路径：`hw2/task3/unet_ce_dice/curves.png`
 - 验证样例路径：`hw2/task3/unet_ce_dice/val_samples.png`
+
+## 继续优化结果
+
+在原始三组 loss 对比完成后，继续在 `hw2.md` 允许范围内做额外冲分：仍然从零训练手写 U-Net，不使用预训练或现成分割网络；只调整 U-Net 容量、轻量正则、输入尺寸、class weighting 和 horizontal-flip TTA 评估。
+
+| 实验 | 关键变化 | 最佳 epoch | Val mIoU | Val pixel acc | SwanLab |
+|---|---|---:|---:|---:|---|
+| `task3_unet_ce_dice_tta` | 原 CE+Dice 配置 + TTA | 69 | 0.655269 | 0.839074 | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/w4vr95frwvuzjw3uys8c6> |
+| `task3_unet_ce_dice_wide_tta` | base_channels=48 + 256x320 + dropout + TTA | 92 | 0.662884 | 0.841969 | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/2fsyvk8134awzu4wkk5d0> |
+| `task3_unet_ce_dice_wide_weighted_tta` | base_channels=48 + class-weighted CE+Dice + TTA | 83 | 0.660594 | 0.839734 | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/7tbczl8o6k2t1x0e0cv4w> |
+| `task3_unet_ce_dice_b64_tta` | base_channels=64 + 256x320 + dropout + TTA | 67 | **0.665089** | **0.842011** | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/9odmxzsyxzeo44c8joex7> |
+
+优化后最佳结果从 `0.648970` 提升到 **`0.665089`**，提升 **+0.016118 mIoU**。
+
+### 优化后最佳模型 per-class IoU
+
+| 类别 | IoU |
+|---|---:|
+| sky | 0.893930 |
+| tree | 0.680075 |
+| road | 0.814219 |
+| grass | 0.724855 |
+| water | 0.683296 |
+| building | 0.714319 |
+| mountain | 0.213420 |
+| foreground_object | 0.596594 |
+
+### 优化后 ModelScope
+
+- 最佳模型路径：`hw2/task3/unet_ce_dice_b64_tta/best.pt`
+- 指标文件路径：`hw2/task3/unet_ce_dice_b64_tta/metrics.json`
+- 曲线图路径：`hw2/task3/unet_ce_dice_b64_tta/curves.png`
+- 验证样例路径：`hw2/task3/unet_ce_dice_b64_tta/val_samples.png`
+

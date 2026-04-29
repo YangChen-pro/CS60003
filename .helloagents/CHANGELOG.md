@@ -39,6 +39,11 @@
   - 文件: .helloagents/modules/hw2.md, .helloagents/STATE.md, .helloagents/CHANGELOG.md
 
 ### 方案开发
+- **[hw2-task3]**: 继续优化手写 U-Net 分割实验，新增 TTA、宽模型和 class weighting 对比，将最佳 `val_mIoU` 提升到 `0.665089` — by YangChen-pro
+  - 类型: 标准流程（方案包：.helloagents/plans/202604291718_hw2_task3_optimization）
+  - 结果: `task3_unet_ce_dice_b64_tta`，best epoch 67，`val_mIoU=0.665089`，`val_pixel_acc=0.842011`
+  - 文件: hw2/task3/, .helloagents/plans/202604291718_hw2_task3_optimization/*, .helloagents/STATE.md, .helloagents/modules/hw2.md, .helloagents/CHANGELOG.md
+
 - **[hw2-task3]**: 完成 Stanford Background 手写 U-Net 三组 loss 正式实验，CE+Dice 最佳 `val_mIoU=0.648970`，并上传最佳模型到 ModelScope — by YangChen-pro
   - 类型: 标准流程（方案包：.helloagents/plans/202604291645_hw2_task3_unet_segmentation）
   - 结果: CE `0.648151`，Dice `0.648211`，CE+Dice `0.648970`；最佳模型 `hw2/task3/unet_ce_dice/best.pt`
