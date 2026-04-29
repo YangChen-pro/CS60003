@@ -2,7 +2,7 @@
 
 主线目标：HW2 Task1 Flowers102 冲分优化已完成，最佳 `test_acc=0.9608`。
 
-正在做什么：为 Task1 补齐 SwanLab 实验记录，远程 135 已恢复连接。
+正在做什么：Task1 SwanLab 实验记录已补齐，远程 135 已完成历史正式实验回放上传。
 
 关键上下文：
 - 题面文件：`hw2/hw2.md`
@@ -22,8 +22,9 @@
 - 相比原始 Baseline `test_acc=0.6819` 提升 `+27.89` 个百分点。
 - SwanLab 要求：Task1 复现实验或报告补充需接入 SwanLab；用户已明确要求将临时 API key 写入 `.helloagents/modules/hw2.md` 并允许 Git 同步，作业完成后删除。
 - SwanLab 接入实现：`hw2/task1/train.py` 可实时记录；`hw2/task1/upload_swanlab_history.py --all` 可回放已有正式实验曲线到 SwanLab。
+- SwanLab 上传结果：项目 <https://swanlab.cn/@youngchen/cs60003-hw2-task1>，13 个正式实验回放链接记录在 `hw2/task1/SWANLAB_RUNS.md`。
 
-下一步：同步 SwanLab 接入代码到 GitHub 和 135，在远程执行历史实验回放上传；随后从 SwanLab 页面导出或截图用于 PDF 报告。
+下一步：从 SwanLab 页面导出或截图用于 PDF 报告；若继续 HW2，进入 Task2 前先准备 10–30 秒测试视频。
 
 阻塞项：
 - 无

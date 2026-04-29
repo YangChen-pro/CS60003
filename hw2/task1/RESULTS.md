@@ -71,12 +71,13 @@ hw2/task1/outputs/20260429_035700_opt_resnet50_sgd_320_ra_ls/
 
 ## SwanLab 记录
 
-已补充 SwanLab 接入代码：
+已补充 SwanLab 接入代码并在远程 `135-3090-8` 完成历史正式实验回放上传：
 
 - 重新训练时，可在 YAML 中开启 `logging.swanlab.enabled: true`，实时记录 train / val loss、train / val accuracy 和最终 test 指标。
 - 不重跑训练时，可运行 `hw2/task1/upload_swanlab_history.py --all`，把已有正式实验的 `history.csv` 和 `metrics.json` 回放到 SwanLab，用于报告截图。
-- SwanLab 项目名：`cs60003-hw2-task1`
-- 建议回放分组：`task1-history-replay`
+- SwanLab 项目：<https://swanlab.cn/@youngchen/cs60003-hw2-task1>
+- 已上传回放分组：`task1-history-replay`
+- 逐实验链接：`hw2/task1/SWANLAB_RUNS.md`
 
 ## 报告建议口径
 

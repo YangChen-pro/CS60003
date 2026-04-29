@@ -120,6 +120,8 @@ logging:
 
 SwanLab API key 按用户要求记录在 `.helloagents/modules/hw2.md`；运行时也可优先使用 `SWANLAB_API_KEY` 环境变量。
 
+已上传的正式实验回放链接见 `hw2/task1/SWANLAB_RUNS.md`。
+
 ## 输出
 
 每次训练会在 `hw2/task1/outputs/{timestamp}_{experiment_name}/` 下保存：
