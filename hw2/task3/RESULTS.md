@@ -22,7 +22,7 @@ Task3 使用 Stanford Background Dataset 从零训练手写 U-Net，并比较三
 | `task3_unet_dice` | 手写 Dice Loss | 63 | 0.648211 | 0.829996 | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/nawj01kfoerht6cp02hcn> |
 | `task3_unet_ce_dice` | Cross-Entropy + 手写 Dice Loss | 52 | **0.648970** | **0.834739** | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/fbpzyv27p65mc0xiqksk3> |
 
-结论：三组基础 loss 实验 mIoU 非常接近，`CE + Dice` 组合损失略优；继续优化后最终推荐 `task3_attention_unet_b64_aug_seed7_ms_tta`。
+结论：三组基础 loss 实验 mIoU 非常接近，`CE + Dice` 组合损失略优；继续优化后最终推荐 `task3_attention_unet_b64_aug_seed7_ms060_080_100_120_140_tta`。
 
 ## Per-class IoU
 
@@ -122,30 +122,32 @@ hw2/task3/outputs/20260429_085805_task3_unet_ce_dice/
 
 ### 最终推荐结果
 
-最终选择 `task3_attention_unet_b64_aug_seed7_tta` 的 best epoch 113 checkpoint，并额外使用 horizontal-flip + multi-scale TTA `[0.7, 0.85, 1.0, 1.15, 1.3]` 重新评估，得到本轮最高结果：
+最终选择 `task3_attention_unet_b64_aug_seed7_tta` 的 best epoch 113 checkpoint。继续做单模型优化时，补充了 EMA + mountain-aware sampling / rare-class crop 试验，并扫描多尺度 TTA 组合。EMA + mountain-aware 版本提升了 `mountain` IoU，但整体 mIoU 未超过原 checkpoint；最终采用同一个单模型 checkpoint，并把评估尺度调整为 `[0.6, 0.8, 1.0, 1.2, 1.4]`。
 
 | 实验 | 评估口径 | Best epoch | Val mIoU | Val pixel acc |
 |---|---|---:|---:|---:|
-| `task3_attention_unet_b64_aug_seed7_ms_tta` | flip + multi-scale TTA | 113 | **0.700608** | **0.864100** |
+| `task3_attention_unet_b64_aug_seed7_ms_tta` | flip + multi-scale TTA `[0.7, 0.85, 1.0, 1.15, 1.3]` | 113 | 0.700608 | 0.864100 |
+| `task3_attention_unet_b64_aug_seed7_ms060_080_100_120_140_tta` | flip + multi-scale TTA `[0.6, 0.8, 1.0, 1.2, 1.4]` | 113 | **0.701053** | **0.864931** |
+| `task3_attention_unet_b64_aug_seed7_ema_mountain_tta` | EMA + mountain-aware sampling/crop + flip + multi-scale TTA `[0.6, 0.8, 1.0, 1.2, 1.4]` | 110 | 0.700604 | 0.860460 |
 
-相对基础三组 loss 最佳 `task3_unet_ce_dice`，最终提升：`0.700608 - 0.648970 = +0.051638` mIoU。相对上一轮 U-Net b64 + TTA 最佳，提升：`+0.035519` mIoU。
+相对基础三组 loss 最佳 `task3_unet_ce_dice`，最终提升：`0.701053 - 0.648970 = +0.052083` mIoU。相对上一轮 U-Net b64 + TTA 最佳，提升：`+0.035964` mIoU。
 
 ### 最终最佳模型 per-class IoU
 
 | 类别 | IoU |
 |---|---:|
-| sky | 0.903983 |
-| tree | 0.709787 |
-| road | 0.838765 |
-| grass | 0.764837 |
-| water | 0.735500 |
-| building | 0.756821 |
-| mountain | 0.254850 |
-| foreground_object | 0.640321 |
+| sky | 0.904431 |
+| tree | 0.711124 |
+| road | 0.839109 |
+| grass | 0.764386 |
+| water | 0.738596 |
+| building | 0.759705 |
+| mountain | 0.249698 |
+| foreground_object | 0.641374 |
 
 ### 最终 ModelScope
 
-- 最佳模型路径：`hw2/task3/attention_unet_b64_aug_seed7_ms_tta/best.pt`
-- 指标文件路径：`hw2/task3/attention_unet_b64_aug_seed7_ms_tta/metrics.json`
-- 曲线图路径：`hw2/task3/attention_unet_b64_aug_seed7_ms_tta/curves.png`
-- 验证样例路径：`hw2/task3/attention_unet_b64_aug_seed7_ms_tta/val_samples.png`
+- 最佳模型路径：`hw2/task3/attention_unet_b64_aug_seed7_ms060_080_100_120_140_tta/best.pt`
+- 指标文件路径：`hw2/task3/attention_unet_b64_aug_seed7_ms060_080_100_120_140_tta/metrics.json`
+- 曲线图路径：`hw2/task3/attention_unet_b64_aug_seed7_ms060_080_100_120_140_tta/curves.png`
+- 验证样例路径：`hw2/task3/attention_unet_b64_aug_seed7_ms060_080_100_120_140_tta/val_samples.png`

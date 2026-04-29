@@ -5,6 +5,6 @@
   "pending": 0,
   "total": 6,
   "percent": 100,
-  "current": "Task3 最终冲分完成：Attention U-Net + random scale crop + multi-scale TTA，val_mIoU=0.700608，已上传 ModelScope。",
-  "updated_at": "2026-04-29 13:58:00"
+  "current": "Task3 单模型继续冲分完成：Attention U-Net + random scale crop + multi-scale TTA [0.6,0.8,1.0,1.2,1.4]，val_mIoU=0.701053，已上传 ModelScope。",
+  "updated_at": "2026-04-29 15:08:00"
 }

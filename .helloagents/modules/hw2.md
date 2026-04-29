@@ -60,10 +60,12 @@ StanfordBackground: hw2/StanfordBackground/
   - Task3 ModelScope 上传结果：仓库 <https://modelscope.cn/models/youngchen/CS60003/>，最佳模型路径 `hw2/task3/unet_ce_dice/best.pt`。
   - Task3 优化方案包：`.helloagents/plans/202604291718_hw2_task3_optimization/`、`.helloagents/plans/202604291855_hw2_task3_resunet_attention_optimization/`
   - Task3 第一轮优化最佳：`task3_unet_ce_dice_b64_tta`，best epoch 67，`val_mIoU=0.665089`，`val_pixel_acc=0.842011`。
-  - Task3 最终优化最佳：`task3_attention_unet_b64_aug_seed7_ms_tta`，best epoch 113，`val_mIoU=0.700608`，`val_pixel_acc=0.864100`，比基础最佳提升 `+0.051638` mIoU。
-  - Task3 最终优化方法：从零手写 Attention U-Net + CE+Dice + random scale crop + horizontal-flip TTA + multi-scale TTA `[0.7, 0.85, 1.0, 1.15, 1.3]`；未使用预训练或现成分割模型。
+  - Task3 最终优化最佳：`task3_attention_unet_b64_aug_seed7_ms060_080_100_120_140_tta`，best epoch 113，`val_mIoU=0.701053`，`val_pixel_acc=0.864931`，比基础最佳提升 `+0.052083` mIoU。
+  - Task3 最终优化方法：从零手写 Attention U-Net + CE+Dice + random scale crop + horizontal-flip TTA + multi-scale TTA `[0.6, 0.8, 1.0, 1.2, 1.4]`；未使用预训练或现成分割模型。
+  - Task3 单模型继续冲分记录：EMA + mountain-aware sampling / rare-class crop 版本 `val_mIoU=0.700604`，`mountain IoU=0.309850`，整体未超过最终推荐的 seed7 checkpoint。
   - Task3 最终优化 SwanLab run：<https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/fw55rpcbgagnmqbcz0q90>。
-  - Task3 最终优化 ModelScope 路径：`hw2/task3/attention_unet_b64_aug_seed7_ms_tta/best.pt`。
+  - Task3 EMA + mountain-aware SwanLab run：<https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/7jatyl6ez1o5rs9vgzk0w>。
+  - Task3 最终优化 ModelScope 路径：`hw2/task3/attention_unet_b64_aug_seed7_ms060_080_100_120_140_tta/best.pt`。
 
 ## 待补充
 

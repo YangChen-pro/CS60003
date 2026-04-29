@@ -15,5 +15,6 @@
 - [√] 第一批 ResUNet / Attention U-Net 正式实验完成，当前新最佳 `task3_attention_unet_b64_tta`，`val_mIoU=0.667801`。
 - [√] 第二轮 random scale crop 几何增强实验完成。
 
-- [√] 第三/四轮多 seed 与多尺度 TTA 复评完成，最终 `task3_attention_unet_b64_aug_seed7_ms_tta` 达到 `val_mIoU=0.700608`。
-- [√] 最终最佳模型已上传 ModelScope：`hw2/task3/attention_unet_b64_aug_seed7_ms_tta/best.pt`。
+- [√] 第三/四轮多 seed 与多尺度 TTA 复评完成，阶段最佳 `task3_attention_unet_b64_aug_seed7_ms_tta` 达到 `val_mIoU=0.700608`。
+- [√] 单模型继续冲分完成：EMA + mountain-aware 版本整体未刷新最佳，但 TTA 尺度扫描将最终最佳刷新为 `task3_attention_unet_b64_aug_seed7_ms060_080_100_120_140_tta`，`val_mIoU=0.701053`。
+- [√] 最终最佳模型已上传 ModelScope：`hw2/task3/attention_unet_b64_aug_seed7_ms060_080_100_120_140_tta/best.pt`。

@@ -40,9 +40,9 @@
 
 ### 方案开发
 
-- **[hw2-task3]**: 完成 Task3 最终冲分，新增手写 Attention U-Net、random scale crop、多 seed 与 multi-scale TTA，将最佳 `val_mIoU` 提升到 `0.700608` 并上传 ModelScope — by YangChen-pro
+- **[hw2-task3]**: 完成 Task3 单模型继续冲分，新增 EMA、mountain-aware sampling/crop 消融与 TTA 尺度扫描，将最佳 `val_mIoU` 提升到 `0.701053` 并上传 ModelScope — by YangChen-pro
   - 类型: 标准流程（方案包：.helloagents/plans/202604291855_hw2_task3_resunet_attention_optimization）
-  - 结果: `task3_attention_unet_b64_aug_seed7_ms_tta`，best epoch 113，`val_mIoU=0.700608`，`val_pixel_acc=0.864100`
+  - 结果: `task3_attention_unet_b64_aug_seed7_ms060_080_100_120_140_tta`，best epoch 113，`val_mIoU=0.701053`，`val_pixel_acc=0.864931`
   - 文件: hw2/task3/, .helloagents/plans/202604291855_hw2_task3_resunet_attention_optimization/*, .helloagents/STATE.md, .helloagents/modules/hw2.md, .helloagents/CHANGELOG.md
 - **[hw2-task3]**: 继续优化手写 U-Net 分割实验，新增 TTA、宽模型和 class weighting 对比，将最佳 `val_mIoU` 提升到 `0.665089` — by YangChen-pro
   - 类型: 标准流程（方案包：.helloagents/plans/202604291718_hw2_task3_optimization）
