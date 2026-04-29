@@ -94,6 +94,7 @@ def evaluate(
     max_samples: int = 0,
     mean: list[float] | None = None,
     std: list[float] | None = None,
+    tta: bool = False,
 ) -> EpochResult:
     """Evaluate a segmentation model and optionally save prediction samples."""
     model.eval()
@@ -105,7 +106,7 @@ def evaluate(
     for images, masks, ids in loader:
         images = images.to(device, non_blocking=True)
         masks = masks.to(device, non_blocking=True)
-        logits = model(images)
+        logits = _forward_eval(model, images, tta)
         loss = criterion(logits, masks)
         preds = logits.argmax(dim=1)
 
@@ -171,7 +172,14 @@ def fit(
             epoch,
             num_classes,
         )
-        val_result = evaluate(model, loaders["val"], criterion, device, num_classes)
+        val_result = evaluate(
+            model,
+            loaders["val"],
+            criterion,
+            device,
+            num_classes,
+            tta=bool(config.get("eval", {}).get("tta", False)),
+        )
         if scheduler is not None:
             scheduler.step()
 
@@ -202,6 +210,15 @@ def fit(
     }
     save_json(run_dir / "metrics.json", summary)
     return summary
+
+
+def _forward_eval(model: nn.Module, images: torch.Tensor, tta: bool) -> torch.Tensor:
+    logits = model(images)
+    if not tta:
+        return logits
+    flipped_images = torch.flip(images, dims=[3])
+    flipped_logits = torch.flip(model(flipped_images), dims=[3])
+    return (logits + flipped_logits) * 0.5
 
 
 def _epoch_result(total_loss: float, total_seen: int, confusion: torch.Tensor, num_classes: int) -> EpochResult:

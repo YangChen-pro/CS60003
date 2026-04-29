@@ -12,7 +12,7 @@ from typing import Any
 import torch
 
 from stanford_unet.config import load_config, resolve_paths
-from stanford_unet.data import build_loaders, create_splits, validate_dataset
+from stanford_unet.data import build_loaders, compute_class_weights, create_splits, validate_dataset
 from stanford_unet.engine import evaluate, fit
 from stanford_unet.losses import build_loss
 from stanford_unet.models import build_model
@@ -46,8 +46,9 @@ def main() -> None:
     )
     dataset_stats = validate_dataset(config["data"]["root"], config["data"]["split_dir"])
     loaders = build_loaders(config["data"], device)
+    _maybe_add_class_weights(config)
     model = build_model(config["model"]).to(device)
-    criterion = build_loss(config["train"], num_classes=int(config["model"].get("num_classes", 8)))
+    criterion = build_loss(config["train"], num_classes=int(config["model"].get("num_classes", 8))).to(device)
     optimizer = _build_optimizer(model, config["train"])
     scheduler = _build_scheduler(optimizer, config["train"])
 
@@ -76,6 +77,7 @@ def main() -> None:
             max_samples=int(config.get("eval", {}).get("visualize_samples", 8)),
             mean=config["data"].get("mean"),
             std=config["data"].get("std"),
+            tta=bool(config.get("eval", {}).get("tta", False)),
         )
         final_metrics: dict[str, Any] = {
             **summary,
@@ -104,6 +106,20 @@ def main() -> None:
         )
     finally:
         logger.finish()
+
+
+def _maybe_add_class_weights(config: dict[str, Any]) -> None:
+    method = str(config["train"].get("class_weights", "none")).lower()
+    if method in {"", "none", "false"}:
+        return
+    weights = compute_class_weights(
+        config["data"],
+        num_classes=int(config["model"].get("num_classes", 8)),
+        method=method,
+        max_weight=float(config["train"].get("class_weight_max", 2.5)),
+    )
+    config["train"]["class_weights_values"] = weights
+    print(f"class_weights={weights}", flush=True)
 
 
 def _select_device(device_arg: str) -> torch.device:

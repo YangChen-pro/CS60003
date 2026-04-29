@@ -12,11 +12,21 @@ from .config import IGNORE_INDEX
 class DiceLoss(nn.Module):
     """Softmax Dice loss with support for ignored pixels."""
 
-    def __init__(self, num_classes: int, ignore_index: int = IGNORE_INDEX, smooth: float = 1.0) -> None:
+    def __init__(
+        self,
+        num_classes: int,
+        ignore_index: int = IGNORE_INDEX,
+        smooth: float = 1.0,
+        class_weights: torch.Tensor | None = None,
+    ) -> None:
         super().__init__()
         self.num_classes = num_classes
         self.ignore_index = ignore_index
         self.smooth = smooth
+        if class_weights is not None:
+            self.register_buffer("class_weights", class_weights.float())
+        else:
+            self.class_weights = None
 
     def forward(self, logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
         """Compute mean Dice loss over classes after masking ignored pixels."""
@@ -31,16 +41,27 @@ class DiceLoss(nn.Module):
         intersection = torch.sum(probs * one_hot, dims)
         denominator = torch.sum(probs + one_hot, dims)
         dice = (2.0 * intersection + self.smooth) / (denominator + self.smooth)
-        return 1.0 - dice.mean()
+        if self.class_weights is None:
+            return 1.0 - dice.mean()
+        weights = self.class_weights.to(dice.device)
+        weights = weights / weights.mean().clamp_min(1.0e-6)
+        return 1.0 - (dice * weights).sum() / weights.sum().clamp_min(1.0e-6)
 
 
 class CombinedLoss(nn.Module):
     """Weighted combination of Cross-Entropy and Dice losses."""
 
-    def __init__(self, num_classes: int, ignore_index: int = IGNORE_INDEX, ce_weight: float = 1.0, dice_weight: float = 1.0) -> None:
+    def __init__(
+        self,
+        num_classes: int,
+        ignore_index: int = IGNORE_INDEX,
+        ce_weight: float = 1.0,
+        dice_weight: float = 1.0,
+        class_weights: torch.Tensor | None = None,
+    ) -> None:
         super().__init__()
-        self.ce = nn.CrossEntropyLoss(ignore_index=ignore_index)
-        self.dice = DiceLoss(num_classes=num_classes, ignore_index=ignore_index)
+        self.ce = nn.CrossEntropyLoss(ignore_index=ignore_index, weight=class_weights)
+        self.dice = DiceLoss(num_classes=num_classes, ignore_index=ignore_index, class_weights=class_weights)
         self.ce_weight = ce_weight
         self.dice_weight = dice_weight
 
@@ -52,10 +73,19 @@ class CombinedLoss(nn.Module):
 def build_loss(train_config: dict, num_classes: int, ignore_index: int = IGNORE_INDEX) -> nn.Module:
     """Create the configured segmentation loss."""
     name = str(train_config.get("loss", "ce")).lower()
+    class_weights = _class_weights_tensor(train_config.get("class_weights_values"), num_classes)
     if name == "ce":
-        return nn.CrossEntropyLoss(ignore_index=ignore_index)
+        return nn.CrossEntropyLoss(ignore_index=ignore_index, weight=class_weights)
     if name == "dice":
-        return DiceLoss(num_classes=num_classes, ignore_index=ignore_index)
+        return DiceLoss(num_classes=num_classes, ignore_index=ignore_index, class_weights=class_weights)
     if name == "ce_dice":
-        return CombinedLoss(num_classes=num_classes, ignore_index=ignore_index)
+        return CombinedLoss(num_classes=num_classes, ignore_index=ignore_index, class_weights=class_weights)
     raise ValueError(f"Unsupported loss: {name}")
+
+
+def _class_weights_tensor(values: object, num_classes: int) -> torch.Tensor | None:
+    if values is None:
+        return None
+    if not isinstance(values, list) or len(values) != num_classes:
+        raise ValueError("class_weights_values must be a list with one value per class.")
+    return torch.tensor([float(value) for value in values], dtype=torch.float32)

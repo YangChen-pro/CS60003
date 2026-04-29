@@ -37,7 +37,7 @@ def main() -> None:
     loaders = build_loaders(config["data"], device)
     model = build_model(config["model"]).to(device)
     model.load_state_dict(checkpoint["model"])
-    criterion = build_loss(config["train"], num_classes=int(config["model"].get("num_classes", 8)))
+    criterion = build_loss(config["train"], num_classes=int(config["model"].get("num_classes", 8))).to(device)
 
     output_dir = Path(args.output_dir) if args.output_dir else checkpoint_path.parent / "eval"
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -53,6 +53,7 @@ def main() -> None:
         max_samples=int(config.get("eval", {}).get("visualize_samples", 8)),
         mean=config["data"].get("mean"),
         std=config["data"].get("std"),
+        tta=bool(config.get("eval", {}).get("tta", False)),
     )
     metrics = {
         "checkpoint": str(checkpoint_path),

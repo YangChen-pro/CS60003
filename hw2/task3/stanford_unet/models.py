@@ -10,16 +10,21 @@ import torch.nn.functional as F
 class DoubleConv(nn.Module):
     """Two Conv-BatchNorm-ReLU blocks used throughout U-Net."""
 
-    def __init__(self, in_channels: int, out_channels: int) -> None:
+    def __init__(self, in_channels: int, out_channels: int, dropout: float = 0.0) -> None:
         super().__init__()
-        self.net = nn.Sequential(
+        layers: list[nn.Module] = [
             nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
+        ]
+        if dropout > 0:
+            layers.append(nn.Dropout2d(p=dropout))
+        layers.extend([
             nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
-        )
+        ])
+        self.net = nn.Sequential(*layers)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Apply the double convolution block."""
@@ -29,9 +34,9 @@ class DoubleConv(nn.Module):
 class Down(nn.Module):
     """Downsampling block: max pooling followed by DoubleConv."""
 
-    def __init__(self, in_channels: int, out_channels: int) -> None:
+    def __init__(self, in_channels: int, out_channels: int, dropout: float = 0.0) -> None:
         super().__init__()
-        self.net = nn.Sequential(nn.MaxPool2d(2), DoubleConv(in_channels, out_channels))
+        self.net = nn.Sequential(nn.MaxPool2d(2), DoubleConv(in_channels, out_channels, dropout))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Apply one encoder downsampling step."""
@@ -41,7 +46,7 @@ class Down(nn.Module):
 class Up(nn.Module):
     """Upsampling block with skip-connection concatenation."""
 
-    def __init__(self, in_channels: int, skip_channels: int, out_channels: int, bilinear: bool) -> None:
+    def __init__(self, in_channels: int, skip_channels: int, out_channels: int, bilinear: bool, dropout: float = 0.0) -> None:
         super().__init__()
         if bilinear:
             self.up: nn.Module = nn.Upsample(scale_factor=2, mode="bilinear", align_corners=True)
@@ -49,7 +54,7 @@ class Up(nn.Module):
         else:
             self.up = nn.ConvTranspose2d(in_channels, out_channels, kernel_size=2, stride=2)
             up_channels = out_channels
-        self.conv = DoubleConv(up_channels + skip_channels, out_channels)
+        self.conv = DoubleConv(up_channels + skip_channels, out_channels, dropout)
 
     def forward(self, x: torch.Tensor, skip: torch.Tensor) -> torch.Tensor:
         """Upsample decoder features and concatenate encoder features."""
@@ -73,18 +78,18 @@ class OutConv(nn.Module):
 class UNet(nn.Module):
     """Classic U-Net with four downsampling stages and skip connections."""
 
-    def __init__(self, num_classes: int, base_channels: int = 32, bilinear: bool = False) -> None:
+    def __init__(self, num_classes: int, base_channels: int = 32, bilinear: bool = False, dropout: float = 0.0) -> None:
         super().__init__()
         channels = [base_channels, base_channels * 2, base_channels * 4, base_channels * 8, base_channels * 16]
-        self.inc = DoubleConv(3, channels[0])
-        self.down1 = Down(channels[0], channels[1])
-        self.down2 = Down(channels[1], channels[2])
-        self.down3 = Down(channels[2], channels[3])
-        self.down4 = Down(channels[3], channels[4])
-        self.up1 = Up(channels[4], channels[3], channels[3], bilinear)
-        self.up2 = Up(channels[3], channels[2], channels[2], bilinear)
-        self.up3 = Up(channels[2], channels[1], channels[1], bilinear)
-        self.up4 = Up(channels[1], channels[0], channels[0], bilinear)
+        self.inc = DoubleConv(3, channels[0], dropout)
+        self.down1 = Down(channels[0], channels[1], dropout)
+        self.down2 = Down(channels[1], channels[2], dropout)
+        self.down3 = Down(channels[2], channels[3], dropout)
+        self.down4 = Down(channels[3], channels[4], dropout)
+        self.up1 = Up(channels[4], channels[3], channels[3], bilinear, dropout)
+        self.up2 = Up(channels[3], channels[2], channels[2], bilinear, dropout)
+        self.up3 = Up(channels[2], channels[1], channels[1], bilinear, dropout)
+        self.up4 = Up(channels[1], channels[0], channels[0], bilinear, dropout)
         self.outc = OutConv(channels[0], num_classes)
         self._init_weights()
 
@@ -123,6 +128,7 @@ def build_model(model_config: dict) -> nn.Module:
         num_classes=int(model_config.get("num_classes", 8)),
         base_channels=int(model_config.get("base_channels", 32)),
         bilinear=bool(model_config.get("bilinear", False)),
+        dropout=float(model_config.get("dropout", 0.0)),
     )
 
 

@@ -1,0 +1,40 @@
+{
+  "updatedAt": "2026-04-29T09:18:41.164Z",
+  "version": 1,
+  "source": "~auto",
+  "originCommand": "auto",
+  "verifyMode": "test-first",
+  "reviewerFocus": [
+    "确认优化仍符合 hw2.md：手写 U-Net、随机初始化、不使用预训练或现成分割网络",
+    "确认验证集只用于评估和选模，不参与训练",
+    "确认 TTA 作为评估策略单独记录"
+  ],
+  "testerFocus": [
+    "远程 compileall 通过",
+    "远程小张量检查 dropout/class weights/TTA 不破坏 shape 和指标",
+    "至少 2 组优化实验完成并产生 metrics.json/history.csv/curves.png/best.pt",
+    "若刷新最佳 mIoU，ModelScope 上传路径存在"
+  ],
+  "ui": {
+    "required": false,
+    "designContract": false,
+    "sourcePriority": [],
+    "styleAdvisor": {
+      "required": false,
+      "reason": "",
+      "focus": []
+    },
+    "visualValidation": {
+      "required": false,
+      "reason": "",
+      "screens": [],
+      "states": []
+    }
+  },
+  "advisor": {
+    "required": false,
+    "reason": "",
+    "focus": [],
+    "preferredSources": []
+  }
+}

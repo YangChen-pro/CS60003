@@ -135,6 +135,40 @@ def validate_dataset(data_root: str | Path, split_dir: str | Path) -> dict[str, 
     }
 
 
+def compute_class_weights(
+    data_config: dict[str, Any],
+    num_classes: int,
+    method: str = "inverse_sqrt",
+    max_weight: float = 2.5,
+) -> list[float]:
+    """Compute normalized class weights from the training masks."""
+    split_file = Path(data_config["split_dir"]) / "train.txt"
+    ids = _read_split(split_file)
+    if not ids:
+        raise ValueError(f"Cannot compute class weights from empty split: {split_file}")
+    counts = np.zeros(num_classes, dtype=np.float64)
+    root = Path(data_config["root"])
+    ignore_index = int(data_config.get("ignore_index", IGNORE_INDEX))
+    for image_id in ids:
+        mask = _load_mask(root / "labels" / f"{image_id}.regions.txt", ignore_index)
+        valid = mask != ignore_index
+        counts += np.bincount(mask[valid].astype(np.int64), minlength=num_classes)[:num_classes]
+    freqs = counts / counts.sum().clip(min=1.0)
+    if method == "inverse":
+        weights = 1.0 / np.maximum(freqs, 1.0e-8)
+    elif method == "inverse_sqrt":
+        weights = 1.0 / np.sqrt(np.maximum(freqs, 1.0e-8))
+    elif method == "median_frequency":
+        weights = np.median(freqs[freqs > 0]) / np.maximum(freqs, 1.0e-8)
+    else:
+        raise ValueError(f"Unsupported class weight method: {method}")
+    weights = weights / weights.mean().clip(min=1.0e-8)
+    if max_weight > 0:
+        weights = np.minimum(weights, max_weight)
+        weights = weights / weights.mean().clip(min=1.0e-8)
+    return [float(value) for value in weights]
+
+
 def _read_split(path: Path) -> list[str]:
     if not path.is_file():
         return []
