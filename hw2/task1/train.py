@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import argparse
+import platform
 import shutil
+import sys
 from pathlib import Path
 
 import torch
 from torch import nn
+import torchvision
 
 from flowers102_task1.config import load_config, resolve_repo_path
 from flowers102_task1.data import build_loaders, validate_dataset
@@ -34,7 +37,7 @@ def main() -> None:
     dataset_stats = validate_dataset(config["data"]["root"])
     loaders = build_loaders(config["data"], device)
     model = build_model(config["model"]).to(device)
-    criterion = nn.CrossEntropyLoss()
+    criterion = nn.CrossEntropyLoss(label_smoothing=float(config["train"].get("label_smoothing", 0.0)))
     optimizer = _build_optimizer(model, config["train"])
     scheduler = _build_scheduler(optimizer, config["train"])
 
@@ -42,6 +45,7 @@ def main() -> None:
     shutil.copy2(args.config, run_dir / "source_config.yaml")
     save_json(run_dir / "config.json", config)
     save_json(run_dir / "dataset_stats.json", dataset_stats)
+    save_json(run_dir / "env.json", _environment_summary(device))
     print(f"run_dir={run_dir}", flush=True)
     print(f"device={device}", flush=True)
 
@@ -63,6 +67,7 @@ def main() -> None:
         criterion=criterion,
         device=device,
         num_classes=int(config["model"].get("num_classes", 102)),
+        tta=bool(config.get("eval", {}).get("tta", False)),
     )
     final_metrics = {**summary, "test_loss": test_metrics["loss"], "test_acc": test_metrics["acc"]}
     save_json(run_dir / "metrics.json", final_metrics)
@@ -106,13 +111,27 @@ def _build_scheduler(optimizer: torch.optim.Optimizer, train_config: dict):
     if name == "none":
         return None
     if name == "cosine":
+        t_max = int(train_config.get("scheduler_t_max", train_config["epochs"]))
         return torch.optim.lr_scheduler.CosineAnnealingLR(
             optimizer,
-            T_max=int(train_config["epochs"]),
+            T_max=t_max,
         )
     if name == "step":
         return torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.2)
     raise ValueError(f"Unsupported scheduler: {name}")
+
+
+def _environment_summary(device: torch.device) -> dict:
+    return {
+        "python": sys.version,
+        "platform": platform.platform(),
+        "torch": torch.__version__,
+        "torchvision": torchvision.__version__,
+        "cuda_available": torch.cuda.is_available(),
+        "cuda_device_count": torch.cuda.device_count(),
+        "device": str(device),
+        "gpu_name": torch.cuda.get_device_name(0) if device.type == "cuda" else "",
+    }
 
 
 if __name__ == "__main__":

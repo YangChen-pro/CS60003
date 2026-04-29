@@ -21,6 +21,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--checkpoint", required=True, help="Path to best.pt.")
     parser.add_argument("--split", default="test", choices=("train", "val", "test"))
     parser.add_argument("--device", default="auto", help="auto, cuda, cuda:0, or cpu.")
+    parser.add_argument("--tta", action="store_true", help="Use horizontal-flip test-time augmentation.")
     parser.add_argument("--output", default=None, help="Optional JSON output path.")
     return parser.parse_args()
 
@@ -44,8 +45,10 @@ def main() -> None:
         criterion=nn.CrossEntropyLoss(),
         device=device,
         num_classes=int(config["model"].get("num_classes", 102)),
+        tta=args.tta,
     )
-    output = Path(args.output) if args.output else Path(args.checkpoint).with_name(f"{args.split}_eval.json")
+    suffix = "eval_tta" if args.tta else "eval"
+    output = Path(args.output) if args.output else Path(args.checkpoint).with_name(f"{args.split}_{suffix}.json")
     save_json(output, metrics)
     print(f"split={args.split} loss={metrics['loss']:.4f} acc={metrics['acc']:.4f}", flush=True)
 

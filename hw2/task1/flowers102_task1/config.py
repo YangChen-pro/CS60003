@@ -21,6 +21,10 @@ DEFAULT_CONFIG: dict[str, Any] = {
         "batch_size": 64,
         "num_workers": 4,
         "pin_memory": True,
+        "augment": "basic",
+        "randaugment_ops": 2,
+        "randaugment_magnitude": 9,
+        "random_erasing": 0.0,
     },
     "model": {
         "name": "resnet18",
@@ -36,7 +40,12 @@ DEFAULT_CONFIG: dict[str, Any] = {
         "momentum": 0.9,
         "scheduler": "cosine",
         "amp": True,
+        "label_smoothing": 0.0,
+        "grad_clip_norm": 0.0,
         "log_interval": 20,
+    },
+    "eval": {
+        "tta": False,
     },
 }
 

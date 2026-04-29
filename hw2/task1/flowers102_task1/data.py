@@ -107,22 +107,15 @@ def validate_dataset(root: str | Path) -> dict[str, int]:
     return stats
 
 
-def build_transforms(image_size: int, train: bool) -> transforms.Compose:
+def build_transforms(data_config: dict, train: bool) -> transforms.Compose:
     """Create ImageNet-style transforms for fine-tuning."""
+    image_size = int(data_config.get("image_size", 224))
     normalize = transforms.Normalize(
         mean=(0.485, 0.456, 0.406),
         std=(0.229, 0.224, 0.225),
     )
     if train:
-        return transforms.Compose(
-            [
-                transforms.RandomResizedCrop(image_size, scale=(0.65, 1.0)),
-                transforms.RandomHorizontalFlip(),
-                transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),
-                transforms.ToTensor(),
-                normalize,
-            ]
-        )
+        return _build_train_transforms(data_config, normalize)
     return transforms.Compose(
         [
             transforms.Resize(int(image_size * 256 / 224)),
@@ -136,15 +129,14 @@ def build_transforms(image_size: int, train: bool) -> transforms.Compose:
 def build_loaders(data_config: dict, device: torch.device) -> dict[str, DataLoader]:
     """Build train/val/test dataloaders from a config dictionary."""
     root = data_config["root"]
-    image_size = int(data_config.get("image_size", 224))
     batch_size = int(data_config.get("batch_size", 64))
     num_workers = int(data_config.get("num_workers", 4))
     pin_memory = bool(data_config.get("pin_memory", device.type == "cuda"))
 
     datasets = {
-        "train": Flowers102Dataset(root, "train", build_transforms(image_size, train=True)),
-        "val": Flowers102Dataset(root, "val", build_transforms(image_size, train=False)),
-        "test": Flowers102Dataset(root, "test", build_transforms(image_size, train=False)),
+        "train": Flowers102Dataset(root, "train", build_transforms(data_config, train=True)),
+        "val": Flowers102Dataset(root, "val", build_transforms(data_config, train=False)),
+        "test": Flowers102Dataset(root, "test", build_transforms(data_config, train=False)),
     }
     return {
         split: DataLoader(
@@ -156,3 +148,48 @@ def build_loaders(data_config: dict, device: torch.device) -> dict[str, DataLoad
         )
         for split, dataset in datasets.items()
     }
+
+
+def _build_train_transforms(data_config: dict, normalize: transforms.Normalize) -> transforms.Compose:
+    image_size = int(data_config.get("image_size", 224))
+    augment = str(data_config.get("augment", "basic")).lower()
+    if augment == "strong":
+        steps = _strong_augmentation_steps(data_config, image_size)
+    elif augment == "mild":
+        steps = _mild_augmentation_steps(image_size)
+    elif augment == "none":
+        steps = [transforms.Resize(int(image_size * 256 / 224)), transforms.CenterCrop(image_size)]
+    else:
+        steps = _basic_augmentation_steps(image_size)
+    steps.extend([transforms.ToTensor(), normalize])
+    erasing = float(data_config.get("random_erasing", 0.0))
+    if erasing > 0:
+        steps.append(transforms.RandomErasing(p=erasing, value="random"))
+    return transforms.Compose(steps)
+
+
+def _basic_augmentation_steps(image_size: int) -> list:
+    return [
+        transforms.RandomResizedCrop(image_size, scale=(0.65, 1.0)),
+        transforms.RandomHorizontalFlip(),
+        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),
+    ]
+
+
+def _mild_augmentation_steps(image_size: int) -> list:
+    return [
+        transforms.RandomResizedCrop(image_size, scale=(0.75, 1.0)),
+        transforms.RandomHorizontalFlip(),
+        transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1),
+    ]
+
+
+def _strong_augmentation_steps(data_config: dict, image_size: int) -> list:
+    ops = int(data_config.get("randaugment_ops", 2))
+    magnitude = int(data_config.get("randaugment_magnitude", 9))
+    return [
+        transforms.RandomResizedCrop(image_size, scale=(0.55, 1.0)),
+        transforms.RandomHorizontalFlip(),
+        transforms.RandAugment(num_ops=ops, magnitude=magnitude),
+        transforms.ColorJitter(brightness=0.15, contrast=0.15, saturation=0.15),
+    ]

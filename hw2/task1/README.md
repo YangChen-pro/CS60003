@@ -63,6 +63,16 @@ hw2/Flowers102/
 - `baseline_resnet18_short.yaml`：较短训练轮数，用于 epoch 对比。
 - `random_resnet18.yaml`：随机初始化 ResNet-18，做预训练消融。
 - `se_resnet18.yaml`：SE-ResNet-18 注意力模型。
+- `opt_resnet18_adamw_strong.yaml`：ResNet-18 + AdamW + 强增强 + label smoothing。
+- `opt_resnet18_sgd_ls.yaml`：ResNet-18 + SGD + label smoothing。
+- `opt_resnet18_sgd_ra_ls.yaml`：ResNet-18 + SGD + RandAugment + label smoothing。
+- `opt_resnet34_sgd_ra_ls.yaml`：ResNet-34 + SGD + RandAugment + label smoothing。
+- `opt_resnet34_adamw_strong.yaml`：ResNet-34 + AdamW + 强增强。
+- `opt_resnet50_adamw_mild.yaml`：ResNet-50 + AdamW + 温和增强。
+- `opt_resnet50_sgd_320_ra_ls.yaml`：ResNet-50 + 320 输入 + SGD + RandAugment。
+- `opt_efficientnet_b0_strong.yaml`：EfficientNet-B0 + AdamW + 强增强。
+- `opt_efficientnet_b0_320_ra_ls.yaml`：EfficientNet-B0 + 320 输入 + AdamW + RandAugment。
+- `opt_convnext_tiny_strong.yaml`：ConvNeXt-Tiny + AdamW + 强增强。
 
 ## 训练命令
 

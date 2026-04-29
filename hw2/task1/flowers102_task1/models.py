@@ -6,7 +6,7 @@ from collections.abc import Iterable
 
 import torch
 from torch import nn
-from torchvision.models import resnet18
+from torchvision.models import convnext_tiny, efficientnet_b0, resnet18, resnet34, resnet50
 from torchvision.models.resnet import BasicBlock, ResNet
 
 
@@ -23,6 +23,8 @@ class SEBlock(nn.Module):
             nn.Linear(hidden, channels),
             nn.Sigmoid(),
         )
+        nn.init.zeros_(self.fc[2].weight)
+        nn.init.constant_(self.fc[2].bias, 5.0)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         batch, channels, _, _ = x.shape
@@ -64,7 +66,15 @@ def build_model(model_config: dict) -> nn.Module:
     num_classes = int(model_config.get("num_classes", 102))
 
     if name == "resnet18":
-        model = _build_resnet18(pretrained=pretrained, num_classes=num_classes)
+        model = _build_resnet(resnet18, "ResNet18_Weights", pretrained, num_classes)
+    elif name == "resnet34":
+        model = _build_resnet(resnet34, "ResNet34_Weights", pretrained, num_classes)
+    elif name == "resnet50":
+        model = _build_resnet(resnet50, "ResNet50_Weights", pretrained, num_classes)
+    elif name == "efficientnet_b0":
+        model = _build_efficientnet_b0(pretrained=pretrained, num_classes=num_classes)
+    elif name == "convnext_tiny":
+        model = _build_convnext_tiny(pretrained=pretrained, num_classes=num_classes)
     elif name == "se_resnet18":
         model = _build_se_resnet18(pretrained=pretrained, num_classes=num_classes)
     else:
@@ -75,7 +85,8 @@ def build_model(model_config: dict) -> nn.Module:
 
 def classifier_parameter_names(model: nn.Module) -> set[str]:
     """Return parameter names belonging to the classification head."""
-    return {name for name, _ in model.named_parameters() if name.startswith("fc.")}
+    prefixes = ("fc.", "classifier.")
+    return {name for name, _ in model.named_parameters() if name.startswith(prefixes)}
 
 
 def build_parameter_groups(
@@ -104,8 +115,8 @@ def build_parameter_groups(
     return groups
 
 
-def _build_resnet18(pretrained: bool, num_classes: int) -> nn.Module:
-    model = _torchvision_resnet18(pretrained=pretrained)
+def _build_resnet(builder, weights_name: str, pretrained: bool, num_classes: int) -> nn.Module:
+    model = _torchvision_model(builder, weights_name, pretrained=pretrained)
     model.fc = nn.Linear(model.fc.in_features, num_classes)
     return model
 
@@ -113,20 +124,35 @@ def _build_resnet18(pretrained: bool, num_classes: int) -> nn.Module:
 def _build_se_resnet18(pretrained: bool, num_classes: int) -> nn.Module:
     model = ResNet(SEBasicBlock, [2, 2, 2, 2], num_classes=num_classes)
     if pretrained:
-        source = _torchvision_resnet18(pretrained=True)
+        source = _torchvision_model(resnet18, "ResNet18_Weights", pretrained=True)
         source.fc = nn.Linear(source.fc.in_features, num_classes)
         _load_matching_state(model, source.state_dict())
     return model
 
 
-def _torchvision_resnet18(pretrained: bool) -> nn.Module:
-    try:
-        from torchvision.models import ResNet18_Weights
+def _build_efficientnet_b0(pretrained: bool, num_classes: int) -> nn.Module:
+    model = _torchvision_model(efficientnet_b0, "EfficientNet_B0_Weights", pretrained)
+    in_features = model.classifier[-1].in_features
+    model.classifier[-1] = nn.Linear(in_features, num_classes)
+    return model
 
-        weights = ResNet18_Weights.IMAGENET1K_V1 if pretrained else None
-        return resnet18(weights=weights)
+
+def _build_convnext_tiny(pretrained: bool, num_classes: int) -> nn.Module:
+    model = _torchvision_model(convnext_tiny, "ConvNeXt_Tiny_Weights", pretrained)
+    in_features = model.classifier[-1].in_features
+    model.classifier[-1] = nn.Linear(in_features, num_classes)
+    return model
+
+
+def _torchvision_model(builder, weights_name: str, pretrained: bool) -> nn.Module:
+    try:
+        import torchvision.models as tv_models
+
+        weights_enum = getattr(tv_models, weights_name)
+        weights = weights_enum.DEFAULT if pretrained else None
+        return builder(weights=weights)
     except Exception:
-        return resnet18(pretrained=pretrained)
+        return builder(pretrained=pretrained)
 
 
 def _load_matching_state(model: nn.Module, state_dict: dict[str, torch.Tensor]) -> None:

@@ -1,0 +1,40 @@
+{
+  "updatedAt": "2026-04-29T03:41:21.203Z",
+  "version": 1,
+  "source": "~auto",
+  "originCommand": "auto",
+  "verifyMode": "test-first",
+  "reviewerFocus": [
+    "确认新结果由当前 commit 重新训练得到",
+    "确认 TTA 与非 TTA 结果口径清晰",
+    "确认大型权重和 outputs 不进入 Git"
+  ],
+  "testerFocus": [
+    "远程 compileall 通过",
+    "新模型 resnet34/resnet50/efficientnet_b0/convnext_tiny 可构建",
+    "至少 3 组优化实验完成并产生 metrics.json/history.csv/curves.png/best.pt",
+    "最佳 test_acc 高于 baseline 0.6819"
+  ],
+  "ui": {
+    "required": false,
+    "designContract": false,
+    "sourcePriority": [],
+    "styleAdvisor": {
+      "required": false,
+      "reason": "",
+      "focus": []
+    },
+    "visualValidation": {
+      "required": false,
+      "reason": "",
+      "screens": [],
+      "states": []
+    }
+  },
+  "advisor": {
+    "required": false,
+    "reason": "",
+    "focus": [],
+    "preferredSources": []
+  }
+}

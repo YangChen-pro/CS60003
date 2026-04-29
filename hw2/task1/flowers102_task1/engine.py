@@ -31,6 +31,7 @@ def train_one_epoch(
     device: torch.device,
     scaler: torch.cuda.amp.GradScaler | None,
     log_interval: int,
+    grad_clip_norm: float,
     epoch: int,
 ) -> EpochResult:
     """Run one training epoch."""
@@ -50,9 +51,13 @@ def train_one_epoch(
 
         if scaler is None:
             loss.backward()
+            _clip_gradients(model, grad_clip_norm)
             optimizer.step()
         else:
             scaler.scale(loss).backward()
+            if grad_clip_norm > 0:
+                scaler.unscale_(optimizer)
+                _clip_gradients(model, grad_clip_norm)
             scaler.step(optimizer)
             scaler.update()
 
@@ -78,6 +83,7 @@ def evaluate(
     criterion: nn.Module,
     device: torch.device,
     num_classes: int,
+    tta: bool = False,
 ) -> dict[str, Any]:
     """Evaluate a model and return aggregate plus per-class metrics."""
     model.eval()
@@ -89,7 +95,7 @@ def evaluate(
     for images, targets in loader:
         images = images.to(device, non_blocking=True)
         targets = targets.to(device, non_blocking=True)
-        logits = model(images)
+        logits = _forward_eval(model, images, tta)
         loss = criterion(logits, targets)
 
         batch_size = int(targets.size(0))
@@ -120,6 +126,7 @@ def fit(
     epochs = int(config["train"]["epochs"])
     num_classes = int(config["model"].get("num_classes", 102))
     log_interval = int(config["train"].get("log_interval", 20))
+    grad_clip_norm = float(config["train"].get("grad_clip_norm", 0.0))
     use_amp = bool(config["train"].get("amp", True)) and device.type == "cuda"
     scaler = torch.cuda.amp.GradScaler(enabled=True) if use_amp else None
     history_csv = run_dir / "history.csv"
@@ -129,7 +136,17 @@ def fit(
     best_path = run_dir / "best.pt"
 
     for epoch in range(1, epochs + 1):
-        train_result = train_one_epoch(model, loaders["train"], criterion, optimizer, device, scaler, log_interval, epoch)
+        train_result = train_one_epoch(
+            model,
+            loaders["train"],
+            criterion,
+            optimizer,
+            device,
+            scaler,
+            log_interval,
+            grad_clip_norm,
+            epoch,
+        )
         val_result = evaluate(model, loaders["val"], criterion, device, num_classes)
         if scheduler is not None:
             scheduler.step()
@@ -150,6 +167,19 @@ def fit(
     }
     save_json(run_dir / "metrics.json", summary)
     return summary
+
+
+def _forward_eval(model: nn.Module, images: torch.Tensor, tta: bool) -> torch.Tensor:
+    logits = model(images)
+    if not tta:
+        return logits
+    flipped = torch.flip(images, dims=[3])
+    return (logits + model(flipped)) * 0.5
+
+
+def _clip_gradients(model: nn.Module, grad_clip_norm: float) -> None:
+    if grad_clip_norm > 0:
+        torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip_norm)
 
 
 def _history_row(

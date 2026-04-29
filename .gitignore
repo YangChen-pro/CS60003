@@ -19,3 +19,6 @@ hw1/outputs/search/*/
 hw2/task1/outputs/
 *.pt
 *.pth
+
+# HelloAGENTS 本地运行回放
+.helloagents/replay/
