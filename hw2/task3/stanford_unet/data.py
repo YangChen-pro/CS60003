@@ -42,7 +42,11 @@ class StanfordBackgroundDataset(Dataset):
         image_id = self.ids[index]
         image = Image.open(self.root / "images" / f"{image_id}.jpg").convert("RGB")
         mask = _load_mask(self.root / "labels" / f"{image_id}.regions.txt", self.ignore_index)
-        image, mask = _resize_pair(image, mask, self.image_size)
+        scale_range = self.augment.get("random_scale")
+        if scale_range:
+            image, mask = _random_resized_crop_pair(image, mask, self.image_size, scale_range, self.ignore_index)
+        else:
+            image, mask = _resize_pair(image, mask, self.image_size)
         image, mask = self._augment(image, mask)
         return _image_to_tensor(image, self.mean, self.std), torch.from_numpy(mask.astype(np.int64)), image_id
 
@@ -185,6 +189,38 @@ def _resize_pair(image: Image.Image, mask: np.ndarray, image_size: tuple[int, in
     image = image.resize((width, height), _RESAMPLING.BILINEAR)
     mask_image = Image.fromarray(mask, mode="L").resize((width, height), _RESAMPLING.NEAREST)
     return image, np.asarray(mask_image, dtype=np.uint8)
+
+
+def _random_resized_crop_pair(
+    image: Image.Image,
+    mask: np.ndarray,
+    image_size: tuple[int, int],
+    scale_range: list[float] | tuple[float, float],
+    ignore_index: int,
+) -> tuple[Image.Image, np.ndarray]:
+    target_h, target_w = image_size
+    min_scale, max_scale = float(scale_range[0]), float(scale_range[1])
+    scale = random.uniform(min_scale, max_scale)
+    resized_h = max(1, int(round(target_h * scale)))
+    resized_w = max(1, int(round(target_w * scale)))
+    image = image.resize((resized_w, resized_h), _RESAMPLING.BILINEAR)
+    mask_image = Image.fromarray(mask, mode="L").resize((resized_w, resized_h), _RESAMPLING.NEAREST)
+
+    canvas_w = max(target_w, resized_w)
+    canvas_h = max(target_h, resized_h)
+    if resized_w < target_w or resized_h < target_h:
+        left = random.randint(0, canvas_w - resized_w)
+        top = random.randint(0, canvas_h - resized_h)
+        image_canvas = Image.new("RGB", (canvas_w, canvas_h), color=(0, 0, 0))
+        mask_canvas = Image.new("L", (canvas_w, canvas_h), color=ignore_index)
+        image_canvas.paste(image, (left, top))
+        mask_canvas.paste(mask_image, (left, top))
+        image, mask_image = image_canvas, mask_canvas
+
+    left = random.randint(0, image.size[0] - target_w)
+    top = random.randint(0, image.size[1] - target_h)
+    box = (left, top, left + target_w, top + target_h)
+    return image.crop(box), np.asarray(mask_image.crop(box), dtype=np.uint8)
 
 
 def _image_to_tensor(image: Image.Image, mean: torch.Tensor, std: torch.Tensor) -> torch.Tensor:

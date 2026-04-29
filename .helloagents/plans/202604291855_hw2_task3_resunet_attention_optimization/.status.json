@@ -1,10 +1,10 @@
 {
   "status": "in_progress",
-  "completed": 2,
+  "completed": 3,
   "failed": 0,
   "pending": 3,
-  "total": 5,
-  "percent": 40,
-  "current": "已实现手写 ResUNet / Attention U-Net 变体并新增冲分配置，准备 Git 同步远程 135 正式训练。",
-  "updated_at": "2026-04-29 18:55:00"
+  "total": 6,
+  "percent": 50,
+  "current": "第一批结构优化完成，最佳 Attention U-Net b64 val_mIoU=0.667801；已新增 random scale crop 增强配置，准备第二轮正式训练。",
+  "updated_at": "2026-04-29 18:58:00"
 }
