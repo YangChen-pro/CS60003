@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### 方案开发
+- **[hw2-task1]**: 新增 Flowers102 ResNet 微调方案包与 Task1 实验工程，覆盖 Baseline、超参数、随机初始化消融和 SE 注意力对比 — by YangChen-pro
+  - 类型: 标准流程（方案包：.helloagents/plans/202604291109_hw2_task1_flowers102）
+  - 文件: hw2/task1/, .gitignore, .helloagents/plans/202604291109_hw2_task1_flowers102/*, .helloagents/STATE.md, .helloagents/modules/hw2.md, .helloagents/CHANGELOG.md
+
 ### 快速修改
 - **[hw2]**: 删除已同步到知识库的 `hw2/DATASETS.md` 原始说明文件，并移除对应 `.gitignore` 规则 — by YangChen-pro
   - 类型: 文档收口
@@ -28,7 +33,7 @@
   - 类型: 快速修改（无方案包）
   - 文件: .helloagents/INDEX.md:1-35, .helloagents/context.md:1-55, .helloagents/modules/_index.md:1-18, .helloagents/modules/hw1.md:1-54, .helloagents/CHANGELOG.md:1-8
 
-### 方案开发
+### 历史方案开发
 - **[hw1]**: 新增 EuroSAT 三层 MLP 作业实现，包含数据处理、手写反向传播、训练/评估/搜索脚本与可视化产物说明 — by YangChen-pro
   - 类型: 标准流程（方案包：.helloagents/plans/202604091720_hw1_mlp）
   - 文件: hw1/mlp_hw1/backend.py, hw1/mlp_hw1/config.py, hw1/mlp_hw1/data.py, hw1/mlp_hw1/metrics.py, hw1/mlp_hw1/model.py, hw1/mlp_hw1/trainer.py, hw1/mlp_hw1/visualization.py, hw1/train.py, hw1/evaluate.py, hw1/search.py, hw1/tests/test_core.py, hw1/requirements.txt, hw1/README.md, .gitignore, .helloagents/STATE.md, .helloagents/plans/202604091720_hw1_mlp/*

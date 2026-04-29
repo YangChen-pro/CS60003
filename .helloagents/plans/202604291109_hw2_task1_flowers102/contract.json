@@ -1,0 +1,39 @@
+{
+  "updatedAt": "2026-04-29T03:14:34.960Z",
+  "version": 1,
+  "source": "~auto",
+  "originCommand": "auto",
+  "verifyMode": "test-first",
+  "reviewerFocus": [
+    "确认 Task1 代码不使用硬编码绝对路径",
+    "确认模型权重和训练输出不会被 Git 误提交"
+  ],
+  "testerFocus": [
+    "远程 135 上 PyTorch/torchvision/CUDA 环境可用",
+    "Flowers102 官方划分数量正确",
+    "Baseline/随机初始化/SE 配置可启动并保存指标产物",
+    "远程 Git HEAD 与本机提交一致且身份正确"
+  ],
+  "ui": {
+    "required": false,
+    "designContract": false,
+    "sourcePriority": [],
+    "styleAdvisor": {
+      "required": false,
+      "reason": "",
+      "focus": []
+    },
+    "visualValidation": {
+      "required": false,
+      "reason": "",
+      "screens": [],
+      "states": []
+    }
+  },
+  "advisor": {
+    "required": false,
+    "reason": "",
+    "focus": [],
+    "preferredSources": []
+  }
+}

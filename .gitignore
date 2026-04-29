@@ -14,3 +14,8 @@ hw1/outputs/cache/
 # 已经纳入 Git 的证据文件仍会继续被跟踪。
 hw1/outputs/runs/*/
 hw1/outputs/search/*/
+
+# HW2 Task1 正式实验输出和权重不进入 Git
+hw2/task1/outputs/
+*.pt
+*.pth

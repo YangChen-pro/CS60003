@@ -1,0 +1,119 @@
+# HW2 Task1：Flowers102 CNN 微调
+
+本目录用于完成 HW2 Task1：在 102 Category Flower Dataset 上微调 ImageNet 预训练 ResNet，完成超参数分析、预训练消融和注意力机制对比。
+
+## 目录
+
+```text
+hw2/task1/
+├── configs/                 # 每个 YAML 对应一组实验
+├── flowers102_task1/         # 数据、模型、训练与指标代码
+├── train.py                  # 训练入口
+├── evaluate.py               # checkpoint 评估入口
+├── requirements.txt
+└── outputs/                  # 训练输出，默认不进入 Git
+```
+
+## 远程执行约定
+
+本任务不在本机做 smoke test 或正式训练。代码在本机修改后通过 Git 同步到远程 `135-3090-8`，在远程直接运行正式实验。
+
+远程使用前先检查：
+
+```bash
+git config user.name
+git config user.email
+git rev-parse HEAD
+/data/yc/miniconda/envs/llm-26-gpu/bin/python - <<'PY'
+import torch, torchvision
+print("torch", torch.__version__)
+print("torchvision", torchvision.__version__)
+print("cuda", torch.cuda.is_available())
+PY
+```
+
+Git 身份目标：
+
+```text
+YangChen-pro <1369792882@qq.com>
+```
+
+## 数据
+
+默认数据目录：
+
+```text
+hw2/Flowers102/
+├── jpg/
+├── imagelabels.mat
+├── setid.mat
+└── README.txt
+```
+
+代码严格读取官方 `setid.mat` 划分：
+
+- train：1020 张
+- val：1020 张
+- test：6149 张
+
+## 实验配置
+
+- `baseline_resnet18.yaml`：ImageNet 预训练 ResNet-18 Baseline。
+- `baseline_resnet18_low_lr.yaml`：较低学习率组合，用于超参数对比。
+- `baseline_resnet18_short.yaml`：较短训练轮数，用于 epoch 对比。
+- `random_resnet18.yaml`：随机初始化 ResNet-18，做预训练消融。
+- `se_resnet18.yaml`：SE-ResNet-18 注意力模型。
+
+## 训练命令
+
+在远程仓库根目录执行：
+
+```bash
+/data/yc/miniconda/envs/llm-26-gpu/bin/python hw2/task1/train.py \
+  --config hw2/task1/configs/baseline_resnet18.yaml \
+  --device auto
+```
+
+其他实验只需要替换 `--config`：
+
+```bash
+/data/yc/miniconda/envs/llm-26-gpu/bin/python hw2/task1/train.py \
+  --config hw2/task1/configs/random_resnet18.yaml \
+  --device auto
+
+/data/yc/miniconda/envs/llm-26-gpu/bin/python hw2/task1/train.py \
+  --config hw2/task1/configs/se_resnet18.yaml \
+  --device auto
+```
+
+## 输出
+
+每次训练会在 `hw2/task1/outputs/{timestamp}_{experiment_name}/` 下保存：
+
+- `source_config.yaml`：本次实验原始配置
+- `config.json`：展开默认值后的配置
+- `dataset_stats.json`：数据划分校验结果
+- `history.csv`：每轮 train / val loss 与 accuracy
+- `curves.png`：loss / accuracy 曲线
+- `best.pt`：按验证集 accuracy 选择的最佳模型
+- `metrics.json`：best epoch、best val accuracy、test loss、test accuracy
+- `test_details.json`：测试集详细指标和混淆矩阵
+
+## 单独评估
+
+```bash
+/data/yc/miniconda/envs/llm-26-gpu/bin/python hw2/task1/evaluate.py \
+  --config hw2/task1/configs/baseline_resnet18.yaml \
+  --checkpoint hw2/task1/outputs/<run_dir>/best.pt \
+  --split test
+```
+
+## 报告素材整理
+
+报告中至少记录：
+
+- Baseline 的 train / val 曲线和 test accuracy。
+- 不同学习率 / epoch 的对比表。
+- 随机初始化与 ImageNet 预训练的 accuracy 差异。
+- SE 注意力模型与 Baseline 的 accuracy 差异。
+- 每组实验的配置、best epoch 和 checkpoint 路径。

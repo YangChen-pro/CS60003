@@ -1,21 +1,23 @@
 # 项目状态
 
-主线目标：为 HW2 期中作业准备全部题面数据集，沿用 HW1 的“数据集直接放在作业目录下”组织方式。
+主线目标：完成 HW2 Task1 Flowers102 预训练 CNN 微调、消融、注意力对比和远程正式实验。
 
-正在做什么：HW2 数据集已下载并完成基础完整性检查。
+正在做什么：已确认方案，正在实现 `hw2/task1/` 工程并准备通过 Git 同步到远程 `135-3090-8`。
 
 关键上下文：
 - 题面文件：`hw2/hw2.md`
-- HW1 参考布局：`hw1/EuroSAT_RGB/` 直接位于作业目录下
-- HW2 数据集目录：
-  - `hw2/Flowers102/`：Oxford 102 Category Flower Dataset，含 `jpg/`、`imagelabels.mat`、`setid.mat`、`README.txt`
-  - `hw2/RoadVehicleImages/`：Kaggle Road Vehicle Images Dataset，含 `trafic_data/train/`、`trafic_data/valid/`
-  - `hw2/StanfordBackground/`：Stanford Background Dataset，含 `iccv09Data/images/`、`iccv09Data/labels/`
-- Road Vehicle 原始 `data_1.yaml` 路径可能不适合当前目录层级，已生成本地配置 `hw2/RoadVehicleImages/trafic_data/data_hw2.yaml`
-- 数据说明已同步到 `.helloagents/modules/hw2.md`，原始 `hw2/DATASETS.md` 已删除
-- 用户已确认删除 HW2 数据集目录的 `.gitignore` 规则；数据集可被 Git 发现，但会显著增大仓库体积。
+- Task1 数据集：`hw2/Flowers102/`，含 `jpg/`、`imagelabels.mat`、`setid.mat`、`README.txt`
+- 用户确认：不在本机 smoke test；本机只做编辑和文档整理。
+- 用户确认：代码通过 Git 同步到远程，远程机器使用前检查 Git 身份是否与本机一致。
+- 本机轻量环境：`conda run -n nlp`
+- 远程主机：`ssh 135-3090-8`
+- 远程优先环境：`/data/yc/miniconda/envs/llm-26-gpu`，执行前需确认 PyTorch / torchvision / CUDA 可用。
+- Git 身份目标：`YangChen-pro <1369792882@qq.com>`
 
-下一步：后续进入 HW2 实现阶段时，先基于 `.helloagents/modules/hw2.md` 读取数据位置；任务 2 仍需准备 10–30 秒测试视频。
+下一步：实现 `hw2/task1/` 数据管线、模型、训练评估入口和配置，然后提交推送并在远程拉取运行正式实验。
 
 阻塞项：
 - 无
+
+方案：
+- `.helloagents/plans/202604291109_hw2_task1_flowers102/`
