@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### 快速修改
+- **[hw2-task1]**: 记录 Task1 后续报告需接入 SwanLab，可视化凭据通过 `SWANLAB_API_KEY` 运行时环境变量提供，不写入 Git 跟踪文件 — by YangChen-pro
+  - 类型: 项目要求记录
+  - 文件: .helloagents/modules/hw2.md, .helloagents/STATE.md, .gitignore, .helloagents/CHANGELOG.md
+
 ### 方案开发
 - **[hw2-task1]**: 多维优化 Flowers102 分类实验，新增 ConvNeXt / EfficientNet / ResNet-50 等配置并将最佳 `test_acc` 提升到 `0.9608` — by YangChen-pro
   - 类型: 标准流程（方案包：.helloagents/plans/202604291137_hw2_task1_optimization）
