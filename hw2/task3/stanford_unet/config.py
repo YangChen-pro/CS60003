@@ -129,7 +129,7 @@ def _validate_config(config: dict[str, Any]) -> None:
     if bool(config.get("model", {}).get("pretrained", False)):
         raise ValueError("Task3 requires random initialization; pretrained must be false.")
     loss_name = str(config.get("train", {}).get("loss", "")).lower()
-    if loss_name not in {"ce", "dice", "ce_dice"}:
+    if loss_name not in {"ce", "dice", "ce_dice", "ce_dice_lovasz"}:
         raise ValueError(f"Unsupported loss: {loss_name}")
     image_size = config.get("data", {}).get("image_size")
     if not isinstance(image_size, list) or len(image_size) != 2:

@@ -78,6 +78,7 @@ def train_one_epoch(
         with torch.amp.autocast(device_type=device.type, enabled=scaler is not None):
             logits = model(images)
             loss = criterion(logits, masks)
+        main_logits = _main_logits(logits)
 
         if scaler is None:
             loss.backward()
@@ -96,7 +97,7 @@ def train_one_epoch(
         batch_size = int(images.size(0))
         total_loss += float(loss.item()) * batch_size
         total_seen += batch_size
-        confusion = update_confusion_matrix(confusion, logits, masks, num_classes=num_classes)
+        confusion = update_confusion_matrix(confusion, main_logits, masks, num_classes=num_classes)
 
         if log_interval > 0 and step % log_interval == 0:
             metrics = summarize_confusion(confusion, CLASS_NAMES[:num_classes])
@@ -135,7 +136,7 @@ def evaluate(
         masks = masks.to(device, non_blocking=True)
         logits = _forward_eval(model, images, tta, tta_scales)
         loss = criterion(logits, masks)
-        preds = logits.argmax(dim=1)
+        preds = _main_logits(logits).argmax(dim=1)
 
         batch_size = int(images.size(0))
         total_loss += float(loss.item()) * batch_size
@@ -254,23 +255,34 @@ def _build_ema(model: nn.Module, train_config: dict[str, Any]) -> ModelEma | Non
     return ModelEma(model, decay)
 
 
-def _forward_eval(model: nn.Module, images: torch.Tensor, tta: bool, tta_scales: list[float] | None = None) -> torch.Tensor:
+def _forward_eval(
+    model: nn.Module,
+    images: torch.Tensor,
+    tta: bool,
+    tta_scales: list[float] | None = None,
+) -> torch.Tensor | list[torch.Tensor]:
     scales = tta_scales or [1.0]
     logits_sum: torch.Tensor | None = None
     count = 0
     for scale in scales:
         scaled_images = _scale_images(images, float(scale))
-        logits = _resize_logits(model(scaled_images), images.shape[-2:])
+        logits = _resize_logits(_main_logits(model(scaled_images)), images.shape[-2:])
         logits_sum = logits if logits_sum is None else logits_sum + logits
         count += 1
         if tta:
             flipped_images = torch.flip(scaled_images, dims=[3])
-            flipped_logits = torch.flip(model(flipped_images), dims=[3])
+            flipped_logits = torch.flip(_main_logits(model(flipped_images)), dims=[3])
             logits_sum = logits_sum + _resize_logits(flipped_logits, images.shape[-2:])
             count += 1
     if logits_sum is None:
         return model(images)
     return logits_sum / count
+
+
+def _main_logits(logits: torch.Tensor | list[torch.Tensor] | tuple[torch.Tensor, ...]) -> torch.Tensor:
+    if isinstance(logits, torch.Tensor):
+        return logits
+    return logits[-1]
 
 
 def _scale_images(images: torch.Tensor, scale: float) -> torch.Tensor:

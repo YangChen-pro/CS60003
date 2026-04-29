@@ -258,7 +258,7 @@ def _sample_crop_box(
     width, height = mask_image.size
     if rare_class_crop and random.random() < float(rare_class_crop.get("probability", 0.0)):
         mask = np.asarray(mask_image, dtype=np.uint8)
-        class_id = int(rare_class_crop.get("class_id", 6))
+        class_id = _choose_rare_class(rare_class_crop)
         min_pixels = int(rare_class_crop.get("min_pixels", 64))
         attempts = int(rare_class_crop.get("attempts", 12))
         coords = np.argwhere(mask == class_id)
@@ -290,6 +290,16 @@ def _sample_offset_containing_point(point: int, crop_size: int, full_size: int) 
     if min_offset > max_offset:
         return random.randint(0, full_size - crop_size)
     return random.randint(min_offset, max_offset)
+
+
+def _choose_rare_class(config: dict[str, Any]) -> int:
+    class_ids = config.get("class_ids")
+    if isinstance(class_ids, list) and class_ids:
+        weights = config.get("class_weights")
+        if isinstance(weights, list) and len(weights) == len(class_ids):
+            return int(random.choices(class_ids, weights=[float(weight) for weight in weights], k=1)[0])
+        return int(random.choice(class_ids))
+    return int(config.get("class_id", 6))
 
 
 def _image_to_tensor(image: Image.Image, mean: torch.Tensor, std: torch.Tensor) -> torch.Tensor:

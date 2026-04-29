@@ -6,6 +6,8 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
+from .advanced_models import NestedUNet
+
 
 class DoubleConv(nn.Module):
     """Two Conv-BatchNorm-ReLU blocks used in the plain U-Net."""
@@ -198,6 +200,15 @@ def build_model(model_config: dict) -> nn.Module:
     if bool(model_config.get("pretrained", False)):
         raise ValueError("Task3 forbids pretrained weights.")
     name = str(model_config.get("name", "unet")).lower()
+    if name in {"nested_unet", "unetpp", "unet_plus_plus"}:
+        return NestedUNet(
+            num_classes=int(model_config.get("num_classes", 8)),
+            base_channels=int(model_config.get("base_channels", 48)),
+            dropout=float(model_config.get("dropout", 0.0)),
+            deep_supervision=bool(model_config.get("deep_supervision", False)),
+            scse=bool(model_config.get("scse", True)),
+            aspp=bool(model_config.get("aspp", True)),
+        )
     variants = {
         "unet": (False, False),
         "resunet": (True, False),
