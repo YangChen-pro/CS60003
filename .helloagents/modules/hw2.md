@@ -54,6 +54,10 @@ StanfordBackground: hw2/StanfordBackground/
   - Task3 数据处理：使用 `labels/*.regions.txt` 的 8 类语义标签，`-1` unknown 像素在损失和指标中 ignore。
   - Task3 执行约束：不在本机 smoke test；代码通过 Git 同步到远程 `135-3090-8` 后在 `/data/yc/miniconda/envs/llm-26-gpu` 做正式实验。
   - Task3 记录与发布：使用 SwanLab 记录 loss / mIoU / pixel accuracy 曲线；最佳权重后续上传到 ModelScope `youngchen/CS60003/hw2/task3/`。
+  - Task3 正式结果：CE `val_mIoU=0.648151`，Dice `val_mIoU=0.648211`，CE+Dice `val_mIoU=0.648970`。
+  - Task3 最佳模型：`task3_unet_ce_dice`，best epoch 52，`val_mIoU=0.648970`，`val_pixel_acc=0.834739`。
+  - Task3 SwanLab 项目：<https://swanlab.cn/@youngchen/cs60003-hw2-task3>，最佳 run <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/fbpzyv27p65mc0xiqksk3>。
+  - Task3 ModelScope 上传结果：仓库 <https://modelscope.cn/models/youngchen/CS60003/>，最佳模型路径 `hw2/task3/unet_ce_dice/best.pt`。
 
 ## 待补充
 

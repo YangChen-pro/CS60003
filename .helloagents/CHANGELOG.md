@@ -39,6 +39,11 @@
   - 文件: .helloagents/modules/hw2.md, .helloagents/STATE.md, .helloagents/CHANGELOG.md
 
 ### 方案开发
+- **[hw2-task3]**: 完成 Stanford Background 手写 U-Net 三组 loss 正式实验，CE+Dice 最佳 `val_mIoU=0.648970`，并上传最佳模型到 ModelScope — by YangChen-pro
+  - 类型: 标准流程（方案包：.helloagents/plans/202604291645_hw2_task3_unet_segmentation）
+  - 结果: CE `0.648151`，Dice `0.648211`，CE+Dice `0.648970`；最佳模型 `hw2/task3/unet_ce_dice/best.pt`
+  - 文件: hw2/task3/README.md, hw2/task3/RESULTS.md, .helloagents/plans/202604291645_hw2_task3_unet_segmentation/*, .helloagents/STATE.md, .helloagents/modules/hw2.md, .helloagents/CHANGELOG.md
+
 - **[hw2-task3]**: 新增 Stanford Background U-Net 语义分割方案包，规划手写 U-Net、手写 Dice Loss、三组 loss 对比、SwanLab 记录与 ModelScope 发布路径 — by YangChen-pro
   - 类型: 标准流程（方案包：.helloagents/plans/202604291645_hw2_task3_unet_segmentation）
   - 文件: .helloagents/plans/202604291645_hw2_task3_unet_segmentation/*, .helloagents/STATE.md, .helloagents/modules/hw2.md, .helloagents/CHANGELOG.md
