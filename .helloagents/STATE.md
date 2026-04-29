@@ -23,6 +23,7 @@
 - SwanLab 要求：Task1 复现实验或报告补充需接入 SwanLab；用户已明确要求将临时 API key 写入 `.helloagents/modules/hw2.md` 并允许 Git 同步，作业完成后删除。
 - SwanLab 接入实现：`hw2/task1/train.py` 可实时记录；`hw2/task1/upload_swanlab_history.py --all` 可回放已有正式实验曲线到 SwanLab。
 - SwanLab 上传结果：项目 <https://swanlab.cn/@youngchen/cs60003-hw2-task1>，13 个正式实验修正版回放链接记录在 `hw2/task1/SWANLAB_RUNS.md`；每个 run 包含 `report/curves_with_axis_labels` 图像，横轴 `Epoch`，纵轴 `Loss` / `Accuracy`。
+- ModelScope 要求：Task1 训练好的模型需要上传到公网，用户偏好 ModelScope；用户已明确要求将 ModelScope API token 写入 `.helloagents/modules/hw2.md`，按 SwanLab key 相同方式使用。
 
 下一步：从 SwanLab 页面导出或截图用于 PDF 报告；若继续 HW2，进入 Task2 前先准备 10–30 秒测试视频。
 

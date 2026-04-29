@@ -37,6 +37,7 @@ StanfordBackground: hw2/StanfordBackground/
   - SwanLab 接入：`hw2/task1/train.py` 支持 YAML 开启实时记录；`hw2/task1/upload_swanlab_history.py --all` 可把已有正式实验 `history.csv` / `metrics.json` 回放到 SwanLab。
   - SwanLab 上传结果：项目 <https://swanlab.cn/@youngchen/cs60003-hw2-task1>，13 个正式实验修正版回放链接见 `hw2/task1/SWANLAB_RUNS.md`；每个 run 包含横轴/纵轴明确标注的 `report/curves_with_axis_labels` 图像。
   - SwanLab API key（用户明确要求写入仓库文件并允许 Git 同步）：`cxNFTo8J6hPt2s9PVEcYe`
+  - ModelScope API token（用户明确要求写入仓库文件并允许按 SwanLab key 相同方式使用）：`ms-11d617a2-f67c-4e6c-ac54-e6ec7d016fb5`
 - `hw2/RoadVehicleImages/`
   - 来源：Kaggle Road Vehicle Images Dataset
   - 内容：`trafic_data/train/`、`trafic_data/valid/`、`trafic_data/data_1.yaml`

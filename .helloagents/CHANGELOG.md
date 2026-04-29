@@ -3,6 +3,10 @@
 ## [Unreleased]
 
 ### 快速修改
+- **[hw2-task1]**: 按用户明确要求将 ModelScope API token 写入 `.helloagents/modules/hw2.md`，用于后续上传 Task1 模型权重到公网 — by YangChen-pro
+  - 类型: 项目要求记录（含临时凭据）
+  - 文件: .helloagents/modules/hw2.md, .helloagents/STATE.md, .helloagents/CHANGELOG.md
+
 - **[hw2-task1]**: 接入 SwanLab 训练记录与历史实验回放工具，支持将已有正式实验曲线上传用于报告截图 — by YangChen-pro
   - 类型: 实验记录补齐
   - 文件: hw2/task1/train.py, hw2/task1/upload_swanlab_history.py, hw2/task1/flowers102_task1/swanlab_utils.py, hw2/task1/flowers102_task1/engine.py, hw2/task1/flowers102_task1/config.py, hw2/task1/README.md, hw2/task1/RESULTS.md, hw2/task1/requirements.txt, .helloagents/modules/hw2.md, .helloagents/STATE.md, .helloagents/CHANGELOG.md
