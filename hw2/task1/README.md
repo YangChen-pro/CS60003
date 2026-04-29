@@ -134,6 +134,11 @@ hw2/Flowers102/
 
 | 实验 | best val acc | test acc |
 |---|---:|---:|
+| ConvNeXt-Tiny 优化 | 0.9784 | 0.9608 |
+| EfficientNet-B0 320 输入 | 0.9647 | 0.9439 |
+| ResNet-50 AdamW | 0.9451 | 0.9257 |
+| EfficientNet-B0 | 0.9480 | 0.9228 |
+| ResNet-34 强增强 | 0.8284 | 0.8172 |
 | Baseline ResNet-18 | 0.7186 | 0.6819 |
 | 低学习率 ResNet-18 | 0.4873 | 0.4506 |
 | 短训练 ResNet-18 | 0.5725 | 0.5307 |

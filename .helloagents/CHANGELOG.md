@@ -3,6 +3,11 @@
 ## [Unreleased]
 
 ### 方案开发
+- **[hw2-task1]**: 多维优化 Flowers102 分类实验，新增 ConvNeXt / EfficientNet / ResNet-50 等配置并将最佳 `test_acc` 提升到 `0.9608` — by YangChen-pro
+  - 类型: 标准流程（方案包：.helloagents/plans/202604291137_hw2_task1_optimization）
+  - 结果: ConvNeXt-Tiny `best_val_acc=0.9784`, `test_acc=0.9608`
+  - 文件: hw2/task1/, .helloagents/plans/202604291137_hw2_task1_optimization/*, .helloagents/STATE.md, .helloagents/modules/hw2.md, .helloagents/CHANGELOG.md
+
 - **[hw2-task1]**: 新增 Flowers102 ResNet 微调方案包与 Task1 实验工程，覆盖 Baseline、超参数、随机初始化消融和 SE 注意力对比 — by YangChen-pro
   - 类型: 标准流程（方案包：.helloagents/plans/202604291109_hw2_task1_flowers102）
   - 结果: Baseline ResNet-18 `test_acc=0.6819`，随机初始化消融 `test_acc=0.1571`，SE-ResNet-18 `test_acc=0.4245`

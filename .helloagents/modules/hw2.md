@@ -30,7 +30,9 @@ StanfordBackground: hw2/StanfordBackground/
   - 执行约束：不在本机 smoke test；代码通过 Git 同步到远程 `135-3090-8` 后直接做正式实验；远程使用前检查 Git 身份为 `YangChen-pro <1369792882@qq.com>`。
   - 远程优先环境：`/data/yc/miniconda/envs/llm-26-gpu`，正式运行前需确认 PyTorch、torchvision 和 CUDA 可用。
   - Task1 正式结果：`hw2/task1/RESULTS.md`
-  - Task1 当前最佳：Baseline ResNet-18，`best_val_acc=0.7186`，`test_acc=0.6819`
+  - Task1 原始 Baseline：ResNet-18，`best_val_acc=0.7186`，`test_acc=0.6819`
+  - Task1 当前最佳：ConvNeXt-Tiny 优化，`best_val_acc=0.9784`，`test_acc=0.9608`
+  - Task1 最有效优化：更强 ImageNet 预训练 backbone（ConvNeXt-Tiny / EfficientNet-B0 / ResNet-50）+ AdamW + label smoothing + TTA。
 - `hw2/RoadVehicleImages/`
   - 来源：Kaggle Road Vehicle Images Dataset
   - 内容：`trafic_data/train/`、`trafic_data/valid/`、`trafic_data/data_1.yaml`

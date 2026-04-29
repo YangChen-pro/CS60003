@@ -1,8 +1,8 @@
 # 项目状态
 
-主线目标：继续优化 HW2 Task1 Flowers102 分数，目标是在当前 Baseline `test_acc=0.6819` 上进一步提升。
+主线目标：HW2 Task1 Flowers102 冲分优化已完成，最佳 `test_acc=0.9608`。
 
-正在做什么：已启动子代理分析错例、训练策略和代码风险；主代理正在实现优化训练能力与配置。
+正在做什么：整理 Task1 优化完成状态；等待后续进入 Task2 或报告撰写。
 
 关键上下文：
 - 题面文件：`hw2/hw2.md`
@@ -18,8 +18,10 @@
 - 当前最佳：Baseline ResNet-18，`best_val_acc=0.7186`，`test_acc=0.6819`
 - 优化方案：`.helloagents/plans/202604291137_hw2_task1_optimization/`
 - 本轮优化方向：AdamW、label smoothing、RandAugment/RandomErasing、ResNet-34/50、EfficientNet-B0、ConvNeXt-Tiny、TTA
+- 最佳优化结果：ConvNeXt-Tiny，`best_val_acc=0.9784`，`test_acc=0.9608`
+- 相比原始 Baseline `test_acc=0.6819` 提升 `+27.89` 个百分点。
 
-下一步：提交优化代码，通过 Git 同步远程 `135-3090-8` 后运行正式冲分实验。
+下一步：若写报告，优先使用 `hw2/task1/RESULTS.md` 和远程最佳产物 `hw2/task1/outputs/20260429_034831_opt_convnext_tiny_strong/`；若继续 HW2，进入 Task2 前先准备 10–30 秒测试视频。
 
 阻塞项：
 - 无
