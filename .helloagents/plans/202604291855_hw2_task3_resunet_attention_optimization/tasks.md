@@ -17,4 +17,5 @@
 
 - [√] 第三/四轮多 seed 与多尺度 TTA 复评完成，阶段最佳 `task3_attention_unet_b64_aug_seed7_ms_tta` 达到 `val_mIoU=0.700608`。
 - [√] 单模型继续冲分完成：EMA + mountain-aware 版本整体未刷新最佳，但 TTA 尺度扫描将最终最佳刷新为 `task3_attention_unet_b64_aug_seed7_ms060_080_100_120_140_tta`，`val_mIoU=0.701053`。
+- [√] 0.75 单模型冲分尝试完成：U-Net++ / scSE / ASPP / deep supervision / Lovasz / 高分辨率实验均未超过最终最佳；最好多尺度复评 `val_mIoU=0.6953`。
 - [√] 最终最佳模型已上传 ModelScope：`hw2/task3/attention_unet_b64_aug_seed7_ms060_080_100_120_140_tta/best.pt`。

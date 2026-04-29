@@ -40,6 +40,11 @@
 
 ### 方案开发
 
+- **[hw2-task3]**: 尝试在单模型与 `hw2.md` 合规约束下冲击 `0.75`，新增 U-Net++、scSE、ASPP、deep supervision、Lovasz 和高分辨率配置；实验未超过当前最终最佳 — by YangChen-pro
+  - 类型: 标准流程（方案包：.helloagents/plans/202604291855_hw2_task3_resunet_attention_optimization）
+  - 结果: 最好 `task3_unetpp_b64_384_lovasz_ds_tta`，训练中 `val_mIoU=0.693158`，多尺度复评 `val_mIoU=0.6953`；最终模型仍保持 `task3_attention_unet_b64_aug_seed7_ms060_080_100_120_140_tta`
+  - 文件: hw2/task3/, .helloagents/STATE.md, .helloagents/modules/hw2.md, .helloagents/CHANGELOG.md
+
 - **[hw2-task3]**: 完成 Task3 单模型继续冲分，新增 EMA、mountain-aware sampling/crop 消融与 TTA 尺度扫描，将最佳 `val_mIoU` 提升到 `0.701053` 并上传 ModelScope — by YangChen-pro
   - 类型: 标准流程（方案包：.helloagents/plans/202604291855_hw2_task3_resunet_attention_optimization）
   - 结果: `task3_attention_unet_b64_aug_seed7_ms060_080_100_120_140_tta`，best epoch 113，`val_mIoU=0.701053`，`val_pixel_acc=0.864931`

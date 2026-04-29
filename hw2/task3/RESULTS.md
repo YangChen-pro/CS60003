@@ -151,3 +151,21 @@ hw2/task3/outputs/20260429_085805_task3_unet_ce_dice/
 - 指标文件路径：`hw2/task3/attention_unet_b64_aug_seed7_ms060_080_100_120_140_tta/metrics.json`
 - 曲线图路径：`hw2/task3/attention_unet_b64_aug_seed7_ms060_080_100_120_140_tta/curves.png`
 - 验证样例路径：`hw2/task3/attention_unet_b64_aug_seed7_ms060_080_100_120_140_tta/val_samples.png`
+
+## 0.75 单模型冲分尝试
+
+在用户明确要求继续冲击 `0.75` 后，新增了更激进但仍符合 `hw2.md` 的单模型实验：U-Net++、scSE、ASPP bridge、deep supervision、CE+Dice+Lovasz、更高分辨率和更大 batch。所有模型仍为从零训练，不使用预训练权重、外部数据、SAM、DeepLab、SegFormer 或现成分割网络；固定 train 572 / val 143。
+
+这些实验均未超过当前最终最佳 `0.701053`，因此不替换 ModelScope 最终模型。
+
+| 实验 | 关键变化 | 已跑 epoch | 最佳 epoch | Val mIoU | Val pixel acc | 结论 |
+|---|---|---:|---:|---:|---:|---|
+| `task3_unetpp_b64_384_lovasz_ds_tta` | U-Net++ + scSE + ASPP + deep supervision + CE+Dice+Lovasz，384x512 | 77 | 74 | 0.693158 | 0.853670 | 多尺度复评为 0.6953，低于最终最佳 |
+| `task3_unetpp_b48_480_lovasz_ds_tta` | U-Net++ b48，高分辨率 480x640 | 61 | 54 | 0.689058 | 0.849398 | 低于最终最佳 |
+| `task3_attention_unet_b64_384_aug_seed7_tta` | Attention U-Net，384x512，CE+Dice | 99 | 97 | 0.669259 | 0.846414 | 低于最终最佳 |
+| `task3_attention_unet_b64_480_lovasz_ema_tta` | Attention U-Net，480x640，CE+Dice+Lovasz + EMA | 101 | 101 | 0.666050 | 0.843837 | 高分辨率和 Lovasz/EMA 反而降低整体 mIoU |
+| `task3_unetpp_b64_320_ce_dice_ds_tta` | U-Net++ + deep supervision，CE+Dice | 48 | 48 | 0.666117 | 0.835744 | 低于最终最佳 |
+| `task3_attention_unet_b96_320_aug_seed7_tta` | 更宽 Attention U-Net，base_channels=96 | 39 | 29 | 0.606960 | 0.818540 | 明显低于最终最佳 |
+| `task3_attention_unet_b64_480_aug_seed7_tta` | Attention U-Net，480x640，CE+Dice | 38 | 38 | 0.601919 | 0.807661 | 明显低于最终最佳 |
+
+结论：在当前 `hw2.md` 约束下，单模型继续堆高分辨率、宽度或 U-Net++ 结构没有带来接近 `0.75` 的收益；`0.75` 更可能需要预训练 backbone、外部数据、现成强分割模型或 ensemble，但这些不符合当前约束或用户选择。

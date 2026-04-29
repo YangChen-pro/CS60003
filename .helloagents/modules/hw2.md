@@ -63,6 +63,7 @@ StanfordBackground: hw2/StanfordBackground/
   - Task3 最终优化最佳：`task3_attention_unet_b64_aug_seed7_ms060_080_100_120_140_tta`，best epoch 113，`val_mIoU=0.701053`，`val_pixel_acc=0.864931`，比基础最佳提升 `+0.052083` mIoU。
   - Task3 最终优化方法：从零手写 Attention U-Net + CE+Dice + random scale crop + horizontal-flip TTA + multi-scale TTA `[0.6, 0.8, 1.0, 1.2, 1.4]`；未使用预训练或现成分割模型。
   - Task3 单模型继续冲分记录：EMA + mountain-aware sampling / rare-class crop 版本 `val_mIoU=0.700604`，`mountain IoU=0.309850`，整体未超过最终推荐的 seed7 checkpoint。
+  - Task3 0.75 单模型冲分尝试：已新增 U-Net++、scSE、ASPP bridge、deep supervision、CE+Dice+Lovasz、高分辨率和更大 batch 配置；远程正式实验最好为 `task3_unetpp_b64_384_lovasz_ds_tta`，训练中最佳 `val_mIoU=0.693158`，多尺度复评 `val_mIoU=0.6953`，低于当前最终最佳 `0.701053`，未上传替换模型。
   - Task3 最终优化 SwanLab run：<https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/fw55rpcbgagnmqbcz0q90>。
   - Task3 EMA + mountain-aware SwanLab run：<https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/7jatyl6ez1o5rs9vgzk0w>。
   - Task3 最终优化 ModelScope 路径：`hw2/task3/attention_unet_b64_aug_seed7_ms060_080_100_120_140_tta/best.pt`。
