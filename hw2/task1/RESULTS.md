@@ -76,7 +76,8 @@ hw2/task1/outputs/20260429_035700_opt_resnet50_sgd_320_ra_ls/
 - 重新训练时，可在 YAML 中开启 `logging.swanlab.enabled: true`，实时记录 train / val loss、train / val accuracy 和最终 test 指标。
 - 不重跑训练时，可运行 `hw2/task1/upload_swanlab_history.py --all`，把已有正式实验的 `history.csv` 和 `metrics.json` 回放到 SwanLab，用于报告截图。
 - SwanLab 项目：<https://swanlab.cn/@youngchen/cs60003-hw2-task1>
-- 已上传回放分组：`task1-history-replay`
+- 已上传回放分组：`task1-report-curves`
+- 每个 run 额外包含 `report/curves_with_axis_labels` 图像，横轴为 `Epoch`，纵轴为 `Loss` / `Accuracy`。
 - 逐实验链接：`hw2/task1/SWANLAB_RUNS.md`
 
 ## 报告建议口径

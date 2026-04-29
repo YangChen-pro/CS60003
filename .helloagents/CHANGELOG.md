@@ -12,6 +12,11 @@
   - 结果: SwanLab 项目 `https://swanlab.cn/@youngchen/cs60003-hw2-task1`
   - 文件: hw2/task1/SWANLAB_RUNS.md, hw2/task1/RESULTS.md, hw2/task1/README.md, .helloagents/modules/hw2.md, .helloagents/STATE.md, .helloagents/CHANGELOG.md
 
+- **[hw2-task1]**: 修正 SwanLab 报告曲线展示，补充横轴 `Epoch` 与纵轴 `Loss` / `Accuracy` 明确标注，并重新上传 `task1-report-curves` 分组 — by YangChen-pro
+  - 类型: 可视化质量修正
+  - 结果: 修正版 run 链接已更新到 `hw2/task1/SWANLAB_RUNS.md`
+  - 文件: hw2/task1/upload_swanlab_history.py, hw2/task1/flowers102_task1/swanlab_utils.py, hw2/task1/flowers102_task1/utils.py, hw2/task1/SWANLAB_RUNS.md, hw2/task1/RESULTS.md, .helloagents/modules/hw2.md, .helloagents/STATE.md, .helloagents/CHANGELOG.md
+
 - **[hw2-task1]**: 记录 Task1 后续报告需接入 SwanLab，可视化凭据通过 `SWANLAB_API_KEY` 运行时环境变量提供，不写入 Git 跟踪文件 — by YangChen-pro
   - 类型: 项目要求记录
   - 文件: .helloagents/modules/hw2.md, .helloagents/STATE.md, .gitignore, .helloagents/CHANGELOG.md
