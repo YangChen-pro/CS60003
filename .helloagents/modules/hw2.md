@@ -35,7 +35,7 @@ StanfordBackground: hw2/StanfordBackground/
   - Task1 最有效优化：更强 ImageNet 预训练 backbone（ConvNeXt-Tiny / EfficientNet-B0 / ResNet-50）+ AdamW + label smoothing + TTA。
   - Task1 报告要求：训练/复现实验需接入 SwanLab 记录 loss、accuracy 曲线和最终指标。
   - SwanLab 接入：`hw2/task1/train.py` 支持 YAML 开启实时记录；`hw2/task1/upload_swanlab_history.py --all` 可把已有正式实验 `history.csv` / `metrics.json` 回放到 SwanLab。
-  - SwanLab 上传结果：项目 <https://swanlab.cn/@youngchen/cs60003-hw2-task1>，13 个正式实验修正版回放链接见 `hw2/task1/SWANLAB_RUNS.md`；每个 run 包含横轴/纵轴明确标注的 `report/curves_with_axis_labels` 图像。
+  - SwanLab 上传结果：项目 <https://swanlab.cn/@youngchen/cs60003-hw2-task1>，云端已清理为 8 个报告必要 run，链接见 `hw2/task1/SWANLAB_RUNS.md`；每个 run 包含横轴/纵轴明确标注的 `report/curves_with_axis_labels` 图像。
   - ModelScope 上传结果：仓库 <https://modelscope.cn/models/youngchen/CS60003/>，最佳模型路径 `hw2/task1/flowers102_convnext_tiny/best.pt`。
   - SwanLab API key（用户明确要求写入仓库文件并允许 Git 同步）：`cxNFTo8J6hPt2s9PVEcYe`
   - ModelScope API token（用户明确要求写入仓库文件并允许按 SwanLab key 相同方式使用）：`ms-11d617a2-f67c-4e6c-ac54-e6ec7d016fb5`
@@ -71,5 +71,5 @@ StanfordBackground: hw2/StanfordBackground/
 ## 待补充
 
 - 任务 2 仍需用户准备 10–30 秒测试视频；题面允许使用手机拍摄校园或路口视频。
-- Task1 SwanLab 已上传，仍需从 SwanLab 页面导出或截图用于最终 PDF 报告。
+- Task1 SwanLab 已上传并完成云端清理，仍需从 SwanLab 页面导出或截图用于最终 PDF 报告。
 - 后续 Task2 / Task3 仍需决定是否统一使用 PyTorch + torchvision + ultralytics，并规划实验记录方式（wandb 或 swanlab）。

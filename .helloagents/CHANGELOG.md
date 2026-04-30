@@ -74,6 +74,10 @@
   - 文件: hw2/task1/, .gitignore, .helloagents/plans/202604291109_hw2_task1_flowers102/*, .helloagents/STATE.md, .helloagents/modules/hw2.md, .helloagents/CHANGELOG.md
 
 ### 快速修改
+- **[hw2-task1]**: 清理 SwanLab Task1 云端实验，仅保留报告必要的 8 个 `task1-report-curves` run，并同步更新 run 链接文档 — by YangChen-pro
+  - 类型: 云端实验记录整理
+  - 文件: hw2/task1/SWANLAB_RUNS.md, .helloagents/modules/hw2.md, .helloagents/STATE.md, .helloagents/CHANGELOG.md
+
 - **[hw2]**: 删除已同步到知识库的 `hw2/DATASETS.md` 原始说明文件，并移除对应 `.gitignore` 规则 — by YangChen-pro
   - 类型: 文档收口
   - 文件: hw2/DATASETS.md, .gitignore, .helloagents/context.md, .helloagents/modules/hw2.md, .helloagents/STATE.md, .helloagents/CHANGELOG.md
