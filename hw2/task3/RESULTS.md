@@ -16,6 +16,8 @@ Task3 使用 Stanford Background Dataset 从零训练手写 U-Net，并比较三
 
 ## 正式结果
 
+SwanLab 云端已于 2026-04-30 清理为 6 个报告必要 run；其余探索性实验的指标保留在本文档和远程产物中，云端 run 不再保留。保留清单见 `hw2/task3/SWANLAB_RUNS.md`。
+
 | 实验 | 损失函数 | 最佳 epoch | Val mIoU | Val pixel acc | SwanLab |
 |---|---|---:|---:|---:|---|
 | `task3_unet_ce` | Cross-Entropy | 69 | 0.648151 | 0.833211 | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/gky8mykesv1tyjf6hquq9> |
@@ -65,9 +67,9 @@ hw2/task3/outputs/20260429_085805_task3_unet_ce_dice/
 
 | 实验 | 关键变化 | 最佳 epoch | Val mIoU | Val pixel acc | SwanLab |
 |---|---|---:|---:|---:|---|
-| `task3_unet_ce_dice_tta` | 原 CE+Dice 配置 + TTA | 69 | 0.655269 | 0.839074 | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/w4vr95frwvuzjw3uys8c6> |
-| `task3_unet_ce_dice_wide_tta` | base_channels=48 + 256x320 + dropout + TTA | 92 | 0.662884 | 0.841969 | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/2fsyvk8134awzu4wkk5d0> |
-| `task3_unet_ce_dice_wide_weighted_tta` | base_channels=48 + class-weighted CE+Dice + TTA | 83 | 0.660594 | 0.839734 | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/7tbczl8o6k2t1x0e0cv4w> |
+| `task3_unet_ce_dice_tta` | 原 CE+Dice 配置 + TTA | 69 | 0.655269 | 0.839074 | 已清理（指标保留） |
+| `task3_unet_ce_dice_wide_tta` | base_channels=48 + 256x320 + dropout + TTA | 92 | 0.662884 | 0.841969 | 已清理（指标保留） |
+| `task3_unet_ce_dice_wide_weighted_tta` | base_channels=48 + class-weighted CE+Dice + TTA | 83 | 0.660594 | 0.839734 | 已清理（指标保留） |
 | `task3_unet_ce_dice_b64_tta` | base_channels=64 + 256x320 + dropout + TTA | 67 | **0.665089** | **0.842011** | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/9odmxzsyxzeo44c8joex7> |
 
 优化后最佳结果从 `0.648970` 提升到 **`0.665089`**，提升 **+0.016118 mIoU**。
@@ -100,10 +102,10 @@ hw2/task3/outputs/20260429_085805_task3_unet_ce_dice/
 
 | 实验 | 关键变化 | 最佳 epoch | Val mIoU | Val pixel acc | SwanLab |
 |---|---|---:|---:|---:|---|
-| `task3_resunet_b64_tta` | 手写 ResUNet + CE+Dice + TTA | 43 | 0.639848 | 0.831607 | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/efjhzlgx5qdm5mspugh1x> |
+| `task3_resunet_b64_tta` | 手写 ResUNet + CE+Dice + TTA | 43 | 0.639848 | 0.831607 | 已清理（指标保留） |
 | `task3_attention_unet_b64_tta` | 手写 Attention U-Net + CE+Dice + TTA | 91 | 0.667801 | 0.843214 | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/6s3s3o8thd5p4q6p2ju12> |
-| `task3_attention_resunet_b48_tta` | 手写 Attention ResUNet，base=48 | 85 | 0.645112 | 0.838861 | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/egrooshuyohs9n8uombtj> |
-| `task3_attention_resunet_b64_tta` | 手写 Attention ResUNet，base=64 | 66 | 0.638071 | 0.838809 | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/31fo5xq9i1uvr17flih43> |
+| `task3_attention_resunet_b48_tta` | 手写 Attention ResUNet，base=48 | 85 | 0.645112 | 0.838861 | 已清理（指标保留） |
+| `task3_attention_resunet_b64_tta` | 手写 Attention ResUNet，base=64 | 66 | 0.638071 | 0.838809 | 已清理（指标保留） |
 
 结构优化结论：Attention U-Net 对当前数据最有效；ResUNet / Attention ResUNet 更容易过拟合，验证 mIoU 低于 plain Attention U-Net。
 
@@ -111,14 +113,14 @@ hw2/task3/outputs/20260429_085805_task3_unet_ce_dice/
 
 | 实验 | 关键变化 | 最佳 epoch | Val mIoU | Val pixel acc | SwanLab |
 |---|---|---:|---:|---:|---|
-| `task3_attention_unet_b64_aug_tta` | random scale crop，seed=42 | 105 | 0.693841 | 0.858079 | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/e7pyo7d0ymq9bpqj2cr5i> |
+| `task3_attention_unet_b64_aug_tta` | random scale crop，seed=42 | 105 | 0.693841 | 0.858079 | 已清理（指标保留） |
 | `task3_attention_unet_b64_aug_seed7_tta` | random scale crop，seed=7 | 113 | 0.695953 | 0.859910 | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/fw55rpcbgagnmqbcz0q90> |
-| `task3_attention_unet_b64_aug_seed2026_tta` | random scale crop，seed=2026 | 118 | 0.697984 | 0.860638 | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/a7036x757aohs3s9xn15l> |
-| `task3_attention_unet_b64_aug_seed99_tta` | random scale crop，seed=99 | 129 | 0.691606 | 0.858449 | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/dy450aywyh5bgiv6x6rm0> |
-| `task3_attention_unet_b64_aug_seed13_tta` | random scale crop，seed=13 | 104 | 0.689485 | 0.859299 | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/v2ilam5e562bbpcdltp39> |
-| `task3_attention_unet_b64_aug_seed21_tta` | random scale crop，seed=21 | 126 | 0.681764 | 0.854328 | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/65a1tc5u721ef49mgeoav> |
-| `task3_attention_unet_b64_aug_seed1234_tta` | random scale crop，seed=1234 | 90 | 0.682729 | 0.851476 | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/d02ys72xgg8s1nfa7i9vj> |
-| `task3_attention_unet_b64_aug_seed3407_tta` | random scale crop，seed=3407 | 107 | 0.691328 | 0.858285 | <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/f2puj64846n0wi2vh5aob> |
+| `task3_attention_unet_b64_aug_seed2026_tta` | random scale crop，seed=2026 | 118 | 0.697984 | 0.860638 | 已清理（指标保留） |
+| `task3_attention_unet_b64_aug_seed99_tta` | random scale crop，seed=99 | 129 | 0.691606 | 0.858449 | 已清理（指标保留） |
+| `task3_attention_unet_b64_aug_seed13_tta` | random scale crop，seed=13 | 104 | 0.689485 | 0.859299 | 已清理（指标保留） |
+| `task3_attention_unet_b64_aug_seed21_tta` | random scale crop，seed=21 | 126 | 0.681764 | 0.854328 | 已清理（指标保留） |
+| `task3_attention_unet_b64_aug_seed1234_tta` | random scale crop，seed=1234 | 90 | 0.682729 | 0.851476 | 已清理（指标保留） |
+| `task3_attention_unet_b64_aug_seed3407_tta` | random scale crop，seed=3407 | 107 | 0.691328 | 0.858285 | 已清理（指标保留） |
 
 ### 最终推荐结果
 

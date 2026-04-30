@@ -56,7 +56,7 @@ StanfordBackground: hw2/StanfordBackground/
   - Task3 记录与发布：使用 SwanLab 记录 loss / mIoU / pixel accuracy 曲线；最佳权重后续上传到 ModelScope `youngchen/CS60003/hw2/task3/`。
   - Task3 正式结果：CE `val_mIoU=0.648151`，Dice `val_mIoU=0.648211`，CE+Dice `val_mIoU=0.648970`。
   - Task3 最佳模型：`task3_unet_ce_dice`，best epoch 52，`val_mIoU=0.648970`，`val_pixel_acc=0.834739`。
-  - Task3 SwanLab 项目：<https://swanlab.cn/@youngchen/cs60003-hw2-task3>，最佳 run <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/fbpzyv27p65mc0xiqksk3>。
+  - Task3 SwanLab 项目：<https://swanlab.cn/@youngchen/cs60003-hw2-task3>，基础三组 loss 最佳 run <https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/fbpzyv27p65mc0xiqksk3>。
   - Task3 ModelScope 上传结果：仓库 <https://modelscope.cn/models/youngchen/CS60003/>，最佳模型路径 `hw2/task3/unet_ce_dice/best.pt`。
   - Task3 优化方案包：`.helloagents/plans/202604291718_hw2_task3_optimization/`、`.helloagents/plans/202604291855_hw2_task3_resunet_attention_optimization/`
   - Task3 第一轮优化最佳：`task3_unet_ce_dice_b64_tta`，best epoch 67，`val_mIoU=0.665089`，`val_pixel_acc=0.842011`。
@@ -65,7 +65,7 @@ StanfordBackground: hw2/StanfordBackground/
   - Task3 单模型继续冲分记录：EMA + mountain-aware sampling / rare-class crop 版本 `val_mIoU=0.700604`，`mountain IoU=0.309850`，整体未超过最终推荐的 seed7 checkpoint。
   - Task3 0.75 单模型冲分尝试：已新增 U-Net++、scSE、ASPP bridge、deep supervision、CE+Dice+Lovasz、高分辨率和更大 batch 配置；远程正式实验最好为 `task3_unetpp_b64_384_lovasz_ds_tta`，训练中最佳 `val_mIoU=0.693158`，多尺度复评 `val_mIoU=0.6953`，低于当前最终最佳 `0.701053`，未上传替换模型。
   - Task3 最终优化 SwanLab run：<https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/fw55rpcbgagnmqbcz0q90>。
-  - Task3 EMA + mountain-aware SwanLab run：<https://swanlab.cn/@youngchen/cs60003-hw2-task3/runs/7jatyl6ez1o5rs9vgzk0w>。
+  - Task3 SwanLab 云端已清理为 6 个报告必要 run，保留清单见 `hw2/task3/SWANLAB_RUNS.md`；EMA + mountain-aware 和其他探索性 run 的指标仅保留在 `hw2/task3/RESULTS.md` 与远程产物中。
   - Task3 最终优化 ModelScope 路径：`hw2/task3/attention_unet_b64_aug_seed7_ms060_080_100_120_140_tta/best.pt`。
 
 ## 待补充

@@ -56,7 +56,7 @@ cd /data/yc/CS60003
 
 ## 实验记录
 
-SwanLab 项目计划使用：`cs60003-hw2-task3`。训练脚本会记录训练/验证 loss、验证 mIoU、pixel accuracy、per-class IoU，并上传带明确横轴/纵轴标注的报告曲线。
+SwanLab 项目：`cs60003-hw2-task3`。训练脚本会记录训练/验证 loss、验证 mIoU、pixel accuracy、per-class IoU，并上传带明确横轴/纵轴标注的报告曲线。云端已清理为报告必要 run，保留清单见 `SWANLAB_RUNS.md`。
 
 ## 结果
 
