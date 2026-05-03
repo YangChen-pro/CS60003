@@ -1,0 +1,7 @@
+# Verify commands for HelloAGENTS Ralph Loop
+# Auto-detected or manually configured
+# Format: simple list only (one command per line, no YAML advanced syntax)
+
+commands:
+  - python3 -m pytest hw1/tests
+  - python3 -m py_compile hw2/task1/train.py hw2/task1/evaluate.py hw2/task3/train.py hw2/task3/evaluate.py
