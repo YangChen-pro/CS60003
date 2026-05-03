@@ -6,10 +6,22 @@
   "branch": "main",
   "session": "default",
   "sessionMode": "default",
-  "updatedAt": "2026-05-03T06:11:39.849Z",
-  "turn": null,
+  "updatedAt": "2026-05-03T06:16:47.212Z",
+  "turn": {
+    "cwd": "/Users/yangchen/Desktop/CS60003",
+    "key": "/Users/yangchen/Desktop/CS60003::main::default",
+    "scope": "project-session",
+    "updatedAt": "2026-05-03T06:16:46.804Z",
+    "kind": "complete",
+    "role": "main",
+    "phase": "",
+    "source": "manual",
+    "requiresDeliveryGate": false,
+    "reasonCategory": "",
+    "reason": ""
+  },
   "route": null,
   "artifacts": {},
-  "turnUpdatedAt": "2026-05-03T06:11:39.653Z",
+  "turnUpdatedAt": "2026-05-03T06:16:47.002Z",
   "routeUpdatedAt": "2026-05-03T06:03:59.578Z"
 }
