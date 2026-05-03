@@ -1,5 +1,12 @@
 # 变更日志
 
+## [0.4.0] - 2026-05-03
+### 更新
+- **[wiki]**: 同步当前项目知识库，刷新 HW2 Task1/Task3 实验状态、HW2 报告路径、SwanLab 私有记录约束、ModelScope 权重路径与 Task2 待办。
+  - 类型: 知识库同步
+  - 结果: HW2 报告 `out/hw2.pdf` 已编译通过并完成逐页视觉检查；Task1 最佳 `test_acc=0.9608`，Task3 最佳 `val_mIoU=0.701053`；Task2 仍待补。
+  - 文件: .helloagents/context.md, .helloagents/guidelines.md, .helloagents/verify.yaml, .helloagents/modules/_index.md, .helloagents/modules/hw2.md, .helloagents/STATE.md, .helloagents/sessions/main/default/STATE.md, .gitignore
+
 ## [Unreleased]
 
 ### 快速修改
@@ -22,7 +29,7 @@
 
 - **[hw2-task1]**: 在远程 135 将 13 个 Task1 正式实验历史记录回放上传到 SwanLab，并记录项目与 run 链接 — by YangChen-pro
   - 类型: 远程实验记录同步
-  - 结果: SwanLab 项目 `https://swanlab.cn/@youngchen/cs60003-hw2-task1`
+  - 结果: SwanLab 项目链接按私有记录保留，不在知识库正文公开。
   - 文件: hw2/task1/SWANLAB_RUNS.md, hw2/task1/RESULTS.md, hw2/task1/README.md, .helloagents/modules/hw2.md, .helloagents/STATE.md, .helloagents/CHANGELOG.md
 
 - **[hw2-task1]**: 修正 SwanLab 报告曲线展示，补充横轴 `Epoch` 与纵轴 `Loss` / `Accuracy` 明确标注，并重新上传 `task1-report-curves` 分组 — by YangChen-pro

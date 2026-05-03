@@ -1,107 +1,46 @@
 # 项目上下文
 
-## 1. 基本信息
+## 概述
+CS60003 是课程作业仓库，当前包含 HW1 与 HW2 两次作业的代码、实验记录、结果文档和项目知识库。HW1 已完成并收口；HW2 目前已完成 Task1 图像分类与 Task3 语义分割，Task2 目标检测与多目标跟踪仍待补。
 
-```yaml
-名称: CS60003
-描述: 课程作业工作区，HW1 已完成，当前开始准备 HW2 期中作业数据集
-类型: 课程作业仓库
-状态: HW1 已完成并达到最终提交状态；HW2 数据集已下载到本地
-```
+## 技术栈
+- 主要语言：Python。
+- HW1：手写三层 MLP，CuPy 作为远端 GPU 数组后端；本地只做轻量编辑与测试。
+- HW2 Task1：PyTorch / torchvision / timm 风格模型接口，完成 Flowers102 图像分类微调实验。
+- HW2 Task2：计划使用 YOLOv8 或同类目标检测模型，并结合跟踪算法完成视频多目标跟踪和越线计数。
+- HW2 Task3：PyTorch 基础 API 手写 U-Net / Attention U-Net、Dice Loss、mIoU 评估与可视化。
+- 实验记录：SwanLab 记录训练曲线；SwanLab 页面为私有，报告中只使用导出的本地图片，不提供云端链接。
+- 模型发布：训练权重统一发布到 ModelScope 仓库，按 `hw1/`、`hw2/task1/`、`hw2/task3/` 子目录组织。
+- 报告：LaTeX，HW1/HW2 报告均使用 `/Users/yangchen/Documents/Latex_Project` 下的 `elegantpaper.cls` 风格。
 
-## 2. 技术上下文
+## 架构
+- `hw1/`：EuroSAT 三层 MLP 作业实现、训练/评估/搜索脚本、测试与最终报告资料。
+- `hw2/task1/`：Flowers102 分类工程，包含 YAML 配置、训练/评估、SwanLab 历史曲线回放和结果文档。
+- `hw2/task2/`：待建设，目标是 Road Vehicle Images 检测训练、视频跟踪、遮挡分析和越线计数。
+- `hw2/task3/`：Stanford Background 语义分割工程，包含从零 U-Net 家族模型、loss、metrics、训练/评估、ModelScope 上传与结果文档。
+- `.helloagents/`：项目知识库、模块说明、方案包、状态快照和变更历史。
 
-```yaml
-语言: Python
-框架: 无深度学习框架作为主实现，训练逻辑需手写
-包管理器: conda / pip / uv
-构建工具: 无
-```
+## 领域语言
+- **官方划分**：Flowers102 的 `setid.mat` 中 train/val/test 划分；Task1 使用 train 1020 / val 1020 / test 6149。
+- **validation mIoU**：Task3 在固定 train/val split 上报告的验证集 mIoU，不等同于独立 test set 指标。
+- **SwanLab 私有记录**：只用于内部实验追踪和导出报告图片；报告正文不放 SwanLab 云端 URL。
+- **ModelScope 仓库**：统一公网权重发布位置；报告中用“仓库”作为可点击链接，不明文展示仓库名。
 
-### 主要依赖
-| 依赖 | 版本 | 用途 |
-|------|------|------|
-| CuPy | 14.0.1 | HW1 的唯一数组计算后端，运行于远端 GPU 环境 |
-| NumPy | 本机 2.2.6，远端 2.4.4 | 仅用于数据读取、缓存、可视化和序列化等 CPU 侧辅助处理，不作为训练后端 |
+## 目录结构
+- `README.md`：仓库总说明。
+- `hw1/`：HW1 代码、题面、报告 PDF、测试与模型下载脚本。
+- `hw2/hw2.md`：HW2 题面要求。
+- `hw2/Flowers102/`：Flowers102 数据集。
+- `hw2/RoadVehicleImages/`：Road Vehicle Images 数据集。
+- `hw2/StanfordBackground/`：Stanford Background 数据集。
+- `hw2/task1/`：HW2 Task1 分类实验工程与结果。
+- `hw2/task3/`：HW2 Task3 分割实验工程与结果。
+- `/Users/yangchen/Documents/Latex_Project/CS60003_HW1_Report/`：HW1 正式报告工程。
+- `/Users/yangchen/Documents/Latex_Project/CS60003_HW2_Report/`：HW2 当前报告工程；`out/hw2.pdf` 已编译通过。
 
-## 3. 项目概述
+## 模块文档
+- [HW1 模块](modules/hw1.md)
+- [HW2 模块](modules/hw2.md)
 
-### 核心功能
-- 完成 HW1：在 EuroSAT 上手写三层 MLP 分类器
-- 在满足作业要求前提下使用远端 CuPy 作为唯一训练后端
-- 为 HW2 期中作业准备 Flowers102、Road Vehicle Images、Stanford Background 三个数据集
-- 保留 README、实验输出、报告 PDF 与知识库之间的一致证据链
-- 记录训练环境、后端决策与性能结论，便于后续直接复用
-
-### 项目边界
-```yaml
-范围内:
-  - 手写前向传播、损失、梯度、反向传播、SGD、学习率衰减、L2 正则
-  - 使用 CuPy 作为唯一训练数组后端
-范围外:
-  - 使用现成 autograd / nn / optimizer / trainer
-  - 依赖 PyTorch、TensorFlow、JAX 的训练能力完成作业主体
-```
-
-## 4. 开发约定
-
-### 训练环境约定
-```yaml
-默认远端主机: ssh 135-3090-8
-默认远端环境: /data/yc/miniconda/envs/llm-26-gpu
-默认远端后端: CuPy + 空闲 GPU
-本地环境角色: 仅用于轻量编辑、文档维护与单元测试，不作为 HW1 训练回退
-本地测试环境: conda run -n nlp
-```
-
-### 执行约定
-```yaml
-涉及 HW1 训练或 benchmark:
-  - 默认先在远端 135-3090-8 上执行
-  - 先检查空闲 GPU（优先 5/6/7 这类低占用卡）
-  - 再在 llm-26-gpu 环境中运行代码
-涉及 HW1 的本机/远端结果同步:
-  - 优先在远端仓库直接 git commit + git push
-  - 再在本机仓库 git pull 同步
-  - 尽量不使用 scp 传输实验产物
-最终提交同步状态:
-  - GitHub / 本机 / 135 当前对齐到同一 HEAD
-  - 最终提交身份固定为 YangChen-pro <1369792882@qq.com>
-```
-
-### 已确认正式结果
-```yaml
-正式提交模型: best 预设（1280 -> 768, relu, dropout=0.15, 44 epochs）
-正式提交指标: val_acc=0.6901, test_acc=0.6758
-扩展上限实验: final_o（1280 -> 768, dropout=0.18）test_acc=0.6810
-选模原则: 以验证集最优为正式提交结果，不按测试集反选
-最终报告路径: /Users/yangchen/Documents/Latex_Project/CS60003_HW1_Report/out/elegantpaper-cn.pdf
-最终报告源文件: /Users/yangchen/Documents/Latex_Project/CS60003_HW1_Report/src/hw1.tex
-报告源文件状态: 已更新 ModelScope 新权重路径，PDF 需按需重新编译
-模型权重发布: https://modelscope.cn/models/youngchen/CS60003/
-模型权重路径: HW1 `hw1/final_p/best_model.npz`、`hw1/final_o/best_model.npz`；HW2 Task1 `hw2/task1/flowers102_convnext_tiny/best.pt`
-```
-
-## 5. 当前约束（源自已确认决策）
-
-| 约束 | 原因 | 决策来源 |
-|------|------|---------|
-| HW1 主实现必须手写训练逻辑，不可使用现成 autograd/nn/optimizer | 作业要求明确限制现成深度学习框架能力 | 当前会话 |
-| HW1 唯一训练后端为远端 CuPy，不再保留 NumPy/MLX 训练回退 | 用户已明确运行环境始终为远端，且希望代码层面固定到 CuPy | 当前会话 |
-| 下次涉及 HW1 训练/benchmark 默认优先 ssh 到 135-3090-8 并使用 llm-26-gpu | 该环境已验证包含可用的 CuPy 与 GPU | 当前会话 |
-| 最终提交物只看 GitHub 链接与最终 PDF 报告 | 用户已明确提交方式，仓库内题面 PDF 不作为评分材料 | 当前会话 |
-
-## 6. 当前交付状态
-
-```yaml
-HW2 数据集:
-  Flowers102: hw2/Flowers102/
-  RoadVehicleImages: hw2/RoadVehicleImages/
-  StanfordBackground: hw2/StanfordBackground/
-  数据说明: .helloagents/modules/hw2.md
-GitHub 仓库: https://github.com/YangChen-pro/CS60003
-最终报告 PDF: /Users/yangchen/Documents/Latex_Project/CS60003_HW1_Report/out/elegantpaper-cn.pdf
-README 状态: 已与最终代码、输出证据和报告对齐
-135 同步状态: 已与本机和 GitHub 同步
-严格复审结论: A+
-```
+## 最近变更
+见 [CHANGELOG.md](CHANGELOG.md)
