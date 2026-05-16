@@ -1,5 +1,6 @@
 # 系统与 Python 缓存
 .DS_Store
+._*
 __pycache__/
 *.pyc
 .env
@@ -22,6 +23,12 @@ hw1/outputs/search/*/
 hw2/task1/outputs/
 *.pt
 *.pth
+*.mp4
+*.MOV
+
+# HW2 数据集缓存与 Task2 运行产物不进入 Git
+hw2/RoadVehicleImages/**/*.cache
+hw2/task2/outputs/
 
 # HelloAGENTS 本地运行回放
 .helloagents/replay/

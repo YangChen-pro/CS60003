@@ -1,4 +1,4 @@
-path: .
+path: /root/thinking_model/CS60003/hw2/RoadVehicleImages/trafic_data
 train: train/images
 val: valid/images
 
