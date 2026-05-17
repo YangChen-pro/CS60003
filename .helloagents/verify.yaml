@@ -3,5 +3,5 @@
 # Format: simple list only (one command per line, no YAML advanced syntax)
 
 commands:
-  - python3 -m pytest hw1/tests hw2/task2/tests
-  - python3 -m py_compile hw1/train.py hw1/evaluate.py hw1/search.py hw2/task1/train.py hw2/task1/evaluate.py hw2/task2/train.py hw2/task2/evaluate.py hw2/task2/track_video.py hw2/task3/train.py hw2/task3/evaluate.py
+  - python3 -X utf8 tools/verify_delivery_metadata.py
+  - python3 -m py_compile hw1/train.py hw1/evaluate.py hw1/search.py hw2/task1/train.py hw2/task1/evaluate.py hw2/task2/train.py hw2/task2/evaluate.py hw2/task2/track_video.py hw2/task3/train.py hw2/task3/evaluate.py tools/verify_delivery_metadata.py

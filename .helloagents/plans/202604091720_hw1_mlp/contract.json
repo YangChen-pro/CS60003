@@ -15,5 +15,42 @@
     "python -X utf8 hw1/train.py --preset quick",
     "python -X utf8 hw1/search.py --preset default",
     "python -X utf8 hw1/evaluate.py --preset full --checkpoint <best_model>"
-  ]
+  ],
+  "updatedAt": "2026-05-17T00:00:00.000Z",
+  "version": 1,
+  "source": "~auto",
+  "originCommand": "auto",
+  "verifyMode": "test-first",
+  "reviewerFocus": [
+    "确认 HW1 核心训练逻辑保持 CuPy 手写前向、反向传播与优化器边界",
+    "确认权重、缓存和大体积 outputs 不进入 Git",
+    "确认 README、报告和 ModelScope 权重路径一致"
+  ],
+  "testerFocus": [
+    "本地 unittest 覆盖不依赖数据集的核心函数",
+    "远端 CuPy 环境可运行 quick train、search 和 checkpoint evaluate",
+    "最终实验产物、报告 PDF、GitHub 仓库与 ModelScope 权重路径一致"
+  ],
+  "ui": {
+    "required": false,
+    "designContract": false,
+    "sourcePriority": [],
+    "styleAdvisor": {
+      "required": false,
+      "reason": "",
+      "focus": []
+    },
+    "visualValidation": {
+      "required": false,
+      "reason": "",
+      "screens": [],
+      "states": []
+    }
+  },
+  "advisor": {
+    "required": false,
+    "reason": "",
+    "focus": [],
+    "preferredSources": []
+  }
 }

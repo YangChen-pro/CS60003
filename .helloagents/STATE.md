@@ -4,7 +4,7 @@
 同步 CS60003 项目知识库，记录最新 GitHub 拉取后的 HW2 Task2 代码与实验状态。
 
 ## 正在做什么
-空闲；刚完成 ~wiki 知识库同步。
+正在执行 Delivery Gate 修复：补齐历史方案包任务元数据、contract.json 与验证/收尾证据。
 
 ## 关键上下文
 - 本地仓库已在 2026-05-17 fast-forward 到 `origin/main` 的 `f9f2ff8e`。
@@ -16,7 +16,7 @@
 - SwanLab 实验记录用于内部追踪；报告中默认只嵌入导出的本地图片，不直接暴露私有云端链接。
 
 ## 下一步
-如需提交完整 HW2，复核并更新 `/Users/yangchen/Documents/Latex_Project/CS60003_HW2_Report/src/hw2.tex` 的 Task2 检测、跟踪、遮挡分析和越线计数内容。
+完成 Delivery Gate 复核后，若继续处理 HW2 提交，再复核并更新 `/Users/yangchen/Documents/Latex_Project/CS60003_HW2_Report/src/hw2.tex` 的 Task2 检测、跟踪、遮挡分析和越线计数内容。
 
 ## 阻塞项
 （无）

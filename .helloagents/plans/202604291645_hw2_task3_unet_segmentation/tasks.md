@@ -10,8 +10,8 @@
 - [√] 任务7：整理结果、上传最佳模型到 ModelScope、更新知识库（涉及文件：`hw2/task3/RESULTS.md`、`README.md`、`.helloagents/modules/hw2.md`、ModelScope `hw2/task3/`；完成标准：报告口径、SwanLab 链接、ModelScope 链接完整；验证方式：ModelScope 文件存在且 Git 三端同 HEAD）。
 
 ## 进度
-- [√] 已完成 Task3 方案包规划。
-- [√] 已完成实现、远程正式实验、SwanLab 记录与 ModelScope 上传。
+- [√] 已完成 Task3 方案包规划（涉及文件：hw2/task3/, hw2/task3/RESULTS.md, .helloagents/modules/hw2.md；完成标准：Task3 CE/Dice/CE+Dice 三组正式实验和 ModelScope 上传已闭合；验证方式：远程 metrics.json、SwanLab/ModelScope 记录、RESULTS.md 和知识库核对）。
+- [√] 已完成实现、远程正式实验、SwanLab 记录与 ModelScope 上传（涉及文件：hw2/task3/, hw2/task3/RESULTS.md, .helloagents/modules/hw2.md；完成标准：Task3 CE/Dice/CE+Dice 三组正式实验和 ModelScope 上传已闭合；验证方式：远程 metrics.json、SwanLab/ModelScope 记录、RESULTS.md 和知识库核对）。
 
-- [√] 三组正式实验完成：CE `0.648151`，Dice `0.648211`，CE+Dice `0.648970`。
-- [√] 最佳模型已上传 ModelScope：`hw2/task3/unet_ce_dice/best.pt`。
+- [√] 三组正式实验完成：CE `0.648151`，Dice `0.648211`，CE+Dice `0.648970`（涉及文件：hw2/task3/, hw2/task3/RESULTS.md, .helloagents/modules/hw2.md；完成标准：Task3 CE/Dice/CE+Dice 三组正式实验和 ModelScope 上传已闭合；验证方式：远程 metrics.json、SwanLab/ModelScope 记录、RESULTS.md 和知识库核对）。
+- [√] 最佳模型已上传 ModelScope：`hw2/task3/unet_ce_dice/best.pt`（涉及文件：hw2/task3/, hw2/task3/RESULTS.md, .helloagents/modules/hw2.md；完成标准：Task3 CE/Dice/CE+Dice 三组正式实验和 ModelScope 上传已闭合；验证方式：远程 metrics.json、SwanLab/ModelScope 记录、RESULTS.md 和知识库核对）。

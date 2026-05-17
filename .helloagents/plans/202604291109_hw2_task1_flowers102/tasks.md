@@ -10,7 +10,7 @@
 - [√] 任务7：整理结果与知识库（涉及文件：`hw2/task1/README.md`、`.helloagents/modules/hw2.md`、`.helloagents/CHANGELOG.md`；完成标准：记录已完成实验、指标位置和后续报告素材；验证方式：核对文件内容与远程产物一致）。
 
 ## 进度
-- [√] 已确认用户约束：不在本机 smoke test，远程直接正式实验，代码通过 Git 同步。
-- [√] 已实现代码并推送提交 `91b6b8beadeb8fc7f5e8e021b1cdd65e718af43e`。
-- [√] 已在远程 `135-3090-8:/data/yc/CS60003` 拉取同一提交。
-- [√] 已完成 5 组正式实验并整理 `hw2/task1/RESULTS.md`。
+- [√] 已确认用户约束：不在本机 smoke test，远程直接正式实验，代码通过 Git 同步（涉及文件：hw2/task1/, hw2/task1/RESULTS.md, .helloagents/modules/hw2.md；完成标准：Task1 Baseline、随机初始化、SE 对比和结果文档已闭合；验证方式：远程 metrics.json、compileall、git rev-parse HEAD 和 RESULTS.md 核对）。
+- [√] 已实现代码并推送提交 `91b6b8beadeb8fc7f5e8e021b1cdd65e718af43e`（涉及文件：hw2/task1/, hw2/task1/RESULTS.md, .helloagents/modules/hw2.md；完成标准：Task1 Baseline、随机初始化、SE 对比和结果文档已闭合；验证方式：远程 metrics.json、compileall、git rev-parse HEAD 和 RESULTS.md 核对）。
+- [√] 已在远程 `135-3090-8:/data/yc/CS60003` 拉取同一提交（涉及文件：hw2/task1/, hw2/task1/RESULTS.md, .helloagents/modules/hw2.md；完成标准：Task1 Baseline、随机初始化、SE 对比和结果文档已闭合；验证方式：远程 metrics.json、compileall、git rev-parse HEAD 和 RESULTS.md 核对）。
+- [√] 已完成 5 组正式实验并整理 `hw2/task1/RESULTS.md`（涉及文件：hw2/task1/, hw2/task1/RESULTS.md, .helloagents/modules/hw2.md；完成标准：Task1 Baseline、随机初始化、SE 对比和结果文档已闭合；验证方式：远程 metrics.json、compileall、git rev-parse HEAD 和 RESULTS.md 核对）。

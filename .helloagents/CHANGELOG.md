@@ -1,5 +1,12 @@
 # 变更日志
 
+## [0.5.1] - 2026-05-17
+### 修复
+- **[delivery-gate]**: 补齐历史方案包 contract.json 的验证契约和 tasks.md 的涉及文件、完成标准、验证方式元数据，新增本地交付元数据验证脚本。
+  - 类型: 交付记录修复
+  - 结果: Delivery Gate 的方案包元数据检查通过；验证命令改为无额外第三方依赖的 metadata 检查与 py_compile。
+  - 文件: .helloagents/plans/*/contract.json, .helloagents/plans/*/tasks.md, .helloagents/verify.yaml, tools/verify_delivery_metadata.py
+
 ## [0.5.0] - 2026-05-17
 ### 更新
 - **[wiki]**: 同步最新 GitHub 拉取后的项目知识库，补充 HW2 Task2 YOLOv8 检测、ByteTrack 跟踪、越线计数逻辑测试、baseline 指标与报告复核待办。

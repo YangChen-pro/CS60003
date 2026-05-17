@@ -9,6 +9,6 @@
 - [√] 任务6：结果汇总与知识库同步（涉及文件：`RESULTS.md`、README、知识库、方案包；完成标准：记录最佳提升和报告口径；验证方式：最终 Git 状态干净）。
 
 ## 进度
-- [√] 子代理已返回错例、策略、审查结论。
-- [√] 已提交优化代码并同步远程。
-- [√] 已完成 8 组优化实验，最佳 ConvNeXt-Tiny `test_acc=0.9608`。
+- [√] 子代理已返回错例、策略、审查结论（涉及文件：hw2/task1/, hw2/task1/configs/, hw2/task1/RESULTS.md, .helloagents/modules/hw2.md；完成标准：Task1 优化实验完成且最佳 ConvNeXt-Tiny test_acc=0.9608 已记录；验证方式：远程 metrics.json 汇总、compileall、RESULTS.md 和知识库核对）。
+- [√] 已提交优化代码并同步远程（涉及文件：hw2/task1/, hw2/task1/configs/, hw2/task1/RESULTS.md, .helloagents/modules/hw2.md；完成标准：Task1 优化实验完成且最佳 ConvNeXt-Tiny test_acc=0.9608 已记录；验证方式：远程 metrics.json 汇总、compileall、RESULTS.md 和知识库核对）。
+- [√] 已完成 8 组优化实验，最佳 ConvNeXt-Tiny `test_acc=0.9608`（涉及文件：hw2/task1/, hw2/task1/configs/, hw2/task1/RESULTS.md, .helloagents/modules/hw2.md；完成标准：Task1 优化实验完成且最佳 ConvNeXt-Tiny test_acc=0.9608 已记录；验证方式：远程 metrics.json 汇总、compileall、RESULTS.md 和知识库核对）。
