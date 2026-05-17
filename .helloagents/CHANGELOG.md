@@ -1,5 +1,12 @@
 # 变更日志
 
+## [0.5.0] - 2026-05-17
+### 更新
+- **[wiki]**: 同步最新 GitHub 拉取后的项目知识库，补充 HW2 Task2 YOLOv8 检测、ByteTrack 跟踪、越线计数逻辑测试、baseline 指标与报告复核待办。
+  - 类型: 知识库同步
+  - 结果: Task2 当前 baseline 为 `best_mAP50=0.5150`、`best_mAP50_95=0.2854`、`best_epoch=38`；知识库已标记 HW2 报告需复核 Task2 内容。
+  - 文件: .helloagents/context.md, .helloagents/guidelines.md, .helloagents/verify.yaml, .helloagents/INDEX.md, .helloagents/modules/_index.md, .helloagents/modules/hw2.md, .helloagents/STATE.md, .helloagents/sessions/main/8f4f4135/STATE.md, .gitignore
+
 ## [0.4.0] - 2026-05-03
 ### 更新
 - **[wiki]**: 同步当前项目知识库，刷新 HW2 Task1/Task3 实验状态、HW2 报告路径、SwanLab 私有记录约束、ModelScope 权重路径与 Task2 待办。

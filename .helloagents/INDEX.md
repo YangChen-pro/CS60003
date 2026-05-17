@@ -19,16 +19,16 @@
 | 模块 | 关键词 | 摘要 |
 |------|--------|------|
 | hw1 | EuroSAT, MLP, CuPy, 135-3090-8, llm-26-gpu, final_p, final_o, A+ | 记录 HW1 的默认远端执行环境、最终提交流程、证据链与最新性能结论。 |
-| hw2 | Flowers102, ConvNeXt-Tiny, RoadVehicleImages, YOLOv8, StanfordBackground, U-Net, Dice Loss, SwanLab, ModelScope, LaTeX report | 记录 HW2 Task1/Task3 已完成实验、Task2 待补、私有实验记录和 HW2 报告状态。 |
+| hw2 | Flowers102, ConvNeXt-Tiny, RoadVehicleImages, YOLOv8, ByteTrack, 越线计数, StanfordBackground, U-Net, Dice Loss, SwanLab, ModelScope, LaTeX report | 记录 HW2 Task1/Task2/Task3 实验工程、关键指标、私有实验记录和报告状态。 |
 
 ## 知识库状态
 
 ```yaml
 kb_version: unknown
-最后更新: 2026-05-03
+最后更新: 2026-05-17
 模块数量: 2
 待执行方案: 0
-当前重点: HW2 Task2 待补；HW2 Task1/Task3 报告已生成并视觉检查
+当前重点: 复核 HW2 报告是否已经纳入 Task2 检测、跟踪、遮挡分析和越线计数内容
 ```
 
 ## 读取指引
@@ -47,7 +47,8 @@ kb_version: unknown
   4. SwanLab 记录为私有，报告只嵌入导出的本地图片，不提供云端链接
 
 涉及 HW2 Task2:
-  1. 读取 hw2/hw2.md 和 modules/hw2.md
-  2. 检查 hw2/RoadVehicleImages/ 数据配置
-  3. 补检测训练、视频跟踪、遮挡分析、越线计数和报告内容
+  1. 读取 hw2/hw2.md、hw2/task2/README.md 和 modules/hw2.md
+  2. 检查 hw2/RoadVehicleImages/trafic_data/data_hw2.yaml 与当前运行环境路径是否一致
+  3. 检测结果看 hw2/task2/RESULTS.md；跟踪逻辑看 hw2/task2/track_video.py 和 hw2/task2/tests/test_track_video_logic.py
+  4. 报告提交前补齐检测指标、跟踪截图/视频摘要、遮挡片段分析和越线计数结果
 ```
