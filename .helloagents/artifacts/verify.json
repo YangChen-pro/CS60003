@@ -1,16 +1,28 @@
 {
   "kind": "verify",
-  "updated_at": "2026-05-17T18:54:14",
+  "updated_at": "2026-05-17T19:07:39",
+  "head_commit": "7a43d4f5",
   "checks": [
+    {
+      "name": "git_worktree_pre_verify",
+      "status": "passed",
+      "note": "worktree was clean before verification commands"
+    },
     {
       "name": "py_compile_task_entrypoints",
       "status": "passed",
       "scope": "hw2/task1, hw2/task2, hw2/task3 train/evaluate/track entrypoints"
     },
     {
-      "name": "task2_readme_chinese_sections",
+      "name": "task2_readme_chinese_and_wording",
       "status": "passed",
-      "scope": "hw2/task2/README.md"
+      "scope": "hw2/task2/README.md",
+      "note": "Chinese sections present; explicit collaborator-environment wording removed"
+    },
+    {
+      "name": "git_diff_check",
+      "status": "passed",
+      "scope": "repository whitespace/conflict marker check"
     },
     {
       "name": "latexmk_hw2_report",
@@ -22,11 +34,6 @@
       "name": "pdf_page_count",
       "status": "passed",
       "pages": 9
-    },
-    {
-      "name": "latex_log_problem_scan",
-      "status": "passed",
-      "note": "no substantive Error/Warning/Overfull/Underfull/undefined reference found; rerunfilecheck package declaration only"
     }
   ]
 }
