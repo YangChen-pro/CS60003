@@ -2,7 +2,7 @@
 
 本目录用于完成 HW2 Task2：在 Road Vehicle Images Dataset 上微调 YOLOv8s 检测器，并结合 ByteTrack 完成交通视频多目标跟踪、稳定 display ID 显示、遮挡片段分析和越线计数。
 
-Task2 由小组成员在其训练环境中完成，因此 SwanLab workspace、数据 YAML 中的机器路径可能与 Task1/Task3 不完全一致。最终统一交付入口仍是本仓库与 ModelScope 仓库；复现实验时请按本 README 的目录与命令检查本机数据路径。
+本作业按任务分工完成，Task2 的 SwanLab workspace 和数据 YAML 路径可能与其他任务略有差异。最终统一交付入口仍是本仓库与 ModelScope 仓库；复现实验时请按本 README 的目录与命令检查本机数据路径。
 
 ## 目录
 
@@ -31,7 +31,7 @@ hw2/RoadVehicleImages/trafic_data/
 └── data_hw2.yaml
 ```
 
-数据集为 YOLO 标注格式，共 21 个车辆/道路交通相关类别。`data_hw2.yaml` 可能保留合作者训练机器上的绝对路径；如果换机器复现，需要先确认其中的 `path` 指向当前仓库下的 `hw2/RoadVehicleImages/trafic_data/`。
+数据集为 YOLO 标注格式，共 21 个车辆/道路交通相关类别。`data_hw2.yaml` 可能保留实验机器上的绝对路径；如果换机器复现，需要先确认其中的 `path` 指向当前仓库下的 `hw2/RoadVehicleImages/trafic_data/`。
 
 ## 环境
 
@@ -122,7 +122,7 @@ python hw2/task2/track_video.py \
 
 报告中选取 60 fps 测试视频 frame 950--953 的连续四帧作为失败案例：两辆相似二轮车在密集交汇时被错误映射到同一个 display ID，说明仅依赖几何位置、框尺寸和短时运动信息无法完全解决遮挡后的身份恢复问题。对应裁剪图已保存为报告素材 `pic/task2_occlusion_id_jump_crop.png`。
 
-两个视频版本的越线计数结果已写入报告：30 fps 版本统计 19 次越线，60 fps 版本统计 25 次越线。原始 tracking 输出和视频由 Task2 成员在其机器上生成，当前仓库保留代码、配置、指标文档和报告截图作为轻量交付证据。
+两个视频版本的越线计数结果已写入报告：30 fps 版本统计 19 次越线，60 fps 版本统计 25 次越线。当前仓库保留代码、配置、指标文档和报告截图作为轻量交付证据。
 
 ## SwanLab
 
@@ -136,4 +136,4 @@ python hw2/task2/upload_swanlab_history.py \
   --group task2-history-replay
 ```
 
-已上传的 run 见 `SWANLAB_RUNS.md`。Task2 由合作者完成，SwanLab workspace 与 Task1/Task3 可以不同；最终报告中只引用导出的本地曲线图，不公开私有实验页面。
+已上传的 run 见 `SWANLAB_RUNS.md`。不同任务的 SwanLab workspace 可能不同；最终报告中只引用导出的本地曲线图，不公开私有实验页面。
