@@ -2,6 +2,10 @@
 
 ## [0.6.1] - 2026-06-05
 ### 更新
+- **[hw3]**: 配置 HW3 临时 SwanLab / ModelScope 运行时凭据口径，凭据仅保存在 `.helloagents/secrets/hw3.env` 并由环境变量读取，不写入 Git 跟踪文件；136 `qwen14b` 已切换 SwanLab 到用户账号。
+  - 类型: 凭据与远程环境准备
+  - 文件: .helloagents/modules/hw3.md, .helloagents/CHANGELOG.md
+
 - **[init]**: 按用户 Codex-only 使用范围删除 Claude/Gemini 项目级规则载体，并将 `.gitignore` 与项目约定收口为只保留 `AGENTS.md`。
   - 类型: 初始化范围收口
   - 结果: 删除 `CLAUDE.md`、`.gemini/GEMINI.md` 和空 `.gemini/` 目录；后续不维护非 Codex carrier，除非用户明确要求恢复。
