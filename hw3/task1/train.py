@@ -13,6 +13,7 @@ import json
 
 from task1_3dgs_aigc.config import load_config, resolve_paths
 from task1_3dgs_aigc.formal_chain import run_formal_chain
+from task1_3dgs_aigc.real_chain import run_real_chain
 from task1_3dgs_aigc.smoke import run_smoke_test
 from task1_3dgs_aigc.swanlab_utils import create_swanlab_logger
 
@@ -35,6 +36,8 @@ def main() -> None:
         summary = run_smoke_test(config)
     elif stage == "formal_ai_chain":
         summary = run_formal_chain(config)
+    elif stage == "real_high_quality":
+        summary = run_real_chain(config)
     else:
         raise ValueError(f"Unsupported stage: {stage}")
     _log_summary(config, summary)
@@ -45,7 +48,14 @@ def _log_summary(config: dict, summary: dict) -> None:
     logger = create_swanlab_logger(config, summary["run_dir"])
     try:
         metrics = {"task1/status_pass": 1 if summary["status"] == "PASS" else 0}
-        if summary.get("stage") == "formal_ai_chain":
+        if summary.get("stage") == "real_high_quality":
+            metrics.update(
+                {
+                    "task1/script_count": int(summary["script_count"]),
+                    "task1/ready": 1 if summary["status"] in {"READY", "PASS"} else 0,
+                }
+            )
+        elif summary.get("stage") == "formal_ai_chain":
             metrics.update(
                 {
                     "task1/asset_count": int(summary["asset_count"]),

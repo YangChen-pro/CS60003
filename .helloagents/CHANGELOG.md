@@ -2,6 +2,11 @@
 
 ## [0.6.1] - 2026-06-05
 ### 更新
+- **[hw3-task1]**: 增加真实高质量链路入口，支持用户后续替换 `hw3/assets` 下的真实 A/C/背景素材后直接调用 Nerfstudio、threestudio、TripoSR 与 Blender。
+  - 类型: 高质量链路准备
+  - 结果: 新增 `real_high_quality.yaml`、7 个外部工具脚本生成逻辑、136 安装脚本与真实素材放置说明；当前 plan 模式已通过脚本生成与 evaluate。
+  - 文件: hw3/assets/README.md, hw3/task1/configs/real_high_quality.yaml, hw3/task1/task1_3dgs_aigc/real_chain.py, hw3/task1/scripts/
+
 - **[hw3-task1]**: 按用户最新要求，将 AI 生成物体 A/C 图片作为正式输入，跑通 Task1 formal AI chain。
   - 类型: 正式链路代理实现
   - 结果: 本地与 136 `qwen14b` 均通过 `formal_ai_chain`，生成 A/B/C/背景 PLY、融合 PLY、预览图、turntable GIF、metrics，并上传到 ModelScope `youngchen/CS60003/hw3/task1/formal_ai_chain/`。

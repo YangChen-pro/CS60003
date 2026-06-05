@@ -110,3 +110,29 @@ set +a
 3. 物体 C：AI 单图 → 单图挤出式 3D 代理。
 4. 背景：桌面/墙面 Gaussian 背景代理。
 5. 融合：统一为 PLY 点云/高斯半径表达，按空间位置合并并生成多视角 turntable GIF。
+
+## 真实高质量链路（后续替换真实 A/C 后使用）
+
+这条链路不再使用早期 proxy 结果，而是调用真实外部工具：
+
+- 物体 A / 背景：Nerfstudio `splatfacto-big` + COLMAP，导出 Gaussian splat 与 TSDF mesh。
+- 物体 B：threestudio 文本到 3D，默认使用 DreamFusion/SDS 配置并启用 Perp-Neg / D-SDS 相关质量参数。
+- 物体 C：TripoSR 单图到 3D，输出带纹理 mesh。
+- 融合渲染：Blender 导入 A/B/C/背景 mesh，输出 1280×720 H.264 漫游视频。
+
+素材放置位置见 `hw3/assets/README.md`。先生成运行脚本：
+
+```bash
+python hw3/task1/train.py --config hw3/task1/configs/real_high_quality.yaml
+python hw3/task1/evaluate.py --run-dir hw3/task1/outputs/task1_real_high_quality
+```
+
+当前 YAML 默认是 `real_chain.execution.mode: plan`，只校验素材并生成 7 个脚本。真实素材与依赖安装好后，把它改成 `run`，再执行同一条 `train.py` 命令即可跑完整高质量链路。
+
+136 环境安装入口：
+
+```bash
+bash hw3/task1/scripts/setup_real_chain_136.sh
+```
+
+注意：高质量链路依赖 COLMAP/FFmpeg/Blender/Nerfstudio/threestudio/TripoSR。缺少这些工具时不做静默降级，`00_check_tools.sh` 会直接失败。

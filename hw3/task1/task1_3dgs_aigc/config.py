@@ -59,6 +59,35 @@ DEFAULT_CONFIG: dict[str, Any] = {
             "focal": 430.0,
         },
     },
+    "real_chain": {
+        "execution": {"mode": "plan"},
+        "data": {
+            "object_a_images": "hw3/assets/object_a_multiview",
+            "object_a_video": "",
+            "object_c_image": "hw3/assets/object_c_single/object_c_single_front.png",
+            "background_images": "hw3/assets/background_scene/images",
+            "background_video": "",
+            "min_object_a_images": 40,
+            "min_background_images": 80,
+        },
+        "tools": {
+            "required_cli": ["ns-process-data", "ns-train", "ns-export", "ns-eval", "colmap", "ffmpeg", "blender"],
+            "threestudio_launch": "hw3/task1/external/threestudio/launch.py",
+            "triposr_run": "hw3/task1/external/TripoSR/run.py",
+            "blender_renderer": "hw3/task1/scripts/render_real_chain_blender.py",
+        },
+        "quality": {
+            "splatfacto_iterations": 30000,
+            "cull_alpha_thresh": 0.005,
+        },
+        "object_b": {
+            "prompt": "a small bioluminescent purple crystal mushroom with a green stem",
+            "max_steps": 15000,
+        },
+        "object_c": {
+            "texture_resolution": 2048,
+        },
+    },
 }
 
 
@@ -111,11 +140,21 @@ def resolve_paths(config: dict[str, Any], output_root: str | None = None) -> Non
     report_dir = config["experiment"].get("report_assets_dir", "")
     if report_dir:
         config["experiment"]["report_assets_dir"] = str(resolve_repo_path(report_dir, repo_root))
+    if "real_chain" in config:
+        real_data = config["real_chain"]["data"]
+        for key in ["object_a_images", "object_c_image", "background_images"]:
+            real_data[key] = str(resolve_repo_path(real_data[key], repo_root))
+        for key in ["object_a_video", "background_video"]:
+            if real_data.get(key):
+                real_data[key] = str(resolve_repo_path(real_data[key], repo_root))
+        tools = config["real_chain"]["tools"]
+        for key in ["threestudio_launch", "triposr_run", "blender_renderer"]:
+            tools[key] = str(resolve_repo_path(tools[key], repo_root))
 
 
 def _validate_config(config: dict[str, Any]) -> None:
     stage = str(config.get("task1", {}).get("stage", ""))
-    if stage not in {"smoke_assets", "formal_ai_chain"}:
+    if stage not in {"smoke_assets", "formal_ai_chain", "real_high_quality"}:
         raise ValueError(f"Unsupported Task1 stage for current scaffold: {stage}")
     yaws = config.get("task1", {}).get("object_a_expected_yaws")
     if not isinstance(yaws, list) or len(yaws) != 8:

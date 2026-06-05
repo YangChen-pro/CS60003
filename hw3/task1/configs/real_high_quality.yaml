@@ -1,0 +1,45 @@
+experiment:
+  name: task1_real_high_quality
+  seed: 42
+  output_root: hw3/task1/outputs
+
+task1:
+  stage: real_high_quality
+
+real_chain:
+  execution:
+    # plan: only validate inputs and write scripts; run: execute all external tools.
+    mode: plan
+
+  data:
+    object_a_images: hw3/assets/object_a_multiview
+    object_a_video: ""
+    object_c_image: hw3/assets/object_c_single/object_c_single_front.png
+    background_images: hw3/assets/background_scene/images
+    background_video: ""
+    min_object_a_images: 40
+    min_background_images: 80
+
+  tools:
+    required_cli:
+      - ns-process-data
+      - ns-train
+      - ns-export
+      - ns-eval
+      - colmap
+      - ffmpeg
+      - blender
+    threestudio_launch: hw3/task1/external/threestudio/launch.py
+    triposr_run: hw3/task1/external/TripoSR/run.py
+    blender_renderer: hw3/task1/scripts/render_real_chain_blender.py
+
+  quality:
+    splatfacto_iterations: 30000
+    cull_alpha_thresh: 0.005
+
+  object_b:
+    prompt: a small bioluminescent purple crystal mushroom with a green stem
+    max_steps: 15000
+
+  object_c:
+    texture_resolution: 2048
