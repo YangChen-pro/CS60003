@@ -4,7 +4,7 @@
 完成 HW3 Task1 真实高质量 3DGS 与 AIGC 多源资产融合链路。
 
 ## 正在做什么
-按用户质量要求删除旧低质量链路，保留 `real_high_quality`，并清理 ModelScope 非权重文件。
+已按用户质量要求删除旧低质量链路，保留 `real_high_quality`，并清理 ModelScope 非权重文件。
 
 ## 关键上下文
 - Task1 结构对齐 HW1/HW2：README、RESULTS、configs、requirements、train/evaluate、内部包。
@@ -14,10 +14,12 @@
 - `upload_modelscope.py` 已改为训练权重白名单；找不到权重时直接失败，不上传杂项。
 - ModelScope `youngchen/CS60003` 已通过远端 Git 提交 `a430be1` 删除 `hw3/task1/formal_ai_chain/`。
 - 真实高质量链路：`hw3/task1/configs/real_high_quality.yaml` 默认 plan 模式；素材路径见 `hw3/assets/README.md`；会生成 Nerfstudio/3DGS、threestudio、TripoSR、Blender 7 个脚本。
+- 本地验证通过：metadata、py_compile、`real_high_quality` plan train/evaluate。
+- 136 `qwen14b` 验证通过：py_compile、`real_high_quality` plan train/evaluate；远程提交同步到 `b1a805e` 且工作区干净。
 - 方案包：`.helloagents/plans/202606051645_hw3_task1_3dgs_aigc/`。
 
 ## 下一步
-完成本地验证、提交、同步 136、远程验证，并写入 QA/closeout 证据。
+等待真实 A/C/背景素材放入 `hw3/assets/` 后，将 `real_chain.execution.mode` 切到 `run` 并在 136 执行真实训练/渲染。
 
 ## 阻塞项
 （无）
