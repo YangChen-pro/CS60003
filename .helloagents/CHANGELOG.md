@@ -2,6 +2,11 @@
 
 ## [0.6.1] - 2026-06-05
 ### 更新
+- **[hw3-task1]**: 按用户最新要求，将 AI 生成物体 A/C 图片作为正式输入，跑通 Task1 formal AI chain。
+  - 类型: 正式链路代理实现
+  - 结果: 本地与 136 `qwen14b` 均通过 `formal_ai_chain`，生成 A/B/C/背景 PLY、融合 PLY、预览图、turntable GIF、metrics，并上传到 ModelScope `youngchen/CS60003/hw3/task1/formal_ai_chain/`。
+  - 文件: hw3/task1/configs/formal_ai_chain.yaml, hw3/task1/task1_3dgs_aigc/formal_chain.py, hw3/task1/task1_3dgs_aigc/geometry.py, hw3/task1/report_assets/formal_ai_chain/
+
 - **[hw3-task1]**: 按 HW1/HW2 风格建立 `hw3/task1/` 工程骨架，并完成本地 AI 生成素材 smoke test。
   - 类型: Task1 起步实现
   - 结果: 本地 `train.py` / `evaluate.py` 通过，9 张测试图最小尺寸 `1254x1254`，输出 manifest、图像统计、相邻视角差异和 contact sheet。

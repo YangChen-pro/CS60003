@@ -91,3 +91,44 @@ python3 -X utf8 hw3/task1/evaluate.py --run-dir hw3/task1/outputs/task1_formal_a
 - 多视角 GIF：`hw3/task1/report_assets/formal_ai_chain/fused_scene_turntable.gif`
 
 说明：按用户要求，当前 formal 链路把 AI 图片当作正式输入；重型 COLMAP/3DGS/threestudio/Zero123 步骤用可复现的 Gaussian/point-cloud 代理表达跑通。报告中需要如实写明这是代理链路，不伪称为真实手机实拍或原版 threestudio 训练。
+
+
+### 2026-06-05 136 `qwen14b` 远程 `formal_ai_chain`
+
+命令：
+
+```bash
+python hw3/task1/train.py --config hw3/task1/configs/formal_ai_chain.yaml
+python hw3/task1/evaluate.py --run-dir hw3/task1/outputs/task1_formal_ai_chain
+```
+
+结果：
+
+- 状态：`PASS`
+- 资产数量：4（物体 A、物体 B、物体 C、背景）
+- 融合点数：`58013`
+- 物体 A 点数：`44077`
+- 物体 B 点数：`2758`
+- 物体 C 点数：`3828`
+- 背景点数：`7350`
+- 运行目录：`/home/dell/yc/CS60003/hw3/task1/outputs/task1_formal_ai_chain`
+- 远程环境：Python `3.10.19`，`nvidia-smi` 位于 `/usr/bin/nvidia-smi`
+
+### 2026-06-05 ModelScope 上传
+
+命令：
+
+```bash
+python hw3/task1/upload_modelscope.py \
+  --run-dir hw3/task1/outputs/task1_formal_ai_chain \
+  --remote-subdir formal_ai_chain
+```
+
+结果：
+
+- ModelScope 仓库：`youngchen/CS60003`
+- 远程目录：`hw3/task1/formal_ai_chain/`
+- 已上传：`source_config.yaml`、`config.json`、`asset_manifest.json`、`summary.json`、`metrics.csv`、`fused_scene.ply`、`renders/fused_scene_preview.png`、`renders/fused_scene_turntable.gif`、四个资产 PLY。
+- 仓库页面：<https://www.modelscope.cn/models/youngchen/CS60003>
+
+当前结论：按用户“用 AI 素材当正式链路”的要求，HW3 Task1 的 A/B/C/背景融合与多视角渲染链路已在本地和 136 跑通，关键结果已放入 Git 报告素材目录并上传 ModelScope。
