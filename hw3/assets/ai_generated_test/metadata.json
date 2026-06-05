@@ -1,7 +1,7 @@
 {
-  "purpose": "Synthetic placeholders for HW3 smoke tests only; replace with phone captures for final submission.",
+  "purpose": "AI-generated placeholders for HW3 smoke tests only; replace with phone captures for final submission.",
   "object_a": {
-    "description": "8 generated multi-view PNGs of a stylized rocket figurine.",
+    "description": "8 AI-generated multi-view PNGs of the same teal ceramic rocket figurine.",
     "views": [
       "object_a_multiview/object_a_view_01_yaw_000.png",
       "object_a_multiview/object_a_view_02_yaw_045.png",
@@ -14,8 +14,9 @@
     ]
   },
   "object_c": {
-    "description": "1 generated clean single-view PNG of a wooden cube robot.",
+    "description": "1 AI-generated clean single-view PNG of a wooden cube robot toy.",
     "image": "object_c_single/object_c_single_front.png"
   },
-  "count": 9
+  "count": 9,
+  "final_submission_note": "These images are not final assignment captures. Final task 1 should use real phone-captured object A/C assets."
 }
