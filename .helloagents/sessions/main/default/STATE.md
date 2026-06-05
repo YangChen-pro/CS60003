@@ -4,7 +4,7 @@
 完成 HW3 Task1 真实高质量 3DGS 与 AIGC 多源资产融合链路。
 
 ## 正在做什么
-已按用户质量要求删除旧低质量链路，保留 `real_high_quality`，并清理 ModelScope 非权重文件。
+已在保留 `real_high_quality` 正式链路的前提下，新增并跑通 `ai_assets_high_quality_preview` 临时 AI 素材高质量预览渲染，正在收尾。
 
 ## 关键上下文
 - Task1 结构对齐 HW1/HW2：README、RESULTS、configs、requirements、train/evaluate、内部包。
@@ -14,12 +14,15 @@
 - `upload_modelscope.py` 已改为训练权重白名单；找不到权重时直接失败，不上传杂项。
 - ModelScope `youngchen/CS60003` 已通过远端 Git 提交 `a430be1` 删除 `hw3/task1/formal_ai_chain/`。
 - 真实高质量链路：`hw3/task1/configs/real_high_quality.yaml` 默认 plan 模式；素材路径见 `hw3/assets/README.md`；会生成 Nerfstudio/3DGS、threestudio、TripoSR、Blender 7 个脚本。
-- 本地验证通过：metadata、py_compile、`real_high_quality` plan train/evaluate。
-- 136 `qwen14b` 验证通过：py_compile、`real_high_quality` plan train/evaluate；远程提交同步到 `b1a805e` 且工作区干净。
+- 136 已可通过本地反向代理和 ControlMaster 连接；已安装/验证 Nerfstudio、gsplat、COLMAP、FFmpeg、Blender、Xvfb；外部目录已克隆 threestudio 与 TripoSR。
+- 136 `qwen14b` 已跑通 `ai_assets_high_quality_preview`，输出 `renders/preview_hero.png` 与 `renders/fused_scene.mp4`，本地已拉回。
+- 本地验证通过：metadata、py_compile、`real_high_quality` plan train/evaluate、`ai_assets_high_quality_preview` evaluate。
+- 136 验证通过：py_compile、`real_high_quality` plan evaluate、`ai_assets_high_quality_preview` train/evaluate。
+- 正式真实链路仍未进入 full run：当前 AI A 只有 8 张，正式链路要求 40+；背景目录 `hw3/assets/background_scene/images/` 仍缺失。
 - 方案包：`.helloagents/plans/202606051645_hw3_task1_3dgs_aigc/`。
 
 ## 下一步
-等待真实 A/C/背景素材放入 `hw3/assets/` 后，将 `real_chain.execution.mode` 切到 `run` 并在 136 执行真实训练/渲染。
+等待真实 A/C/背景素材放入 `hw3/assets/`，再将 `real_chain.execution.mode` 切到 `run` 并在 136 执行真实训练/渲染。
 
 ## 阻塞项
 （无）

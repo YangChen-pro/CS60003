@@ -1,13 +1,14 @@
 # HW3 Task1 3DGS/AIGC — 实施规划
 
 ## 目标与范围
-只保留真实高质量链路。删除早期 AI smoke、程序化 proxy、`formal_ai_chain` 和报告素材结果，让后续把 `hw3/assets` 换成真实拍摄 A/C 后可以直接运行可信链路。
+只保留真实高质量链路。删除早期 AI smoke、程序化 proxy、`formal_ai_chain` 和报告素材结果，让后续把 `hw3/assets` 换成真实拍摄 A/C 后可以直接运行可信链路。当前额外保留一个 `ai_assets_high_quality_preview` 临时预览入口，只用于用 AI 素材检查 Blender 融合渲染效果，不替代正式 3DGS/SDS/TripoSR 训练。
 
 ## 架构与实现策略
-- `hw3/task1/train.py`：只执行 `real_high_quality`。
-- `hw3/task1/evaluate.py`：只验证真实链路 plan/run 输出结构。
-- `hw3/task1/task1_3dgs_aigc/config.py`：只保留真实链路默认配置与校验。
+- `hw3/task1/train.py`：执行 `real_high_quality` 或临时 `ai_assets_high_quality_preview`。
+- `hw3/task1/evaluate.py`：验证真实链路 plan/run 输出结构和 AI 素材预览输出结构。
+- `hw3/task1/task1_3dgs_aigc/config.py`：保留真实链路默认配置与校验，并区分预览链路配置。
 - `hw3/task1/task1_3dgs_aigc/real_chain.py`：生成或执行 7 个真实外部工具脚本。
+- `hw3/task1/task1_3dgs_aigc/preview_chain.py`：生成或执行 2 个 AI 素材预览渲染脚本。
 - `hw3/task1/upload_modelscope.py`：按权重白名单上传，拒绝非权重杂项。
 - `hw3/assets/README.md`：定义真实素材替换路径。
 
@@ -23,6 +24,7 @@
 - README / RESULTS 只记录真实高质量链路和 ModelScope 权重策略。
 - 本地与 136 的 plan 模式 train/evaluate 通过。
 - ModelScope `youngchen/CS60003` 中此前误传的 `hw3/task1/formal_ai_chain/` 已删除。
+- AI 素材预览 run 在 136 `qwen14b` 生成 `preview_hero.png` 与 `fused_scene.mp4`，并明确标注为非最终训练证据。
 - `qaMode=standard`，`qaFocus` 覆盖删除边界、真实链路、ModelScope 权重策略、验证命令和远程同步。
 
 ## 文件结构
@@ -31,16 +33,19 @@ hw3/task1/
   README.md
   RESULTS.md
   configs/real_high_quality.yaml
+  configs/ai_assets_high_quality_preview.yaml
   requirements.txt
   train.py
   evaluate.py
   upload_modelscope.py
   scripts/render_real_chain_blender.py
+  scripts/render_ai_assets_preview_blender.py
   scripts/setup_real_chain_136.sh
   task1_3dgs_aigc/
     __init__.py
     config.py
     real_chain.py
+    preview_chain.py
     swanlab_utils.py
     utils.py
 ```

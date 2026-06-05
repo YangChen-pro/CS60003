@@ -11,6 +11,7 @@ import argparse
 import json
 
 from task1_3dgs_aigc.config import load_config, resolve_paths
+from task1_3dgs_aigc.preview_chain import run_preview_chain
 from task1_3dgs_aigc.real_chain import run_real_chain
 from task1_3dgs_aigc.swanlab_utils import create_swanlab_logger
 
@@ -31,6 +32,8 @@ def main() -> None:
     stage = str(config["task1"]["stage"])
     if stage == "real_high_quality":
         summary = run_real_chain(config)
+    elif stage == "ai_assets_high_quality_preview":
+        summary = run_preview_chain(config)
     else:
         raise ValueError(f"Unsupported stage: {stage}")
     _log_summary(config, summary)

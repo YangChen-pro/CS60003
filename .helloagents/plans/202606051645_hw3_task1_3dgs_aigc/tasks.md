@@ -11,7 +11,8 @@
 - [√] 任务4（AFK）：收敛 ModelScope 上传策略（涉及文件：`upload_modelscope.py`；完成标准：只允许训练权重上传；验证方式：py_compile 和代码审查）。
 - [√] 任务5（AFK）：清理 ModelScope 远端非权重文件（涉及文件：ModelScope Git 仓库 `youngchen/CS60003`；完成标准：删除 `hw3/task1/formal_ai_chain/`；验证方式：ModelScope Git push 成功）。
 - [√] 任务6（AFK）：本地验证、提交并同步 136（涉及文件：本地与远程 `/home/dell/yc/CS60003`；完成标准：本地和 136 验证通过且远程代码同步；验证方式：py_compile、train/evaluate）。
-- [√] 任务7（AFK）：QA / closeout（涉及文件：`.helloagents` 证据；完成标准：写入最新 QA 与收尾证据；验证方式：HelloAGENTS gate 通过）。
+- [√] 任务7（AFK）：新增并运行 AI 素材高质量预览渲染（涉及文件：`ai_assets_high_quality_preview.yaml`、`preview_chain.py`、`render_ai_assets_preview_blender.py`；完成标准：136 生成 `preview_hero.png` 与 `fused_scene.mp4`；验证方式：远程 train/evaluate）。
+- [√] 任务8（AFK）：QA / closeout（涉及文件：`.helloagents` 证据；完成标准：写入最新 QA 与收尾证据；验证方式：HelloAGENTS gate 通过）。
 
 ## Codex /goal 执行入口
 /goal 按 `.helloagents/plans/202606051645_hw3_task1_3dgs_aigc/tasks.md` 执行本方案；遵守 `requirements.md`、`plan.md`、`contract.json`。默认主执行命令是 `~auto`；全部 AFK 任务完成后必须进入 `~qa`，写最新质量证据并完成 HelloAGENTS 收尾。
@@ -24,3 +25,4 @@
 - [√] 2026-06-05：已通过 ModelScope Git 删除 `hw3/task1/formal_ai_chain/` 非权重文件，提交 `a430be1`（涉及文件：ModelScope Git 仓库 `youngchen/CS60003`；完成标准：远端删除提交成功；验证方式：`git push` 输出）。
 - [√] 2026-06-05：本地已通过 metadata、py_compile、real_high_quality plan train/evaluate（涉及文件：本地 `hw3/task1/`；完成标准：本地验证通过；验证方式：`tools/verify_delivery_metadata.py`、py_compile、train/evaluate）。
 - [√] 2026-06-05：已提交 `b1a805e` 并同步 136，136 `qwen14b` 已通过 py_compile、real_high_quality plan train/evaluate（涉及文件：远程 `/home/dell/yc/CS60003`；完成标准：远程验证通过且工作区干净；验证方式：ssh 远程命令）。
+- [√] 2026-06-05：已新增 `ai_assets_high_quality_preview` 并在 136 `qwen14b` 生成预览主图和视频（涉及文件：`hw3/task1/configs/ai_assets_high_quality_preview.yaml`、`preview_chain.py`、`render_ai_assets_preview_blender.py`；完成标准：`renders/preview_hero.png`、`renders/fused_scene.mp4` 存在；验证方式：远程 train/evaluate，本地 evaluate）。

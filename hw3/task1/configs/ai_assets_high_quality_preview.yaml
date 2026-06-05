@@ -1,0 +1,22 @@
+experiment:
+  name: task1_ai_assets_high_quality_preview
+  seed: 42
+  output_root: hw3/task1/outputs
+
+task1:
+  stage: ai_assets_high_quality_preview
+
+preview_chain:
+  execution:
+    mode: run
+
+  data:
+    object_a_images: hw3/assets/object_a_multiview
+    object_c_image: hw3/assets/object_c_single/object_c_single_front.png
+
+  render:
+    blender_renderer: hw3/task1/scripts/render_ai_assets_preview_blender.py
+    resolution_x: 1280
+    resolution_y: 720
+    frames: 24
+    samples: 8
