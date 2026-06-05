@@ -17,14 +17,23 @@ DEFAULT_REMOTE_ROOT = "hw3/task1"
 UPLOAD_CANDIDATES = [
     "source_config.yaml",
     "config.json",
+    "asset_manifest.json",
     "manifest.json",
     "image_stats.csv",
     "pairwise_yaw_diffs.csv",
     "contact_sheet.png",
     "summary.json",
     "env.json",
+    "metrics.csv",
     "metrics.json",
     "best.pt",
+    "fused_scene.ply",
+    "renders/fused_scene_preview.png",
+    "renders/fused_scene_turntable.gif",
+    "assets/object_a_ai_multiview_gaussians.ply",
+    "assets/object_b_text_to_3d_proxy.ply",
+    "assets/object_c_single_image_proxy.ply",
+    "assets/background_proxy_gaussians.ply",
 ]
 
 

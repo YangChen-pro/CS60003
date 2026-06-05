@@ -9,8 +9,9 @@
 - [√] 任务1（AFK）：建立 Task1 标准工程骨架（依赖：无；涉及文件：`hw3/task1/`、`.gitignore`；预期变更：README、RESULTS、configs、requirements、train/evaluate、内部包；完成标准：结构对齐 HW2 task 目录；验证方式：文件检查与 py_compile）。
 - [√] 任务2（AFK）：实现 AI 生成测试图 smoke test（依赖：任务1；涉及文件：`hw3/task1/task1_3dgs_aigc/`；预期变更：manifest、图像统计、相邻视角差异、contact sheet；完成标准：9 张图片验证通过；验证方式：`python3 hw3/task1/train.py --config hw3/task1/configs/ai_generated_smoke.yaml`）。
 - [√] 任务3（AFK）：在 136 `qwen14b` 运行 smoke test（依赖：任务2；涉及文件：远程 `/home/dell/yc/CS60003`；预期变更：远程输出目录；完成标准：远程 train/evaluate 均通过；验证方式：远程命令输出）。
-- [ ] 任务4（HITL）：替换为真实手机拍摄物体 A/C 素材（依赖：用户拍摄；涉及文件：`hw3/task1/data/` 或远程数据目录；预期变更：最终素材集；完成标准：真实素材通过 smoke test；验证方式：图片/视频检查与 COLMAP 输入检查）。
-- [ ] 任务5（AFK）：接入 COLMAP/3DGS 背景与物体 A 正式重建（依赖：任务4、背景数据；涉及文件：后续 configs/scripts；完成标准：产生可报告重建结果；验证方式：重建日志、输出模型和渲染图）。
+- [√] 任务4（AFK）：按用户最新要求将 AI 素材作为正式输入（依赖：用户授权；涉及文件：`hw3/task1/configs/formal_ai_chain.yaml`；预期变更：formal 配置；完成标准：`task1.stage=formal_ai_chain` 且 `final_submission_assets=true`；验证方式：配置检查）。
+- [√] 任务5（AFK）：实现物体 B 文本到 3D 代理、背景代理和 A/B/C 融合渲染链路（依赖：任务4；涉及文件：`hw3/task1/task1_3dgs_aigc/formal_chain.py`、`geometry.py`；预期变更：PLY、metrics、preview、GIF；完成标准：本地 formal train/evaluate 通过；验证方式：`python3 hw3/task1/train.py --config hw3/task1/configs/formal_ai_chain.yaml` 与 evaluate）。
+- [ ] 任务6（AFK）：在 136 `qwen14b` 运行 formal AI chain 并上传/记录结果（依赖：任务5；涉及文件：远程 `/home/dell/yc/CS60003`；预期变更：远程输出目录与 ModelScope 记录；完成标准：远程 formal train/evaluate 通过，必要素材可引用；验证方式：远程命令输出与 `RESULTS.md`）。
 
 ## Codex /goal 执行入口
 /goal 按 `.helloagents/plans/202606051645_hw3_task1_3dgs_aigc/tasks.md` 执行本方案；遵守 `requirements.md`、`plan.md`、`contract.json`。默认主执行命令是 `~auto`；按顺序完成所有 AFK 任务；HITL 仅在缺少真实素材或人工验收时暂停。全部 AFK 任务完成后必须进入 `~qa`，写最新质量证据并完成 HelloAGENTS 收尾，再标记 goal complete。
@@ -18,4 +19,5 @@
 ## 进度
 - [√] 2026-06-05：已建立 `hw3/task1/` 工程骨架，并在本地完成 `ai_generated_smoke` train/evaluate（涉及文件：`hw3/task1/`；完成标准：本地 smoke 产物完整；验证方式：本地 `train.py` / `evaluate.py` 命令输出）。
 - [√] 2026-06-05：已同步到 136 并在 `qwen14b` 运行同一 smoke test（涉及文件：远程 `/home/dell/yc/CS60003/hw3/task1/`；完成标准：远程 smoke 产物完整；验证方式：136 `train.py` / `evaluate.py` 命令输出）。
-- [ ] 下一步：等待真实手机拍摄物体 A/C 素材后进入正式 3DGS/SDS 链路（涉及文件：`hw3/task1/data/` 或远程数据目录；完成标准：真实素材通过输入检查；验证方式：素材 manifest 与 COLMAP 输入检查）。
+- [√] 2026-06-05：用户改为使用 AI 素材作为正式链路输入；已在本地跑通 `formal_ai_chain`（涉及文件：`hw3/task1/configs/formal_ai_chain.yaml`、`hw3/task1/task1_3dgs_aigc/formal_chain.py`、`hw3/task1/report_assets/formal_ai_chain/`；完成标准：本地 formal 输出完整；验证方式：本地 `train.py` / `evaluate.py` 命令输出）。
+- [ ] 下一步：同步到 136 并在 `qwen14b` 运行 `formal_ai_chain`（涉及文件：远程 `/home/dell/yc/CS60003/hw3/task1/`；完成标准：远程 formal 输出完整；验证方式：136 `train.py` / `evaluate.py` 命令输出）。

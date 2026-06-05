@@ -24,7 +24,7 @@ def save_csv(path: str | Path, rows: Iterable[dict[str, Any]]) -> None:
         Path(path).write_text("", encoding="utf-8")
         return
     with Path(path).open("w", encoding="utf-8", newline="") as file:
-        writer = csv.DictWriter(file, fieldnames=list(rows[0].keys()))
+        writer = csv.DictWriter(file, fieldnames=list(rows[0].keys()), lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
 

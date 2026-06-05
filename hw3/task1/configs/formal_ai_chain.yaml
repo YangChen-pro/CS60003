@@ -1,0 +1,70 @@
+experiment:
+  name: task1_formal_ai_chain
+  seed: 42
+  output_root: hw3/task1/outputs
+  report_assets_dir: hw3/task1/report_assets/formal_ai_chain
+
+data:
+  source_root: hw3/assets/ai_generated_test
+  object_a_dir: hw3/assets/ai_generated_test/object_a_multiview
+  object_c_image: hw3/assets/ai_generated_test/object_c_single/object_c_single_front.png
+  min_image_size: 1024
+
+task1:
+  stage: formal_ai_chain
+  object_a_expected_yaws:
+    - "000"
+    - "045"
+    - "090"
+    - "135"
+    - "180"
+    - "225"
+    - "270"
+    - "315"
+  final_submission_assets: true
+  note: User-approved formal chain using AI-generated object A/C images.
+
+formal_chain:
+  object_b_prompt: a small bioluminescent purple crystal mushroom with a green stem
+  object_a_sample_size: 176
+  object_c_sample_size: 176
+  object_b_radial_steps: 48
+  object_b_height_steps: 28
+  background_grid: 70
+  placements:
+    object_a:
+      scale: 0.82
+      translate: [-1.05, -0.10, 0.05]
+      yaw_degrees: 8.0
+    object_b:
+      scale: 1.00
+      translate: [0.08, -0.38, -0.22]
+      yaw_degrees: 0.0
+    object_c:
+      scale: 0.86
+      translate: [1.15, -0.12, 0.05]
+      yaw_degrees: -10.0
+  render:
+    frame_count: 24
+    width: 960
+    height: 640
+    camera_distance: 5.2
+    focal: 430.0
+
+external_tools:
+  optional:
+    - colmap
+    - ffmpeg
+    - blender
+    - nvidia-smi
+
+logging:
+  swanlab:
+    enabled: false
+    project: cs60003-hw3-task1
+    mode: cloud
+    group: formal-ai-chain
+    tags:
+      - hw3
+      - task1
+      - formal-ai-chain

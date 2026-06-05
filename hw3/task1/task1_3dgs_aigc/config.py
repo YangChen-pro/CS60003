@@ -39,6 +39,26 @@ DEFAULT_CONFIG: dict[str, Any] = {
             "tags": ["hw3", "task1", "smoke"],
         }
     },
+    "formal_chain": {
+        "object_a_sample_size": 176,
+        "object_c_sample_size": 176,
+        "object_b_prompt": "a small bioluminescent purple crystal mushroom with a green stem",
+        "object_b_radial_steps": 48,
+        "object_b_height_steps": 28,
+        "background_grid": 70,
+        "placements": {
+            "object_a": {"scale": 0.82, "translate": [-1.05, -0.10, 0.05], "yaw_degrees": 8.0},
+            "object_b": {"scale": 1.00, "translate": [0.08, -0.38, -0.22], "yaw_degrees": 0.0},
+            "object_c": {"scale": 0.86, "translate": [1.15, -0.12, 0.05], "yaw_degrees": -10.0},
+        },
+        "render": {
+            "frame_count": 24,
+            "width": 960,
+            "height": 640,
+            "camera_distance": 5.2,
+            "focal": 430.0,
+        },
+    },
 }
 
 
@@ -81,17 +101,21 @@ def resolve_repo_path(path_value: str | Path, repo_root: Path | None = None) -> 
 
 def resolve_paths(config: dict[str, Any], output_root: str | None = None) -> None:
     """Resolve configured paths in-place relative to repository root."""
+    repo_root = repo_root_from_task_file()
     config["data"]["source_root"] = str(resolve_repo_path(config["data"]["source_root"]))
     config["data"]["object_a_dir"] = str(resolve_repo_path(config["data"]["object_a_dir"]))
     config["data"]["object_c_image"] = str(resolve_repo_path(config["data"]["object_c_image"]))
     if output_root is not None:
         config["experiment"]["output_root"] = output_root
     config["experiment"]["output_root"] = str(resolve_repo_path(config["experiment"]["output_root"]))
+    report_dir = config["experiment"].get("report_assets_dir", "")
+    if report_dir:
+        config["experiment"]["report_assets_dir"] = str(resolve_repo_path(report_dir, repo_root))
 
 
 def _validate_config(config: dict[str, Any]) -> None:
     stage = str(config.get("task1", {}).get("stage", ""))
-    if stage != "smoke_assets":
+    if stage not in {"smoke_assets", "formal_ai_chain"}:
         raise ValueError(f"Unsupported Task1 stage for current scaffold: {stage}")
     yaws = config.get("task1", {}).get("object_a_expected_yaws")
     if not isinstance(yaws, list) or len(yaws) != 8:

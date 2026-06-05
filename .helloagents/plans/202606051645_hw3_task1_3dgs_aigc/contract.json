@@ -5,20 +5,24 @@
   "verifyMode": "test-first",
   "reviewerFocus": [
     "工程入口与 HW1/HW2 保持一致：configs、内部包、train/evaluate、outputs、云端记录入口",
-    "AI 生成图片只作为 smoke test，不被描述成最终手机实拍素材",
+    "按用户最新要求，AI 生成图片在 formal_ai_chain 中作为正式输入，但限制说明必须清楚",
+    "物体 B 必须有可复现的文本到 3D 代理生成逻辑",
     "SwanLab/ModelScope key 只通过环境变量或忽略文件读取，不进入 Git 跟踪文件"
   ],
   "testerFocus": [
     "本地 py_compile 通过",
     "本地 train.py/evaluate.py smoke test 通过",
-    "136 qwen14b train.py/evaluate.py smoke test 通过"
+    "本地 train.py/evaluate.py formal_ai_chain 通过",
+    "136 qwen14b train.py/evaluate.py smoke test 通过",
+    "136 qwen14b train.py/evaluate.py formal_ai_chain 通过"
   ],
   "qaMode": "standard",
   "qaFocus": [
     "确认 hw3/task1 目录结构与 hw2/task1、hw2/task2、hw2/task3 风格一致",
-    "确认 AI 生成图片只作为 smoke test，不被描述成最终手机实拍素材",
+    "确认 formal_ai_chain 使用 AI 素材作为正式输入并生成 A/B/C/背景融合结果",
+    "确认 formal_ai_chain 的物体 B、融合 PLY、预览图和 GIF 输出完整",
     "确认 hw3/task1/outputs、data、external 不进入 Git",
-    "确认本地与 136 qwen14b 均能运行 train.py/evaluate.py smoke test",
+    "确认本地与 136 qwen14b 均能运行 train.py/evaluate.py smoke test 和 formal_ai_chain",
     "确认真实 SwanLab/ModelScope key 只通过环境变量读取，不写入 Git 跟踪文件"
   ],
   "ui": {

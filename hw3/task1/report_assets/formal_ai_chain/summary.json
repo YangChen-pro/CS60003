@@ -1,0 +1,80 @@
+{
+  "status": "PASS",
+  "stage": "formal_ai_chain",
+  "run_dir": "/Users/yangchen/Desktop/CS60003/hw3/task1/outputs/task1_formal_ai_chain",
+  "asset_count": 4,
+  "fused_point_count": 58013,
+  "metrics": [
+    {
+      "asset": "object_a_multiview",
+      "method": "AI multiview to gaussian proxy",
+      "point_count": 44077,
+      "x_min": -0.4658,
+      "x_max": 0.4658,
+      "y_min": -0.8886,
+      "y_max": 1.1,
+      "z_min": -0.4658,
+      "z_max": 0.4658
+    },
+    {
+      "asset": "object_b_text_to_3d",
+      "method": "prompt to procedural 3D proxy",
+      "point_count": 2758,
+      "x_min": -0.55,
+      "x_max": 0.55,
+      "y_min": -0.45,
+      "y_max": 0.8,
+      "z_min": -0.55,
+      "z_max": 0.55
+    },
+    {
+      "asset": "object_c_single_image",
+      "method": "single image extrusion proxy",
+      "point_count": 3828,
+      "x_min": -0.2821,
+      "x_max": 0.3036,
+      "y_min": -0.5634,
+      "y_max": 0.5115,
+      "z_min": -0.0876,
+      "z_max": 0.1593
+    },
+    {
+      "asset": "background",
+      "method": "Mip-NeRF-like background proxy",
+      "point_count": 7350,
+      "x_min": -3.2,
+      "x_max": 3.2,
+      "y_min": -1.08,
+      "y_max": 1.6,
+      "z_min": -2.2,
+      "z_max": 2.5
+    },
+    {
+      "asset": "fused_scene",
+      "method": "merged gaussian/point scene",
+      "point_count": 58013,
+      "x_min": -3.2,
+      "x_max": 3.2,
+      "y_min": -1.08,
+      "y_max": 1.6,
+      "z_min": -2.2,
+      "z_max": 2.5
+    }
+  ],
+  "elapsed_seconds": 2.13,
+  "optional_tools": {
+    "colmap": "",
+    "ffmpeg": "",
+    "blender": "",
+    "nvidia-smi": ""
+  },
+  "environment": {
+    "python": "3.11.15 (main, Mar  3 2026, 00:52:57) [Clang 21.0.0 (clang-2100.0.123.102)]",
+    "platform": "macOS-26.5.1-arm64-arm-64bit",
+    "created_at": "2026-06-05T17:21:00"
+  },
+  "limitations": [
+    "AI images are treated as formal inputs per user direction.",
+    "Heavy COLMAP/3DGS/threestudio/Zero123 steps are represented by reproducible local proxies."
+  ]
+}

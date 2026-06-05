@@ -1,0 +1,6 @@
+asset,method,point_count,x_min,x_max,y_min,y_max,z_min,z_max
+object_a_multiview,AI multiview to gaussian proxy,44077,-0.4658,0.4658,-0.8886,1.1,-0.4658,0.4658
+object_b_text_to_3d,prompt to procedural 3D proxy,2758,-0.55,0.55,-0.45,0.8,-0.55,0.55
+object_c_single_image,single image extrusion proxy,3828,-0.2821,0.3036,-0.5634,0.5115,-0.0876,0.1593
+background,Mip-NeRF-like background proxy,7350,-3.2,3.2,-1.08,1.6,-2.2,2.5
+fused_scene,merged gaussian/point scene,58013,-3.2,3.2,-1.08,1.6,-2.2,2.5
