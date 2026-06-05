@@ -1,26 +1,25 @@
 # 恢复快照
 
 ## 主线目标
-补齐活跃方案包 `202604091720_hw1_mlp` 的结构化 QA 契约，并完成 `~auto -> ~plan -> ~qa` 收尾。
+开始做 HW3 Task1：3DGS 与 AIGC 多源资产融合。
 
 ## 正在做什么
-空闲；HW1 活跃方案包 QA 契约与质量闭环已完成。
+已建立 `hw3/task1/` 工程骨架，并完成本地 AI 生成素材 smoke test。
 
 ## 关键上下文
-- 当前 HelloAGENTS 版本为 3.1.1，`project_store_mode=local`，Codex 安装模式为 standby。
-- 运行时要求当前显式 `~auto` 不停在只读 HW3 GPU 判断，需先补齐活跃方案包 `202604091720_hw1_mlp` 的 `contract.json`，再进入 `~qa`。
-- 已将 `.helloagents/plans/202604091720_hw1_mlp/contract.json` 改为兼容契约：保留 `verifyMode` / `reviewerFocus` / `testerFocus`，新增 `qaMode=standard` 与 `qaFocus`。
-- QA 已通过：`python3 -X utf8 -m unittest discover -s hw1/tests`、`python3 -X utf8 tools/verify_delivery_metadata.py`、入口 `py_compile`。
-- 已写入当前会话结构化证据：`artifacts/qa-review.json` 与 `artifacts/closeout.json`。
+- Task1 结构对齐 HW2：README、RESULTS、configs、requirements、train/evaluate、内部包。
+- 当前 smoke test 使用 `hw3/assets/ai_generated_test/` 的 8 张物体 A 多视角图和 1 张物体 C 单图；这些不是最终实拍素材。
+- 方案包：`.helloagents/plans/202606051645_hw3_task1_3dgs_aigc/`。
+- 本地验证已通过：`python3 -X utf8 hw3/task1/train.py --config hw3/task1/configs/ai_generated_smoke.yaml` 与 `python3 -X utf8 hw3/task1/evaluate.py --run-dir hw3/task1/outputs/task1_ai_generated_smoke`。
 
 ## 下一步
-提交 `contract.json` 与本状态快照变更；随后写 turn-state complete。
+同步最新仓库到 136 `/home/dell/yc/CS60003`，在 `qwen14b` 运行 `python hw3/task1/train.py --config hw3/task1/configs/ai_generated_smoke.yaml`。
 
 ## 阻塞项
 （无）
 
 ## 方案
-
+.helloagents/plans/202606051645_hw3_task1_3dgs_aigc/
 
 ## 已标记技能
 helloagents

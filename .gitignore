@@ -42,6 +42,11 @@ hw2/task2/outputs/
 # HW2 Task3 正式实验输出和权重不进入 Git
 hw2/task3/outputs/
 
+# HW3 Task1 数据、外部仓库和运行输出不进入 Git
+hw3/task1/data/
+hw3/task1/external/
+hw3/task1/outputs/
+
 # HelloAGENTS 项目级规则与本地状态
 .helloagents/
 AGENTS.md

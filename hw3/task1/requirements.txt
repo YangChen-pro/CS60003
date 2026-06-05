@@ -1,0 +1,4 @@
+Pillow>=10.0
+PyYAML>=6.0
+swanlab>=0.7.0
+modelscope>=1.37.0

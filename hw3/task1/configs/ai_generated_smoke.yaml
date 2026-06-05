@@ -1,0 +1,42 @@
+experiment:
+  name: task1_ai_generated_smoke
+  seed: 42
+  output_root: hw3/task1/outputs
+
+data:
+  source_root: hw3/assets/ai_generated_test
+  object_a_dir: hw3/assets/ai_generated_test/object_a_multiview
+  object_c_image: hw3/assets/ai_generated_test/object_c_single/object_c_single_front.png
+  min_image_size: 1024
+
+task1:
+  stage: smoke_assets
+  object_a_expected_yaws:
+    - "000"
+    - "045"
+    - "090"
+    - "135"
+    - "180"
+    - "225"
+    - "270"
+    - "315"
+  final_submission_assets: false
+  note: AI-generated placeholders only; replace with phone captures for final Task1 experiments.
+
+external_tools:
+  optional:
+    - colmap
+    - ffmpeg
+    - blender
+    - nvidia-smi
+
+logging:
+  swanlab:
+    enabled: false
+    project: cs60003-hw3-task1
+    mode: cloud
+    group: smoke
+    tags:
+      - hw3
+      - task1
+      - smoke

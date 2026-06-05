@@ -2,6 +2,11 @@
 
 ## [0.6.1] - 2026-06-05
 ### 更新
+- **[hw3-task1]**: 按 HW1/HW2 风格建立 `hw3/task1/` 工程骨架，并完成本地 AI 生成素材 smoke test。
+  - 类型: Task1 起步实现
+  - 结果: 本地 `train.py` / `evaluate.py` 通过，9 张测试图最小尺寸 `1254x1254`，输出 manifest、图像统计、相邻视角差异和 contact sheet。
+  - 文件: hw3/task1/, .gitignore, .helloagents/plans/202606051645_hw3_task1_3dgs_aigc/
+
 - **[hw3]**: 配置 HW3 临时 SwanLab / ModelScope 运行时凭据口径，凭据仅保存在 `.helloagents/secrets/hw3.env` 并由环境变量读取，不写入 Git 跟踪文件；136 `qwen14b` 已切换 SwanLab 到用户账号。
   - 类型: 凭据与远程环境准备
   - 文件: .helloagents/modules/hw3.md, .helloagents/CHANGELOG.md
