@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-17T00:00:00.000Z",
+  "updatedAt": "2026-06-05T07:15:10.647Z",
   "version": 1,
   "source": "~auto",
   "originCommand": "auto",
@@ -36,5 +36,16 @@
     "reason": "",
     "focus": [],
     "preferredSources": []
-  }
+  },
+  "qaMode": "standard",
+  "qaFocus": [
+    "核对方案包结构化契约字段 qaMode/qaFocus 已补齐，便于后续质量闭环消费",
+    "确认新结果由当前 commit 重新训练得到",
+    "确认 TTA 与非 TTA 结果口径清晰",
+    "确认大型权重和 outputs 不进入 Git",
+    "远程 compileall 通过",
+    "新模型 resnet34/resnet50/efficientnet_b0/convnext_tiny 可构建",
+    "至少 3 组优化实验完成并产生 metrics.json/history.csv/curves.png/best.pt",
+    "最佳 test_acc 高于 baseline 0.6819"
+  ]
 }
