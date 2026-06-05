@@ -1,20 +1,21 @@
 # 恢复快照
 
 ## 主线目标
-同步 CS60003 项目知识库，记录 HW2 Task1/Task3 实验与 HW2 报告当前状态。
+完成当前 CS60003 仓库的本地提交，覆盖 Codex-only 初始化记录与 HW3 作业资料。
 
 ## 正在做什么
-空闲；刚完成 ~wiki 知识库同步。
+空闲；本轮 `~commit` 已完成。
 
 ## 关键上下文
-- HW2 Task1 已完成 Flowers102 分类：ConvNeXt-Tiny 最终 test accuracy 0.9608，权重发布到 ModelScope 仓库的 `hw2/task1/flowers102_convnext_tiny/best.pt`。
-- HW2 Task3 已完成 Stanford Background 从零 U-Net/Attention U-Net 分割：最终 validation mIoU 0.701053，权重发布到 ModelScope 仓库的 `hw2/task3/attention_unet_b64_aug_seed7_ms060_080_100_120_140_tta/best.pt`。
-- HW2 Task2 当前仍为报告占位，后续需补目标检测、多目标跟踪、遮挡分析和越线计数。
-- HW2 报告目录：`/Users/yangchen/Documents/Latex_Project/CS60003_HW2_Report`；当前 PDF：`out/hw2.pdf`，已编译通过并逐页视觉检查，图 4 已调整为单页大图与裁剪图例。
-- SwanLab 实验记录为私有，报告中不提供 SwanLab 云端链接；使用导出的本地图片嵌入报告。
+- 当前 HelloAGENTS 版本为 3.1.1，`project_store_mode=local`，Codex 安装模式为 standby。
+- 当前项目只保留 Codex 规则载体 `AGENTS.md`；`CLAUDE.md`、`.gemini/GEMINI.md` 和空 `.gemini/` 目录已按用户要求删除。
+- `.gitignore` 已收口为忽略 `.helloagents/` 和 `AGENTS.md`，不再列出 Claude/Gemini 规则文件。
+- 已刷新 `.helloagents/guidelines.md` 和 `.helloagents/CHANGELOG.md` 记录 Codex-only 决策。
+- 验证已通过：`tools/verify_delivery_metadata.py` 与 `.helloagents/verify.yaml` 中的 Python `py_compile` 命令。
+- 用户已确认将当前全部变更纳入提交；已创建提交 `9032effb chore: 收口 Codex 初始化并添加 HW3 资料`，包含 `.helloagents/` 更新、`.gitignore`、`hw3/hw3.md` 和 `hw3/hw3.pdf`。
 
 ## 下一步
-如需冲完整 HW2 高分，继续完成 `hw2/task2/` 实验与报告 Task2 部分。
+无。
 
 ## 阻塞项
 （无）
@@ -23,4 +24,4 @@
 
 
 ## 已标记技能
-helloagents:~wiki
+helloagents

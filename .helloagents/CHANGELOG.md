@@ -1,5 +1,19 @@
 # 变更日志
 
+## [0.6.1] - 2026-06-05
+### 更新
+- **[init]**: 按用户 Codex-only 使用范围删除 Claude/Gemini 项目级规则载体，并将 `.gitignore` 与项目约定收口为只保留 `AGENTS.md`。
+  - 类型: 初始化范围收口
+  - 结果: 删除 `CLAUDE.md`、`.gemini/GEMINI.md` 和空 `.gemini/` 目录；后续不维护非 Codex carrier，除非用户明确要求恢复。
+  - 文件: .gitignore, .helloagents/guidelines.md, .helloagents/CHANGELOG.md, .helloagents/sessions/main/default/STATE.md
+
+## [0.6.0] - 2026-06-05
+### 更新
+- **[init]**: 执行 HelloAGENTS `~init`，刷新项目级规则载体，补齐 HW3 题面知识库入口，并同步当前验证与仓库结构说明。
+  - 类型: 项目初始化刷新
+  - 结果: 新增 `AGENTS.md`、`CLAUDE.md`、`.gemini/GEMINI.md` full carrier；知识库记录 HW3 当前仅为题面资料。
+  - 文件: AGENTS.md, CLAUDE.md, .gemini/GEMINI.md, .gitignore, .helloagents/context.md, .helloagents/guidelines.md, .helloagents/modules/_index.md, .helloagents/modules/hw3.md, .helloagents/sessions/main/default/STATE.md
+
 ## [0.5.1] - 2026-05-17
 ### 修复
 - **[delivery-gate]**: 补齐历史方案包 contract.json 的验证契约和 tasks.md 的涉及文件、完成标准、验证方式元数据，新增本地交付元数据验证脚本。

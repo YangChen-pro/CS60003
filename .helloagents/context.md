@@ -1,7 +1,7 @@
 # 项目上下文
 
 ## 概述
-CS60003 是“深度学习与空间智能”课程作业仓库，包含 HW1 与 HW2 的代码、数据配置、实验结果、模型发布说明和项目知识库。HW1 已完成 EuroSAT 三层 MLP；HW2 已包含 Task1 Flowers102 分类、Task2 Road Vehicle 检测/跟踪、Task3 Stanford Background 语义分割三条工程线。
+CS60003 是“深度学习与空间智能”课程作业仓库，当前包含 HW1、HW2 与 HW3 资料。HW1 已完成 EuroSAT 三层 MLP；HW2 已包含 Flowers102 分类、Road Vehicle 检测/跟踪、Stanford Background 语义分割三条工程线；HW3 目前只有期末作业题面，尚未在本仓库落地实现代码。
 
 ## 技术栈
 - 主要语言：Python。
@@ -9,14 +9,16 @@ CS60003 是“深度学习与空间智能”课程作业仓库，包含 HW1 与 
 - HW2 Task1：PyTorch / torchvision，使用 ResNet、SE-ResNet、EfficientNet、ConvNeXt 等分类模型做 Flowers102 微调与消融。
 - HW2 Task2：Ultralytics YOLOv8、ByteTrack、OpenCV、PyTorch；完成 Road Vehicle Images 检测训练、评估、视频跟踪、遮挡重连和越线计数。
 - HW2 Task3：PyTorch 基础 API 手写 U-Net / Attention U-Net、Dice Loss、mIoU 评估、多尺度 TTA 和可视化。
+- HW3 题面方向：3DGS / COLMAP / threestudio / Zero123 / Blender 资产融合，或 LeRobot / ACT / CALVIN 跨环境泛化；实际选题与工程栈尚未确定。
 - 配置与实验：YAML 配置、Matplotlib 曲线、SwanLab 实验记录、ModelScope 权重发布。
-- 报告：LaTeX，报告工程位于 `/Users/yangchen/Documents/Latex_Project`。
+- 报告：LaTeX 报告工程位于 `/Users/yangchen/Documents/Latex_Project`。
 
 ## 架构
 - `hw1/`：EuroSAT 三层 MLP 作业实现、训练/评估/搜索脚本、测试与最终报告资料。
 - `hw2/task1/`：Flowers102 分类工程，包含 YAML 配置、数据加载、模型构建、训练/评估、SwanLab 回放和结果文档。
 - `hw2/task2/`：Road Vehicle Images 检测与跟踪工程，包含 YOLOv8 训练/评估、ByteTrack 跟踪、稳定 display ID、遮挡重连、越线计数、快照/摘要输出和逻辑测试。
 - `hw2/task3/`：Stanford Background 语义分割工程，包含从零 U-Net 家族模型、loss、metrics、训练/评估、ModelScope 上传与结果文档。
+- `hw3/`：期末作业题面，包含 `hw3.md` 和 `hw3.pdf`，当前仅作为需求资料。
 - `.helloagents/`：项目知识库、模块说明、方案包、状态快照和变更历史。
 
 ## 领域语言
@@ -26,6 +28,8 @@ CS60003 是“深度学习与空间智能”课程作业仓库，包含 HW1 与 
 - **raw track ID / display ID**：ByteTrack 原始 ID 可能因遮挡跳变；`track_video.py` 用 display ID 稳定显示和计数。
 - **越线计数**：Task2 跟踪脚本支持横线或竖线，记录已越线 display ID，并用短时运动预测处理遮挡期间跨线。
 - **validation mIoU**：Task3 在固定 train/val split 上报告的验证集 mIoU，不等同于独立 test set 指标。
+- **3DGS**：HW3 题目一中的 3D Gaussian Splatting，用于真实物体与背景场景重建；当前仍是题面要求，不代表本仓库已有实现。
+- **ACT**：HW3 题目二中的 Action Chunking Transformer，用于 LeRobot / CALVIN 跨环境策略泛化；当前仍是题面要求，不代表本仓库已有实现。
 - **SwanLab 记录**：用于内部实验追踪和曲线导出；报告正文默认不放私有云端 URL。
 - **ModelScope 仓库**：统一公网权重发布位置；报告中用“仓库”作为可点击链接，不明文展示仓库名。
 
@@ -39,12 +43,15 @@ CS60003 是“深度学习与空间智能”课程作业仓库，包含 HW1 与 
 - `hw2/task1/`：HW2 Task1 分类实验工程与结果。
 - `hw2/task2/`：HW2 Task2 检测、跟踪、越线计数工程与结果。
 - `hw2/task3/`：HW2 Task3 分割实验工程与结果。
+- `hw3/hw3.md`：HW3 期末作业题面。
+- `tools/verify_delivery_metadata.py`：历史方案包元数据验证脚本。
 - `/Users/yangchen/Documents/Latex_Project/CS60003_HW1_Report/`：HW1 正式报告工程。
 - `/Users/yangchen/Documents/Latex_Project/CS60003_HW2_Report/`：HW2 报告工程；最新 Task2 内容是否写入需单独复核。
 
 ## 模块文档
 - [HW1 模块](modules/hw1.md)
 - [HW2 模块](modules/hw2.md)
+- [HW3 模块](modules/hw3.md)
 
 ## 最近变更
 见 [CHANGELOG.md](CHANGELOG.md)
