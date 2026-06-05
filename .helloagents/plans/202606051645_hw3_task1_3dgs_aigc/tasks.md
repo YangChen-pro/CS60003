@@ -8,7 +8,7 @@
 ## 任务列表
 - [√] 任务1（AFK）：建立 Task1 标准工程骨架（依赖：无；涉及文件：`hw3/task1/`、`.gitignore`；预期变更：README、RESULTS、configs、requirements、train/evaluate、内部包；完成标准：结构对齐 HW2 task 目录；验证方式：文件检查与 py_compile）。
 - [√] 任务2（AFK）：实现 AI 生成测试图 smoke test（依赖：任务1；涉及文件：`hw3/task1/task1_3dgs_aigc/`；预期变更：manifest、图像统计、相邻视角差异、contact sheet；完成标准：9 张图片验证通过；验证方式：`python3 hw3/task1/train.py --config hw3/task1/configs/ai_generated_smoke.yaml`）。
-- [ ] 任务3（AFK）：在 136 `qwen14b` 运行 smoke test（依赖：任务2；涉及文件：远程 `/home/dell/yc/CS60003`；预期变更：远程输出目录；完成标准：远程 train/evaluate 均通过；验证方式：远程命令输出）。
+- [√] 任务3（AFK）：在 136 `qwen14b` 运行 smoke test（依赖：任务2；涉及文件：远程 `/home/dell/yc/CS60003`；预期变更：远程输出目录；完成标准：远程 train/evaluate 均通过；验证方式：远程命令输出）。
 - [ ] 任务4（HITL）：替换为真实手机拍摄物体 A/C 素材（依赖：用户拍摄；涉及文件：`hw3/task1/data/` 或远程数据目录；预期变更：最终素材集；完成标准：真实素材通过 smoke test；验证方式：图片/视频检查与 COLMAP 输入检查）。
 - [ ] 任务5（AFK）：接入 COLMAP/3DGS 背景与物体 A 正式重建（依赖：任务4、背景数据；涉及文件：后续 configs/scripts；完成标准：产生可报告重建结果；验证方式：重建日志、输出模型和渲染图）。
 
@@ -17,4 +17,5 @@
 
 ## 进度
 - [√] 2026-06-05：已建立 `hw3/task1/` 工程骨架，并在本地完成 `ai_generated_smoke` train/evaluate（涉及文件：`hw3/task1/`；完成标准：本地 smoke 产物完整；验证方式：本地 `train.py` / `evaluate.py` 命令输出）。
-- [ ] 下一步：同步到 136 并在 `qwen14b` 运行同一 smoke test（涉及文件：远程 `/home/dell/yc/CS60003/hw3/task1/`；完成标准：远程 smoke 产物完整；验证方式：136 `train.py` / `evaluate.py` 命令输出）。
+- [√] 2026-06-05：已同步到 136 并在 `qwen14b` 运行同一 smoke test（涉及文件：远程 `/home/dell/yc/CS60003/hw3/task1/`；完成标准：远程 smoke 产物完整；验证方式：136 `train.py` / `evaluate.py` 命令输出）。
+- [ ] 下一步：等待真实手机拍摄物体 A/C 素材后进入正式 3DGS/SDS 链路（涉及文件：`hw3/task1/data/` 或远程数据目录；完成标准：真实素材通过输入检查；验证方式：素材 manifest 与 COLMAP 输入检查）。
