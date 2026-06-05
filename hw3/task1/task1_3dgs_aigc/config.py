@@ -35,8 +35,6 @@ DEFAULT_CONFIG: dict[str, Any] = {
             "object_c_image": "hw3/assets/object_c_single/object_c_single_front.png",
             "background_images": "hw3/assets/background_scene/images",
             "background_video": "",
-            "min_object_a_images": 40,
-            "min_background_images": 80,
         },
         "tools": {
             "required_cli": ["ns-process-data", "ns-train", "ns-export", "ns-eval", "colmap", "ffmpeg", "blender"],
@@ -152,7 +150,6 @@ def _validate_config(config: dict[str, Any]) -> None:
     if mode not in {"plan", "run"}:
         raise ValueError("real_chain.execution.mode must be either 'plan' or 'run'.")
     data = real_chain.get("data", {})
-    if int(data.get("min_object_a_images", 0)) < 20:
-        raise ValueError("real_chain.data.min_object_a_images is too small for high-quality 3DGS.")
-    if int(data.get("min_background_images", 0)) < 40:
-        raise ValueError("real_chain.data.min_background_images is too small for high-quality 3DGS.")
+    for key in ["object_a_images", "object_c_image", "background_images"]:
+        if key not in data:
+            raise ValueError(f"real_chain.data.{key} is required by the maintained config.")

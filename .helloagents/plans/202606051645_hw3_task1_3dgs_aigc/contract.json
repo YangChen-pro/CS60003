@@ -28,7 +28,7 @@
     "确认 hw3/task1/outputs、external、真实 assets 不进入 Git",
     "确认本地与 136 qwen14b 均能运行 real_high_quality plan 模式 train/evaluate",
     "确认 ai_assets_high_quality_preview 输出 preview_hero.png 与 fused_scene.mp4，但不进入 ModelScope 权重上传",
-    "确认正式 real_high_quality 仍因 40+ Object A 与背景素材缺失而保持 NEEDS_INPUTS，不被预览结果冒充"
+    "确认正式 real_high_quality 只按 hw3.md 要求检查必要输入，不再设置题目之外的图片数量阈值"
   ],
   "ui": {
     "required": false,

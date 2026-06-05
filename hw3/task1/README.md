@@ -40,7 +40,7 @@ hw3/assets/object_c_single/object_c_single_front.png
 hw3/assets/background_scene/images/
 ```
 
-这些真实素材默认不进入 Git。之后把 A/C 换成手机实拍图，不需要改代码，只要保持路径结构一致。
+这些真实素材默认不进入 Git。之后把 A/C 换成手机实拍图，不需要改代码，只要保持路径结构一致。背景路径用于放开源 3D 数据集场景图片；如果使用视频或其他本地数据路径，直接改 `real_high_quality.yaml` 中的 `object_a_video` / `background_video` / `background_images`，不额外限制图片数量。
 
 ## 136 环境
 

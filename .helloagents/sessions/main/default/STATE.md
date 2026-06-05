@@ -18,7 +18,7 @@
 - 136 `qwen14b` 已跑通 `ai_assets_high_quality_preview`，输出 `renders/preview_hero.png` 与 `renders/fused_scene.mp4`，本地已拉回。
 - 本地验证通过：metadata、py_compile、`real_high_quality` plan train/evaluate、`ai_assets_high_quality_preview` evaluate。
 - 136 验证通过：py_compile、`real_high_quality` plan evaluate、`ai_assets_high_quality_preview` train/evaluate。
-- 正式真实链路仍未进入 full run：当前 AI A 只有 8 张，正式链路要求 40+；背景目录 `hw3/assets/background_scene/images/` 仍缺失。
+- 正式真实链路仍未进入 full run：当前仍缺少符合 hw3.md 要求的开源背景 3D 数据集场景输入；代码不再设置题目之外的图片数量阈值。
 - 方案包：`.helloagents/plans/202606051645_hw3_task1_3dgs_aigc/`。
 
 ## 下一步

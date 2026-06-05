@@ -54,9 +54,9 @@ def _validate_real_inputs(config: dict[str, Any], *, strict: bool) -> list[str]:
     object_a_images = Path(data["object_a_images"])
     object_a_video = str(data.get("object_a_video", "")).strip()
     if not object_a_images.is_dir() and not object_a_video:
-        issues.append(f"Missing object A image directory: {object_a_images}")
-    if object_a_images.is_dir() and len(_image_files(object_a_images)) < int(data["min_object_a_images"]):
-        issues.append(f"Object A needs at least {data['min_object_a_images']} overlapping images.")
+        issues.append(f"Missing object A source: {object_a_images} or real_chain.data.object_a_video")
+    if object_a_images.is_dir() and not _image_files(object_a_images):
+        issues.append(f"Object A image directory has no PNG/JPG files: {object_a_images}")
 
     object_c_image = Path(data["object_c_image"])
     if not object_c_image.is_file():
@@ -65,9 +65,9 @@ def _validate_real_inputs(config: dict[str, Any], *, strict: bool) -> list[str]:
     background_images = Path(data["background_images"])
     background_video = str(data.get("background_video", "")).strip()
     if not background_images.is_dir() and not background_video:
-        issues.append(f"Missing background images directory: {background_images}")
-    if background_images.is_dir() and len(_image_files(background_images)) < int(data["min_background_images"]):
-        issues.append(f"Background needs at least {data['min_background_images']} overlapping images.")
+        issues.append(f"Missing background 3DGS source: {background_images} or real_chain.data.background_video")
+    if background_images.is_dir() and not _image_files(background_images):
+        issues.append(f"Background image directory has no PNG/JPG files: {background_images}")
     if strict and issues:
         raise ValueError("; ".join(issues))
     return issues

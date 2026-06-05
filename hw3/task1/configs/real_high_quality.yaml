@@ -17,8 +17,6 @@ real_chain:
     object_c_image: hw3/assets/object_c_single/object_c_single_front.png
     background_images: hw3/assets/background_scene/images
     background_video: ""
-    min_object_a_images: 40
-    min_background_images: 80
 
   tools:
     required_cli:
