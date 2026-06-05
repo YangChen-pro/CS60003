@@ -16,20 +16,26 @@
     "python -X utf8 hw1/search.py --preset default",
     "python -X utf8 hw1/evaluate.py --preset full --checkpoint <best_model>"
   ],
-  "updatedAt": "2026-05-17T00:00:00.000Z",
-  "version": 1,
+  "updatedAt": "2026-06-05T06:02:36.125Z",
+  "version": 2,
   "source": "~auto",
   "originCommand": "auto",
   "verifyMode": "test-first",
   "reviewerFocus": [
     "确认 HW1 核心训练逻辑保持 CuPy 手写前向、反向传播与优化器边界",
-    "确认权重、缓存和大体积 outputs 不进入 Git",
+    "确认权重、缓存和大体积非证据 outputs 不进入 Git",
     "确认 README、报告和 ModelScope 权重路径一致"
   ],
   "testerFocus": [
     "本地 unittest 覆盖不依赖数据集的核心函数",
     "远端 CuPy 环境可运行 quick train、search 和 checkpoint evaluate",
     "最终实验产物、报告 PDF、GitHub 仓库与 ModelScope 权重路径一致"
+  ],
+  "qaMode": "standard",
+  "qaFocus": [
+    "核对 HW1 三层 MLP 是否仍保持 CuPy 手写前向、交叉熵、反向传播、SGD、学习率衰减、L2 正则与 dropout 边界，不引入自动微分框架",
+    "核对本地可确定验证：hw1/tests 单元测试、核心入口脚本导入/编译、README 中 train/evaluate/search 命令与当前文件一致",
+    "核对交付资料边界：缓存、权重和大体积非证据 outputs 不进入 Git；报告、README、ModelScope/权重路径与知识库记录一致"
   ],
   "ui": {
     "required": false,

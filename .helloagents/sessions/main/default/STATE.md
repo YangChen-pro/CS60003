@@ -1,21 +1,20 @@
 # 恢复快照
 
 ## 主线目标
-完成当前 CS60003 仓库的本地提交，覆盖 Codex-only 初始化记录与 HW3 作业资料。
+补齐活跃方案包 `202604091720_hw1_mlp` 的结构化 QA 契约，并完成 `~auto -> ~plan -> ~qa` 收尾。
 
 ## 正在做什么
-空闲；本轮 `~commit` 已完成。
+空闲；HW1 活跃方案包 QA 契约与质量闭环已完成。
 
 ## 关键上下文
 - 当前 HelloAGENTS 版本为 3.1.1，`project_store_mode=local`，Codex 安装模式为 standby。
-- 当前项目只保留 Codex 规则载体 `AGENTS.md`；`CLAUDE.md`、`.gemini/GEMINI.md` 和空 `.gemini/` 目录已按用户要求删除。
-- `.gitignore` 已收口为忽略 `.helloagents/` 和 `AGENTS.md`，不再列出 Claude/Gemini 规则文件。
-- 已刷新 `.helloagents/guidelines.md` 和 `.helloagents/CHANGELOG.md` 记录 Codex-only 决策。
-- 验证已通过：`tools/verify_delivery_metadata.py` 与 `.helloagents/verify.yaml` 中的 Python `py_compile` 命令。
-- 用户已确认将当前全部变更纳入提交；已创建提交 `9032effb chore: 收口 Codex 初始化并添加 HW3 资料`，包含 `.helloagents/` 更新、`.gitignore`、`hw3/hw3.md` 和 `hw3/hw3.pdf`。
+- 运行时要求当前显式 `~auto` 不停在只读 HW3 GPU 判断，需先补齐活跃方案包 `202604091720_hw1_mlp` 的 `contract.json`，再进入 `~qa`。
+- 已将 `.helloagents/plans/202604091720_hw1_mlp/contract.json` 改为兼容契约：保留 `verifyMode` / `reviewerFocus` / `testerFocus`，新增 `qaMode=standard` 与 `qaFocus`。
+- QA 已通过：`python3 -X utf8 -m unittest discover -s hw1/tests`、`python3 -X utf8 tools/verify_delivery_metadata.py`、入口 `py_compile`。
+- 已写入当前会话结构化证据：`artifacts/qa-review.json` 与 `artifacts/closeout.json`。
 
 ## 下一步
-无。
+提交 `contract.json` 与本状态快照变更；随后写 turn-state complete。
 
 ## 阻塞项
 （无）
