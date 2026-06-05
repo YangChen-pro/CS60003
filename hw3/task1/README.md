@@ -1,35 +1,45 @@
-# HW3 Task1：3DGS 与 AIGC 多源资产融合
+# HW3 Task1：真实高质量 3DGS 与 AIGC 融合链路
 
-本目录用于完成 HW3 题目一：物体 A/B/C 资产准备、背景重建代理、场景融合与多视角渲染。代码骨架保持和 HW1/HW2 类似：`configs/` 管实验配置、`task1_3dgs_aigc/` 放任务代码、`train.py` / `evaluate.py` 作为固定入口、`outputs/` 不进 Git，SwanLab / ModelScope 保留独立记录和上传入口。
+本目录只保留高质量正式链路。早期 AI 图片 smoke test、程序化 proxy 点云、伪正式 `formal_ai_chain` 和报告素材已经移除，避免把低质量中间结果误当成作业交付。
 
-按用户本轮要求，当前正式链路直接使用 `hw3/assets/ai_generated_test/` 中的 AI 生成物体 A/C 图片作为正式输入；物体 B 由代码根据文本 prompt 生成一个可复现的 3D 代理资产。重型 COLMAP/3DGS/threestudio/Zero123 步骤用可复现的 Gaussian/point-cloud 代理实现，目的是先把端到端融合与渲染链路跑通。
+代码骨架继续对齐 HW1/HW2：
 
-## 目录结构
+- `configs/`：实验 YAML。
+- `task1_3dgs_aigc/`：配置解析、真实工具链编排、SwanLab 工具。
+- `train.py`：固定训练/执行入口。
+- `evaluate.py`：固定验证入口。
+- `outputs/`：运行输出，不进入 Git。
+- `upload_modelscope.py`：只上传训练好的模型权重。
 
-```text
-hw3/task1/
-├── configs/                 # 每个 YAML 对应一组实验或阶段
-├── task1_3dgs_aigc/         # 数据检查、几何代理、渲染与工具封装
-├── train.py                 # 阶段执行入口，风格对齐 HW1/HW2
-├── evaluate.py              # 输出验证入口
-├── upload_modelscope.py     # ModelScope 上传入口
-├── SWANLAB_RUNS.md          # SwanLab 云端 run 记录
-├── RESULTS.md               # 结果汇总
-├── report_assets/           # 报告可直接引用的小型结果素材
-├── requirements.txt
-└── outputs/                 # 运行输出，默认不进入 Git
+## 当前维护的链路
+
+配置文件：
+
+```bash
+hw3/task1/configs/real_high_quality.yaml
 ```
 
-## 当前正式输入
+链路内容：
 
-- 物体 A：`hw3/assets/ai_generated_test/object_a_multiview/`，8 张 AI 多视角火箭图片。
-- 物体 B：文本 prompt `a small bioluminescent purple crystal mushroom with a green stem`，程序生成 3D 点云代理。
-- 物体 C：`hw3/assets/ai_generated_test/object_c_single/object_c_single_front.png`，1 张 AI 单图木偶图片。
-- 背景：程序生成 Mip-NeRF 360 风格的桌面/墙面 Gaussian 背景代理。
+1. 物体 A：真实多视角图片或视频 → COLMAP / Nerfstudio `splatfacto-big` → Gaussian splat 与 TSDF mesh。
+2. 背景：真实场景图片或视频 → COLMAP / Nerfstudio `splatfacto-big` → Gaussian splat 与 TSDF mesh。
+3. 物体 B：文本 prompt → threestudio / SDS 训练 → 3D mesh。
+4. 物体 C：真实单图 → TripoSR → 带纹理 3D mesh。
+5. 融合渲染：Blender 融合 A/B/C/背景，输出漫游视频和报告可引用画面。
+
+## 真实素材放置
+
+素材目录见 `hw3/assets/README.md`。默认路径如下：
+
+```text
+hw3/assets/object_a_multiview/
+hw3/assets/object_c_single/object_c_single_front.png
+hw3/assets/background_scene/images/
+```
+
+这些真实素材默认不进入 Git。之后把 A/C 换成手机实拍图，不需要改代码，只要保持路径结构一致。
 
 ## 136 环境
-
-远程机器：
 
 ```bash
 ssh 136-3090-4
@@ -41,42 +51,34 @@ source /home/dell/yc/CS60003/.helloagents/secrets/hw3.env
 set +a
 ```
 
-## Smoke test
+安装/检查外部工具入口：
 
 ```bash
-python hw3/task1/train.py --config hw3/task1/configs/ai_generated_smoke.yaml
-python hw3/task1/evaluate.py --run-dir hw3/task1/outputs/task1_ai_generated_smoke
+bash hw3/task1/scripts/setup_real_chain_136.sh
 ```
 
-## 正式 AI 素材链路
+## 运行方式
+
+默认 `real_chain.execution.mode: plan`，只验证真实素材是否齐全并生成 7 个可审查脚本：
 
 ```bash
-python hw3/task1/train.py --config hw3/task1/configs/formal_ai_chain.yaml
-python hw3/task1/evaluate.py --run-dir hw3/task1/outputs/task1_formal_ai_chain
+python hw3/task1/train.py --config hw3/task1/configs/real_high_quality.yaml
+python hw3/task1/evaluate.py --run-dir hw3/task1/outputs/task1_real_high_quality
 ```
 
-该链路会生成：
+真实素材和外部依赖都准备好后，把 YAML 改成：
 
-- `assets/object_a_ai_multiview_gaussians.ply`
-- `assets/object_b_text_to_3d_proxy.ply`
-- `assets/object_c_single_image_proxy.ply`
-- `assets/background_proxy_gaussians.ply`
-- `fused_scene.ply`
-- `renders/fused_scene_preview.png`
-- `renders/fused_scene_turntable.gif`
-- `metrics.csv`
-- `asset_manifest.json`
-- `summary.json`
-
-报告可引用素材会同步到：
-
-```text
-hw3/task1/report_assets/formal_ai_chain/
+```yaml
+real_chain:
+  execution:
+    mode: run
 ```
+
+再执行同一条 `train.py` 命令。`00_check_tools.sh` 会先检查 COLMAP、FFmpeg、Blender、Nerfstudio、threestudio、TripoSR；缺少依赖时直接失败，不做静默降级。
 
 ## SwanLab / ModelScope
 
-需要打开 SwanLab 时，在 YAML 里设置：
+SwanLab 继续通过环境变量里的用户 key 记录曲线：
 
 ```yaml
 logging:
@@ -84,55 +86,15 @@ logging:
     enabled: true
     project: cs60003-hw3-task1
     mode: cloud
-    group: formal-ai-chain
+    group: real-high-quality
 ```
 
-上传 ModelScope：
+ModelScope 只放训练好的模型权重。`upload_modelscope.py` 会递归筛选 `.pt`、`.pth`、`.ckpt`、`.safetensors`、`.bin`、`.onnx`、`.npz`，以及真实 3DGS 训练导出的 `point_cloud.ply` / `splat.ply` / `gaussian_splat.ply`；不会上传 config、summary、metrics、图片、GIF、报告素材或 proxy 文件。
 
 ```bash
 python hw3/task1/upload_modelscope.py \
-  --run-dir hw3/task1/outputs/task1_formal_ai_chain \
-  --remote-subdir formal_ai_chain
+  --run-dir hw3/task1/outputs/task1_real_high_quality \
+  --remote-subdir real_high_quality
 ```
 
-运行前必须先通过环境变量提供用户本人的 key：
-
-```bash
-set -a
-source /home/dell/yc/CS60003/.helloagents/secrets/hw3.env
-set +a
-```
-
-## 当前链路解释
-
-1. 物体 A：AI 多视角图 → 前景采样 → 多 yaw Gaussian/point-cloud 代理。
-2. 物体 B：文本 prompt → 程序化 text-to-3D 代理点云。
-3. 物体 C：AI 单图 → 单图挤出式 3D 代理。
-4. 背景：桌面/墙面 Gaussian 背景代理。
-5. 融合：统一为 PLY 点云/高斯半径表达，按空间位置合并并生成多视角 turntable GIF。
-
-## 真实高质量链路（后续替换真实 A/C 后使用）
-
-这条链路不再使用早期 proxy 结果，而是调用真实外部工具：
-
-- 物体 A / 背景：Nerfstudio `splatfacto-big` + COLMAP，导出 Gaussian splat 与 TSDF mesh。
-- 物体 B：threestudio 文本到 3D，默认使用 DreamFusion/SDS 配置并启用 Perp-Neg / D-SDS 相关质量参数。
-- 物体 C：TripoSR 单图到 3D，输出带纹理 mesh。
-- 融合渲染：Blender 导入 A/B/C/背景 mesh，输出 1280×720 H.264 漫游视频。
-
-素材放置位置见 `hw3/assets/README.md`。先生成运行脚本：
-
-```bash
-python hw3/task1/train.py --config hw3/task1/configs/real_high_quality.yaml
-python hw3/task1/evaluate.py --run-dir hw3/task1/outputs/task1_real_high_quality
-```
-
-当前 YAML 默认是 `real_chain.execution.mode: plan`，只校验素材并生成 7 个脚本。真实素材与依赖安装好后，把它改成 `run`，再执行同一条 `train.py` 命令即可跑完整高质量链路。
-
-136 环境安装入口：
-
-```bash
-bash hw3/task1/scripts/setup_real_chain_136.sh
-```
-
-注意：高质量链路依赖 COLMAP/FFmpeg/Blender/Nerfstudio/threestudio/TripoSR。缺少这些工具时不做静默降级，`00_check_tools.sh` 会直接失败。
+如果当前 run 目录没有训练权重，上传脚本会直接报错并跳过，不会把杂项文件塞进 ModelScope。

@@ -1,4 +1,4 @@
-"""Validate HW3 Task1 smoke-test outputs."""
+"""Validate maintained HW3 Task1 real high-quality chain outputs."""
 
 from __future__ import annotations
 
@@ -6,27 +6,6 @@ import argparse
 import json
 from pathlib import Path
 
-
-REQUIRED_FILES = [
-    "source_config.yaml",
-    "config.json",
-    "manifest.json",
-    "image_stats.csv",
-    "pairwise_yaw_diffs.csv",
-    "contact_sheet.png",
-    "summary.json",
-]
-
-FORMAL_REQUIRED_FILES = [
-    "source_config.yaml",
-    "config.json",
-    "asset_manifest.json",
-    "metrics.csv",
-    "fused_scene.ply",
-    "renders/fused_scene_preview.png",
-    "renders/fused_scene_turntable.gif",
-    "summary.json",
-]
 
 REAL_REQUIRED_FILES = [
     "source_config.yaml",
@@ -45,36 +24,27 @@ REAL_REQUIRED_FILES = [
 def parse_args() -> argparse.Namespace:
     """Parse CLI arguments."""
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--run-dir", required=True, help="Task1 smoke-test run directory.")
+    parser.add_argument("--run-dir", required=True, help="Task1 real-chain run directory.")
     return parser.parse_args()
 
 
 def main() -> None:
-    """Check required smoke-test outputs and summary fields."""
+    """Check required real-chain outputs and summary fields."""
     args = parse_args()
     run_dir = Path(args.run_dir)
     summary_path = run_dir / "summary.json"
     if not summary_path.exists():
         raise FileNotFoundError(f"Missing Task1 summary: {summary_path}")
     summary = json.loads(summary_path.read_text(encoding="utf-8"))
-    stage = str(summary.get("stage", "smoke_assets"))
-    if stage == "real_high_quality":
-        required_files = REAL_REQUIRED_FILES
-    elif stage == "formal_ai_chain":
-        required_files = FORMAL_REQUIRED_FILES
-    else:
-        required_files = REQUIRED_FILES
-    missing = [name for name in required_files if not (run_dir / name).exists()]
+    stage = str(summary.get("stage", ""))
+    if stage != "real_high_quality":
+        raise ValueError(f"Unsupported Task1 stage in maintained evaluator: {stage}")
+    missing = [name for name in REAL_REQUIRED_FILES if not (run_dir / name).exists()]
     if missing:
         raise FileNotFoundError(f"Missing Task1 output files: {missing}")
-    allowed_statuses = {"PASS", "READY", "NEEDS_INPUTS"} if stage == "real_high_quality" else {"PASS"}
-    if summary.get("status") not in allowed_statuses:
+    if summary.get("status") not in {"PASS", "READY", "NEEDS_INPUTS"}:
         raise ValueError(f"Unexpected summary status: {summary.get('status')}")
-    if stage == "smoke_assets" and int(summary.get("image_count", 0)) != 9:
-        raise ValueError("Task1 smoke test must validate exactly 9 images.")
-    if stage == "formal_ai_chain" and int(summary.get("asset_count", 0)) != 4:
-        raise ValueError("Task1 formal chain must include object A/B/C and one background.")
-    if stage == "real_high_quality" and int(summary.get("script_count", 0)) != 7:
+    if int(summary.get("script_count", 0)) != 7:
         raise ValueError("Task1 real high-quality chain must generate 7 orchestration scripts.")
     print(json.dumps({"status": "PASS", "run_dir": run_dir.as_posix()}, ensure_ascii=False), flush=True)
 

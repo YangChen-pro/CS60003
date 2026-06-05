@@ -2,8 +2,7 @@
 
 This module does not replace COLMAP, Nerfstudio, threestudio, TripoSR, or
 Blender. It provides a reproducible orchestration layer so replacing
-`hw3/assets` with real captures can drive the real tools rather than the proxy
-chain used for early integration.
+`hw3/assets` with real captures can drive the real tools directly.
 """
 
 from __future__ import annotations

@@ -43,6 +43,9 @@ hw2/task2/outputs/
 hw2/task3/outputs/
 
 # HW3 Task1 数据、外部仓库和运行输出不进入 Git
+hw3/assets/background_scene/
+hw3/assets/object_a_multiview/
+hw3/assets/object_c_single/
 hw3/task1/data/
 hw3/task1/external/
 hw3/task1/outputs/

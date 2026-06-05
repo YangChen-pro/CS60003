@@ -2,6 +2,11 @@
 
 ## [0.6.1] - 2026-06-05
 ### 更新
+- **[hw3-task1]**: 按用户质量要求删除旧低质量链路，并清理 ModelScope 非权重文件。
+  - 类型: 质量收口与云端清理
+  - 结果: Git 中删除 AI smoke、formal AI chain、程序化 proxy 代码与报告素材；`upload_modelscope.py` 改为只上传训练权重；ModelScope `youngchen/CS60003` 已删除 `hw3/task1/formal_ai_chain/` 非权重文件（远端提交 `a430be1`）。
+  - 文件: hw3/task1/, hw3/assets/, .helloagents/plans/202606051645_hw3_task1_3dgs_aigc/
+
 - **[hw3-task1]**: 增加真实高质量链路入口，支持用户后续替换 `hw3/assets` 下的真实 A/C/背景素材后直接调用 Nerfstudio、threestudio、TripoSR 与 Blender。
   - 类型: 高质量链路准备
   - 结果: 新增 `real_high_quality.yaml`、7 个外部工具脚本生成逻辑、136 安装脚本与真实素材放置说明；当前 plan 模式已通过脚本生成与 evaluate。

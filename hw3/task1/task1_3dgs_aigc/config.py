@@ -11,52 +11,20 @@ import yaml
 
 DEFAULT_CONFIG: dict[str, Any] = {
     "experiment": {
-        "name": "task1_ai_generated_smoke",
+        "name": "task1_real_high_quality",
         "seed": 42,
         "output_root": "hw3/task1/outputs",
     },
-    "data": {
-        "source_root": "hw3/assets/ai_generated_test",
-        "object_a_dir": "hw3/assets/ai_generated_test/object_a_multiview",
-        "object_c_image": "hw3/assets/ai_generated_test/object_c_single/object_c_single_front.png",
-        "min_image_size": 1024,
-    },
     "task1": {
-        "stage": "smoke_assets",
-        "object_a_expected_yaws": ["000", "045", "090", "135", "180", "225", "270", "315"],
-        "final_submission_assets": False,
-        "note": "AI-generated placeholders only.",
-    },
-    "external_tools": {
-        "optional": ["colmap", "ffmpeg", "blender", "nvidia-smi"],
+        "stage": "real_high_quality",
     },
     "logging": {
         "swanlab": {
             "enabled": False,
             "project": "cs60003-hw3-task1",
             "mode": "cloud",
-            "group": "smoke",
-            "tags": ["hw3", "task1", "smoke"],
-        }
-    },
-    "formal_chain": {
-        "object_a_sample_size": 176,
-        "object_c_sample_size": 176,
-        "object_b_prompt": "a small bioluminescent purple crystal mushroom with a green stem",
-        "object_b_radial_steps": 48,
-        "object_b_height_steps": 28,
-        "background_grid": 70,
-        "placements": {
-            "object_a": {"scale": 0.82, "translate": [-1.05, -0.10, 0.05], "yaw_degrees": 8.0},
-            "object_b": {"scale": 1.00, "translate": [0.08, -0.38, -0.22], "yaw_degrees": 0.0},
-            "object_c": {"scale": 0.86, "translate": [1.15, -0.12, 0.05], "yaw_degrees": -10.0},
-        },
-        "render": {
-            "frame_count": 24,
-            "width": 960,
-            "height": 640,
-            "camera_distance": 5.2,
-            "focal": 430.0,
+            "group": "real-high-quality",
+            "tags": ["hw3", "task1", "real-high-quality"],
         },
     },
     "real_chain": {
@@ -131,33 +99,33 @@ def resolve_repo_path(path_value: str | Path, repo_root: Path | None = None) -> 
 def resolve_paths(config: dict[str, Any], output_root: str | None = None) -> None:
     """Resolve configured paths in-place relative to repository root."""
     repo_root = repo_root_from_task_file()
-    config["data"]["source_root"] = str(resolve_repo_path(config["data"]["source_root"]))
-    config["data"]["object_a_dir"] = str(resolve_repo_path(config["data"]["object_a_dir"]))
-    config["data"]["object_c_image"] = str(resolve_repo_path(config["data"]["object_c_image"]))
     if output_root is not None:
         config["experiment"]["output_root"] = output_root
     config["experiment"]["output_root"] = str(resolve_repo_path(config["experiment"]["output_root"]))
     report_dir = config["experiment"].get("report_assets_dir", "")
     if report_dir:
         config["experiment"]["report_assets_dir"] = str(resolve_repo_path(report_dir, repo_root))
-    if "real_chain" in config:
-        real_data = config["real_chain"]["data"]
-        for key in ["object_a_images", "object_c_image", "background_images"]:
+    real_data = config["real_chain"]["data"]
+    for key in ["object_a_images", "object_c_image", "background_images"]:
+        real_data[key] = str(resolve_repo_path(real_data[key], repo_root))
+    for key in ["object_a_video", "background_video"]:
+        if real_data.get(key):
             real_data[key] = str(resolve_repo_path(real_data[key], repo_root))
-        for key in ["object_a_video", "background_video"]:
-            if real_data.get(key):
-                real_data[key] = str(resolve_repo_path(real_data[key], repo_root))
-        tools = config["real_chain"]["tools"]
-        for key in ["threestudio_launch", "triposr_run", "blender_renderer"]:
-            tools[key] = str(resolve_repo_path(tools[key], repo_root))
+    tools = config["real_chain"]["tools"]
+    for key in ["threestudio_launch", "triposr_run", "blender_renderer"]:
+        tools[key] = str(resolve_repo_path(tools[key], repo_root))
 
 
 def _validate_config(config: dict[str, Any]) -> None:
     stage = str(config.get("task1", {}).get("stage", ""))
-    if stage not in {"smoke_assets", "formal_ai_chain", "real_high_quality"}:
-        raise ValueError(f"Unsupported Task1 stage for current scaffold: {stage}")
-    yaws = config.get("task1", {}).get("object_a_expected_yaws")
-    if not isinstance(yaws, list) or len(yaws) != 8:
-        raise ValueError("task1.object_a_expected_yaws must contain 8 yaw labels.")
-    if int(config.get("data", {}).get("min_image_size", 0)) < 256:
-        raise ValueError("data.min_image_size is unexpectedly small.")
+    if stage != "real_high_quality":
+        raise ValueError(f"Unsupported Task1 stage for maintained chain: {stage}")
+    real_chain = config.get("real_chain", {})
+    mode = str(real_chain.get("execution", {}).get("mode", ""))
+    if mode not in {"plan", "run"}:
+        raise ValueError("real_chain.execution.mode must be either 'plan' or 'run'.")
+    data = real_chain.get("data", {})
+    if int(data.get("min_object_a_images", 0)) < 20:
+        raise ValueError("real_chain.data.min_object_a_images is too small for high-quality 3DGS.")
+    if int(data.get("min_background_images", 0)) < 40:
+        raise ValueError("real_chain.data.min_background_images is too small for high-quality 3DGS.")

@@ -30,7 +30,7 @@ def save_csv(path: str | Path, rows: Iterable[dict[str, Any]]) -> None:
 
 
 def make_run_dir(output_root: str | Path, name: str) -> Path:
-    """Create a deterministic smoke-test run directory."""
+    """Create a deterministic run directory."""
     run_dir = Path(output_root) / name
     run_dir.mkdir(parents=True, exist_ok=True)
     return run_dir

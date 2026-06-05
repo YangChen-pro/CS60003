@@ -1,58 +1,55 @@
 # HW3 Task1 3DGS/AIGC — 实施规划
 
 ## 目标与范围
-先把 Task1 做到“能运行、能验证、能同步到 136”的正式链路起点：建立标准工程骨架，并按用户最新要求直接使用 AI 生成物体 A/C 图作为正式输入，补齐物体 B，生成 A/B/C/背景融合场景和多视角渲染素材。
+只保留真实高质量链路。删除早期 AI smoke、程序化 proxy、`formal_ai_chain` 和报告素材结果，让后续把 `hw3/assets` 换成真实拍摄 A/C 后可以直接运行可信链路。
 
 ## 架构与实现策略
-- `hw3/task1/train.py`：对齐 HW2 的训练入口，当前执行 `smoke_assets` 阶段。
-- `hw3/task1/evaluate.py`：对齐 HW2 的评估入口，检查 smoke test 产物完整性。
-- `hw3/task1/task1_3dgs_aigc/`：内部包，拆分 config、assets、smoke、utils。
-- `configs/ai_generated_smoke.yaml`：图片输入 smoke test 配置。
-- `configs/formal_ai_chain.yaml`：正式 AI 素材链路配置，输出 PLY、metrics、preview、turntable GIF 和报告素材。
+- `hw3/task1/train.py`：只执行 `real_high_quality`。
+- `hw3/task1/evaluate.py`：只验证真实链路 plan/run 输出结构。
+- `hw3/task1/task1_3dgs_aigc/config.py`：只保留真实链路默认配置与校验。
+- `hw3/task1/task1_3dgs_aigc/real_chain.py`：生成或执行 7 个真实外部工具脚本。
+- `hw3/task1/upload_modelscope.py`：按权重白名单上传，拒绝非权重杂项。
+- `hw3/assets/README.md`：定义真实素材替换路径。
 
-## 领域语言
-- 物体 A：AI 多视角火箭图，formal 阶段采样为 Gaussian/point-cloud 代理。
-- 物体 B：文本到 3D 代理资产，由 prompt 程序化生成紫色发光水晶蘑菇。
-- 物体 C：AI 单图木偶图，formal 阶段做单图挤出式 3D 代理。
-- 背景：Mip-NeRF 360 风格桌面/墙面 Gaussian 背景代理。
-- formal AI chain：按用户授权将 AI 素材作为正式输入跑通端到端融合链路。
+## 链路定义
+1. 物体 A：真实多视角或视频 → COLMAP / Nerfstudio `splatfacto-big`。
+2. 背景：真实多视角或视频 → COLMAP / Nerfstudio `splatfacto-big`。
+3. 物体 B：文本 prompt → threestudio / SDS。
+4. 物体 C：真实单图 → TripoSR。
+5. 融合渲染：Blender 导入真实训练/重建产物并输出视频。
 
 ## 完成定义
-- `hw3/task1/` 工程结构与 HW2 task 目录一致。
-- smoke test 能生成 `manifest.json`、`image_stats.csv`、`pairwise_yaw_diffs.csv`、`contact_sheet.png`、`summary.json`。
-- 本地与 136 均通过 `train.py` 和 `evaluate.py`。
-- formal AI chain 能生成 `fused_scene.ply`、`metrics.csv`、`asset_manifest.json`、`renders/fused_scene_preview.png`、`renders/fused_scene_turntable.gif`。
-- 报告可引用素材落到 `hw3/task1/report_assets/formal_ai_chain/`。
-- `qaMode=standard`，`qaFocus` 覆盖目录风格、输出边界、测试图语义和验证命令。
+- 旧低质量链路文件从 Git 删除。
+- README / RESULTS 只记录真实高质量链路和 ModelScope 权重策略。
+- 本地与 136 的 plan 模式 train/evaluate 通过。
+- ModelScope `youngchen/CS60003` 中此前误传的 `hw3/task1/formal_ai_chain/` 已删除。
+- `qaMode=standard`，`qaFocus` 覆盖删除边界、真实链路、ModelScope 权重策略、验证命令和远程同步。
 
 ## 文件结构
 ```text
 hw3/task1/
   README.md
   RESULTS.md
-  configs/ai_generated_smoke.yaml
-  configs/formal_ai_chain.yaml
+  configs/real_high_quality.yaml
   requirements.txt
   train.py
   evaluate.py
+  upload_modelscope.py
+  scripts/render_real_chain_blender.py
+  scripts/setup_real_chain_136.sh
   task1_3dgs_aigc/
     __init__.py
     config.py
-    assets.py
-    smoke.py
-    formal_chain.py
-    geometry.py
+    real_chain.py
+    swanlab_utils.py
     utils.py
 ```
 
-## UI / 设计约束
-不涉及 UI。
-
 ## 风险与验证
-- 风险：AI 生成多视角不具备真实 COLMAP 几何一致性。处理：在 formal AI chain 中明确这是用户授权的可复现代理链路，不伪称真实实拍 3DGS。
-- 风险：136 网络不稳定。处理：使用本机代理通道和本地 bundle/rsync 同步。
-- 风险：输出误进 Git。处理：`.gitignore` 忽略 `hw3/task1/outputs/`、data、external。
+- 风险：真实素材暂未到位。处理：plan 模式允许 `NEEDS_INPUTS`，但仍生成真实工具脚本；不生成 proxy。
+- 风险：ModelScope 再次上传杂项。处理：上传脚本只筛选训练权重，找不到权重直接失败。
+- 风险：136 与本地代码不一致。处理：本地提交后用 bundle 同步，并在 136 执行同一组验证命令。
 
 ## 决策记录
-- [2026-06-05] Task1 目录采用 `hw3/task1/`，对齐 HW2 的 task 目录命名与结构，而不是 `task1_3dgs_aigc/` 顶层目录。
-- [2026-06-05] 当前只做 asset smoke test；正式 3DGS/AIGC 链路分阶段接入。
+- [2026-06-05] 用户明确要求只要高质量链路，旧低质量链路删除。
+- [2026-06-05] 用户明确指出 ModelScope 只放训练好的模型权重，非权重 HW3 文件必须清理。

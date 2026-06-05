@@ -54,7 +54,7 @@ def create_swanlab_logger(config: dict[str, Any], run_dir: str | Path) -> NullSw
     swanlab.init(
         project=str(swanlab_config.get("project", "cs60003-hw3-task1")),
         experiment_name=str(config["experiment"]["name"]),
-        group=str(swanlab_config.get("group", "smoke")),
+        group=str(swanlab_config.get("group", "real-high-quality")),
         mode=str(swanlab_config.get("mode", "cloud")),
         tags=list(swanlab_config.get("tags", [])),
         config=config,

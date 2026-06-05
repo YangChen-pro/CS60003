@@ -2,8 +2,8 @@
 
 项目链接：<https://swanlab.cn/@youngchen/cs60003-hw3-task1>
 
-当前阶段只建立 smoke test 骨架，默认不自动连云端。正式训练或回放时使用用户本人的 `SWANLAB_API_KEY` 环境变量，并把 run 链接记录到本文件。
+当前只维护真实高质量链路。plan 模式不上传曲线；正式 `run` 模式训练 Nerfstudio / threestudio / TripoSR 后，再把真实训练 run 记录到本文件。
 
 | 阶段 | SwanLab run |
 |---|---|
-| AI 生成图 smoke test | 待 136 验证后记录 |
+| real_high_quality | 待真实素材训练后记录 |
