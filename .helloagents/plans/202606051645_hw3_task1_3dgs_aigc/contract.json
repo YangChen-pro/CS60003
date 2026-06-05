@@ -7,17 +7,14 @@
     "确认 HW3 Task1 只保留真实高质量链路入口",
     "确认早期 AI smoke、程序化 proxy、formal_ai_chain 和报告素材已从 Git 删除",
     "确认 ModelScope 上传脚本只允许训练权重，非权重文件不会再次上传",
-    "确认 SwanLab/ModelScope key 只通过环境变量或忽略文件读取，不进入 Git 跟踪文件",
-    "确认 ai_assets_high_quality_preview 只作为临时预览，不替代正式 3DGS/SDS/TripoSR 训练结果"
+    "确认 SwanLab/ModelScope key 只通过环境变量或忽略文件读取，不进入 Git 跟踪文件"
   ],
   "testerFocus": [
     "本地 tools/verify_delivery_metadata.py 通过",
     "本地 py_compile 通过",
     "本地 real_high_quality plan 模式 train/evaluate 通过",
     "136 qwen14b py_compile 通过",
-    "136 qwen14b real_high_quality plan 模式 train/evaluate 通过",
-    "本地 ai_assets_high_quality_preview evaluate 通过",
-    "136 qwen14b ai_assets_high_quality_preview train/evaluate 通过"
+    "136 qwen14b real_high_quality plan 模式 train/evaluate 通过"
   ],
   "qaMode": "standard",
   "qaFocus": [
@@ -27,7 +24,7 @@
     "确认 upload_modelscope.py 只上传训练权重并拒绝 summary/config/render/proxy 等杂项",
     "确认 hw3/task1/outputs、external、真实 assets 不进入 Git",
     "确认本地与 136 qwen14b 均能运行 real_high_quality plan 模式 train/evaluate",
-    "确认 ai_assets_high_quality_preview 输出 preview_hero.png 与 fused_scene.mp4，但不进入 ModelScope 权重上传",
+    "确认 ai_assets_high_quality_preview 配置、预览代码和旧产物已删除",
     "确认正式 real_high_quality 只按 hw3.md 要求检查必要输入，不再设置题目之外的图片数量阈值"
   ],
   "ui": {

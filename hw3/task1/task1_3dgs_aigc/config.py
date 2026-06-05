@@ -54,20 +54,6 @@ DEFAULT_CONFIG: dict[str, Any] = {
             "texture_resolution": 2048,
         },
     },
-    "preview_chain": {
-        "execution": {"mode": "run"},
-        "data": {
-            "object_a_images": "hw3/assets/object_a_multiview",
-            "object_c_image": "hw3/assets/object_c_single/object_c_single_front.png",
-        },
-        "render": {
-            "blender_renderer": "hw3/task1/scripts/render_ai_assets_preview_blender.py",
-            "resolution_x": 1280,
-            "resolution_y": 720,
-            "frames": 24,
-            "samples": 8,
-        },
-    },
 }
 
 
@@ -126,25 +112,12 @@ def resolve_paths(config: dict[str, Any], output_root: str | None = None) -> Non
     tools = config["real_chain"]["tools"]
     for key in ["threestudio_launch", "triposr_run", "blender_renderer"]:
         tools[key] = str(resolve_repo_path(tools[key], repo_root))
-    preview = config.get("preview_chain", {})
-    preview_data = preview.get("data", {})
-    for key in ["object_a_images", "object_c_image"]:
-        if preview_data.get(key):
-            preview_data[key] = str(resolve_repo_path(preview_data[key], repo_root))
-    preview_render = preview.get("render", {})
-    if preview_render.get("blender_renderer"):
-        preview_render["blender_renderer"] = str(resolve_repo_path(preview_render["blender_renderer"], repo_root))
 
 
 def _validate_config(config: dict[str, Any]) -> None:
     stage = str(config.get("task1", {}).get("stage", ""))
-    if stage not in {"real_high_quality", "ai_assets_high_quality_preview"}:
+    if stage != "real_high_quality":
         raise ValueError(f"Unsupported Task1 stage for maintained chain: {stage}")
-    if stage == "ai_assets_high_quality_preview":
-        mode = str(config.get("preview_chain", {}).get("execution", {}).get("mode", ""))
-        if mode not in {"plan", "run"}:
-            raise ValueError("preview_chain.execution.mode must be either 'plan' or 'run'.")
-        return
     real_chain = config.get("real_chain", {})
     mode = str(real_chain.get("execution", {}).get("mode", ""))
     if mode not in {"plan", "run"}:

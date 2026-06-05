@@ -17,7 +17,6 @@
 
 ```bash
 hw3/task1/configs/real_high_quality.yaml
-hw3/task1/configs/ai_assets_high_quality_preview.yaml
 ```
 
 链路内容：
@@ -27,8 +26,6 @@ hw3/task1/configs/ai_assets_high_quality_preview.yaml
 3. 物体 B：文本 prompt → threestudio / SDS 训练 → 3D mesh。
 4. 物体 C：真实单图 → TripoSR → 带纹理 3D mesh。
 5. 融合渲染：Blender 融合 A/B/C/背景，输出漫游视频和报告可引用画面。
-
-`ai_assets_high_quality_preview.yaml` 是临时 AI 素材预览链路：它不替代 3DGS/SDS/TripoSR 训练，只用当前 AI A/C 素材和 Blender 生成一版可审查的融合渲染效果，方便在真实手机素材还没拍完前检查构图、比例、相机和输出路径。
 
 ## 真实素材放置
 
@@ -78,22 +75,6 @@ real_chain:
 ```
 
 再执行同一条 `train.py` 命令。`00_check_tools.sh` 会先检查 COLMAP、FFmpeg、Blender、Nerfstudio、threestudio、TripoSR；缺少依赖时直接失败，不做静默降级。
-
-临时 AI 素材预览渲染：
-
-```bash
-python hw3/task1/train.py --config hw3/task1/configs/ai_assets_high_quality_preview.yaml
-python hw3/task1/evaluate.py --run-dir hw3/task1/outputs/task1_ai_assets_high_quality_preview
-```
-
-该预览会生成：
-
-```text
-hw3/task1/outputs/task1_ai_assets_high_quality_preview/renders/preview_hero.png
-hw3/task1/outputs/task1_ai_assets_high_quality_preview/renders/fused_scene.mp4
-```
-
-注意：这两项是预览渲染结果，不是最终训练权重，也不会上传 ModelScope。
 
 ## SwanLab / ModelScope
 
