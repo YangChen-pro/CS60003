@@ -267,6 +267,13 @@ def _render_script(config: dict[str, Any], run_dir: Path) -> str:
     return f"""#!/usr/bin/env bash
 set -euo pipefail
 mkdir -p "{run_dir}/renders"
+mkdir -p "{run_dir}/renders/fused_splats"
+python "{run_dir}/../scripts/render_fused_splats.py" \\
+  --run-dir "{run_dir}" \\
+  --output-dir "{run_dir}/renders/fused_splats" \\
+  --background-max 650000 \\
+  --object-a-max 360000 \\
+  --mesh-max 260000
 blender -b -P "{renderer}" -- "{run_dir}" "{run_dir}/renders"
 """
 
@@ -281,7 +288,7 @@ def expected_outputs(run_dir: Path) -> dict[str, str]:
         "background_mesh": f"{run_dir}/exports/background/mesh/*",
         "object_b_mesh": f"{run_dir}/exports/object_b/mesh/*",
         "object_c_mesh": f"{run_dir}/exports/object_c/mesh/*",
-        "render_video": f"{run_dir}/renders/fused_scene.mp4",
+        "render_video": f"{run_dir}/renders/fused_splats/fused_scene.mp4",
     }
 
 

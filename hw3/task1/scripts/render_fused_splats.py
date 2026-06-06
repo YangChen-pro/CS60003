@@ -11,17 +11,41 @@ from __future__ import annotations
 import argparse
 import json
 import math
+from pathlib import Path
 import subprocess
 import time
 from dataclasses import dataclass
-from pathlib import Path
+from typing import Optional
+from typing import Any
 
-import cv2
+try:
+    import cv2
+except Exception:
+    cv2 = None
+try:
+    from PIL import Image
+except Exception:
+    Image = None
 import numpy as np
 import torch
 from gsplat.rendering import rasterization
 
 SH_C0 = 0.28209479177387814
+RENDERER_NAME = "gsplat fused splat renderer"
+PIPELINE_MODE = "fused_splats"
+DEFAULT_LIGHT_DIR = np.array([0.38, -0.20, 0.90], dtype=np.float32)
+DEFAULT_LIGHT_DIR = DEFAULT_LIGHT_DIR / np.linalg.norm(DEFAULT_LIGHT_DIR)
+AMBIENT = 0.36
+DIFFUSE = 0.74
+FOCAL_SCALE_MIN = 0.7
+FOCAL_SCALE_MAX = 1.5
+KEYFRAME_INDICES = (0, 47, 143)
+PALETTE_COLORS = {
+    "object_a": np.array([0.92, 0.89, 0.86], dtype=np.float32),
+    "object_b": np.array([0.69, 0.53, 0.93], dtype=np.float32),
+    "object_c": np.array([0.72, 0.66, 0.56], dtype=np.float32),
+    "background": np.array([0.75, 0.74, 0.73], dtype=np.float32),
+}
 
 
 @dataclass
@@ -32,6 +56,7 @@ class SplatAsset:
     scales: np.ndarray
     opacities: np.ndarray
     colors: np.ndarray
+    normals: Optional[np.ndarray]
     source: str
 
 
@@ -46,23 +71,27 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--background-max", type=int, default=650_000)
     parser.add_argument("--object-a-max", type=int, default=360_000)
     parser.add_argument("--mesh-max", type=int, default=260_000)
+    parser.add_argument("--seed", type=int, default=1337)
     parser.add_argument("--device", default="cuda")
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
+    rng = np.random.default_rng(args.seed)
     start = time.time()
     args.output_dir.mkdir(parents=True, exist_ok=True)
     frames_dir = args.output_dir / "frames"
     frames_dir.mkdir(parents=True, exist_ok=True)
 
-    assets = build_assets(args)
+    assets = build_assets(args, rng)
+    camera_cfg = build_camera_config(args.run_dir, assets, total_frames=args.frames)
     tensors = concat_assets(assets, args.device)
-    render_sequence(args, frames_dir, tensors)
+    render_sequence(args, frames_dir, tensors, camera_cfg)
     video_path = args.output_dir / "fused_scene.mp4"
     encode_video(frames_dir, video_path, args.fps)
-    manifest = build_manifest(args, assets, video_path, time.time() - start)
+    export_strict_keyframes(frames_dir, args.output_dir)
+    manifest = build_manifest(args, assets, video_path, time.time() - start, camera_cfg)
     (args.output_dir / "fused_scene_manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2),
         encoding="utf-8",
@@ -70,54 +99,207 @@ def main() -> None:
     print(json.dumps(manifest, ensure_ascii=False, indent=2), flush=True)
 
 
-def build_assets(args: argparse.Namespace) -> list[SplatAsset]:
+def build_assets(args: argparse.Namespace, rng: np.random.Generator) -> list[SplatAsset]:
     """Load and normalize the four trained Task1 assets."""
-    specs = [
-        _gaussian_spec("background", "exports/background/splat/splat.ply", args.background_max, 0.35, (1.5, 98.5), 4.4, (0.0, 0.0), -0.10, (3, 97), 0.22, 0.016),
-        _gaussian_spec("object_a", "exports/object_a/splat/splat.ply", args.object_a_max, 0.45, (2, 98), 0.88, (-1.15, 0.10), 0.03, (5, 95), 0.35, 0.022),
-        _mesh_spec("object_b", "exports/object_b/mesh/model.obj", args.mesh_max, 0.010, 0.62, (0.0, -0.04), 0.03),
-        _mesh_spec("object_c", "exports/object_c/mesh/model.obj", args.mesh_max, 0.010, 0.76, (1.15, 0.08), 0.03),
+    background_spec = _gaussian_spec(
+        name="background",
+        relative_path="exports/background/splat/splat.ply",
+        max_points=args.background_max,
+        opacity_quantile=0.35,
+        crop_percentile=(1.5, 98.5),
+        target_height=4.6,
+        xy=(0.0, 0.0),
+        ground_z=0.0,
+        robust_percentile=(3, 97),
+        scale_multiplier=0.22,
+        scale_max=0.018,
+        apply_dataparser=True,
+        dataparser_target="background",
+        seed=int(rng.integers(0, 2**31)),
+    )
+    background = _load_normalized_asset(args.run_dir, background_spec)
+    background_ground = float(np.percentile(background.means, 2, axis=0)[2])
+    background_center = np.percentile(background.means, 50, axis=0)
+
+    # Place foreground assets on the reconstructed desk plane derived from the background scene.
+    obj_specs = [
+        _gaussian_spec(
+            name="object_a",
+            relative_path="exports/object_a/splat/splat.ply",
+            max_points=args.object_a_max,
+            opacity_quantile=0.45,
+            crop_percentile=(2, 98),
+            target_height=1.0,
+            xy=(background_center[0] - 0.95, background_center[1] - 0.03),
+            ground_z=background_ground + 0.01,
+            robust_percentile=(5, 95),
+            scale_multiplier=0.38,
+            scale_max=0.015,
+            apply_dataparser=True,
+            dataparser_target="object_a",
+            seed=int(rng.integers(0, 2**31)),
+        ),
+        _mesh_spec(
+            name="object_b",
+            relative_path="exports/object_b/mesh/model.obj",
+            max_points=args.mesh_max,
+            base_scale=0.0042,
+            target_height=0.78,
+            xy=(background_center[0], background_center[1] - 0.01),
+            ground_z=background_ground + 0.01,
+            seed=int(rng.integers(0, 2**31)),
+        ),
+        _mesh_spec(
+            name="object_c",
+            relative_path="exports/object_c/mesh/model.obj",
+            max_points=args.mesh_max,
+            base_scale=0.0046,
+            target_height=0.84,
+            xy=(background_center[0] + 0.95, background_center[1] + 0.02),
+            ground_z=background_ground + 0.03,
+            seed=int(rng.integers(0, 2**31)),
+        ),
     ]
-    return [_load_normalized_asset(args.run_dir, spec) for spec in specs]
+    return [background] + [_load_normalized_asset(args.run_dir, spec, reference=background) for spec in obj_specs]
+
 
 
 def _gaussian_spec(
-    name: str, relative_path: str, max_points: int, opacity_quantile: float, crop_percentile: tuple[float, float],
-    target_height: float, xy: tuple[float, float], ground_z: float, robust_percentile: tuple[float, float],
-    scale_multiplier: float, scale_max: float,
-) -> dict:
+    name: str,
+    relative_path: str,
+    max_points: int,
+    opacity_quantile: float,
+    crop_percentile: tuple[float, float],
+    target_height: float,
+    xy: tuple[float, float],
+    ground_z: float,
+    robust_percentile: tuple[float, float],
+    scale_multiplier: float,
+    scale_max: float,
+    *,
+    apply_dataparser: bool = False,
+    dataparser_target: str = "",
+    seed: int = 0,
+) -> dict[str, Any]:
     return locals()
 
 
 def _mesh_spec(
     name: str, relative_path: str, max_points: int, base_scale: float,
     target_height: float, xy: tuple[float, float], ground_z: float,
-) -> dict:
+    seed: int = 0,
+) -> dict[str, Any]:
     spec = locals()
     spec.update({"robust_percentile": (0, 100), "scale_multiplier": 1.0, "scale_max": 0.014})
+    spec["apply_dataparser"] = False
+    spec["dataparser_target"] = ""
     return spec
 
 
-def _load_normalized_asset(run_dir: Path, spec: dict) -> SplatAsset:
+def _load_normalized_asset(run_dir: Path, spec: dict, reference: SplatAsset | None = None) -> SplatAsset:
     path = run_dir / spec["relative_path"]
     if "base_scale" in spec:
-        asset = load_obj_as_splats(path, spec["name"], max_points=spec["max_points"], base_scale=spec["base_scale"])
+        asset = load_obj_as_splats(
+            path,
+            spec["name"],
+            max_points=spec["max_points"],
+            base_scale=spec["base_scale"],
+            seed=spec.get("seed", 0),
+        )
     else:
         asset = load_gaussian_ply(
             path, spec["name"], max_points=spec["max_points"],
             opacity_quantile=spec["opacity_quantile"], crop_percentile=spec["crop_percentile"],
         )
+    if spec.get("apply_dataparser", False):
+        asset = apply_dataparser_transform(
+            run_dir,
+            asset,
+            dataparser_target=spec.get("dataparser_target", ""),
+        )
     return normalize_asset(
-        asset, target_height=spec["target_height"], xy=spec["xy"], ground_z=spec["ground_z"],
-        robust_percentile=spec["robust_percentile"], scale_multiplier=spec["scale_multiplier"], scale_max=spec["scale_max"],
+        asset,
+        target_height=spec["target_height"],
+        xy=spec["xy"],
+        ground_z=spec["ground_z"],
+        robust_percentile=spec["robust_percentile"],
+        scale_multiplier=spec["scale_multiplier"],
+        scale_max=spec["scale_max"],
+        reference=reference,
     )
 
 
-def render_sequence(args: argparse.Namespace, frames_dir: Path, tensors: dict[str, torch.Tensor]) -> None:
+def apply_dataparser_transform(run_dir: Path, asset: SplatAsset, *, dataparser_target: str) -> SplatAsset:
+    """Apply nerfstudio dataparser normalization transform and scale to raw asset points."""
+    if not dataparser_target:
+        return asset
+    files = sorted((run_dir / "nerfstudio" / dataparser_target).rglob("dataparser_transforms.json"))
+    if not files:
+        return asset
+    transform_path = files[-1]
+    data = json.loads(transform_path.read_text(encoding="utf-8"))
+    scale = float(data.get("scale", 1.0))
+    matrix = np.array(
+        data.get(
+            "transform",
+            [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0]],
+        ),
+        dtype=np.float32,
+    )
+    if matrix.shape != (3, 4):
+        return asset
+    transform = np.eye(4, dtype=np.float32)
+    transform[:3, :4] = matrix
+    homogeneous = np.concatenate([asset.means * scale, np.ones((asset.means.shape[0], 1), dtype=np.float32)], axis=1)
+    transformed = (homogeneous @ transform.T)[:, :3]
+    return SplatAsset(
+        name=asset.name,
+        means=transformed.astype(np.float32),
+        quats=asset.quats,
+        scales=asset.scales * scale,
+        opacities=asset.opacities,
+        colors=asset.colors,
+        normals=asset.normals,
+        source=asset.source,
+    )
+
+
+def render_sequence(
+    args: argparse.Namespace,
+    frames_dir: Path,
+    tensors: dict[str, torch.Tensor],
+    camera_cfg: dict[str, Any],
+) -> None:
     for frame in range(args.frames):
-        image = render_frame(frame, args.frames, args.width, args.height, args.device, **tensors)
+        image = render_frame(
+            frame,
+            args.frames,
+            args.width,
+            args.height,
+            args.device,
+            camera_cfg=camera_cfg,
+            **tensors,
+        )
         path = frames_dir / f"frame_{frame + 1:04d}.png"
+        write_frame(path, image)
+
+
+def write_frame(path: Path, image: np.ndarray) -> None:
+    if cv2 is not None:
         cv2.imwrite(str(path), cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
+        return
+    if Image is None:
+        raise RuntimeError("No image writer available: install opencv-python or pillow.")
+    Image.fromarray(image).save(path)
+
+
+def export_strict_keyframes(frames_dir: Path, output_dir: Path) -> None:
+    for idx, frame_index in enumerate(KEYFRAME_INDICES, start=1):
+        source = frames_dir / f"frame_{frame_index + 1:04d}.png"
+        if not source.exists():
+            continue
+        target = output_dir / f"strict_keyframe_{idx:03d}.png"
+        target.write_bytes(source.read_bytes())
 
 
 def build_manifest(
@@ -125,14 +307,36 @@ def build_manifest(
     assets: list[SplatAsset],
     video_path: Path,
     elapsed_seconds: float,
+    camera_cfg: dict[str, Any],
 ) -> dict:
+    focal_scale = float(camera_cfg.get("focal_scale", 0.9))
+    if not math.isfinite(focal_scale) or focal_scale <= 0:
+        focal_scale = 0.9
+    center = camera_cfg.get("center")
+    if center is None and camera_cfg.get("centers"):
+        center = np.asarray(camera_cfg["centers"], dtype=np.float32).mean(axis=0).tolist()
+    if center is None:
+        center = [0.0, 0.0, 0.0]
     return {
-        "renderer": "gsplat fused splat renderer",
+        "renderer": RENDERER_NAME,
         "run_dir": args.run_dir.as_posix(),
+        "pipeline_mode": PIPELINE_MODE,
+        "source_mode": "unified_3d_assets",
         "width": args.width,
         "height": args.height,
         "frames": args.frames,
         "fps": args.fps,
+        "seed": args.seed,
+        "camera": {
+            "name": camera_cfg["mode"],
+            "center": center,
+            "radius": camera_cfg.get("radius"),
+            "height": camera_cfg.get("height"),
+            "target_z": camera_cfg.get("target_z"),
+            "focal_scale": focal_scale,
+            "centers": camera_cfg.get("centers"),
+            "targets": camera_cfg.get("targets"),
+        },
         "assets": [
             {
                 "name": asset.name,
@@ -176,7 +380,73 @@ def load_gaussian_ply(
     scales = np.exp(np.column_stack([data["scale_0"][indices], data["scale_1"][indices], data["scale_2"][indices]])).astype(np.float32)
     quats = np.column_stack([data["rot_0"][indices], data["rot_1"][indices], data["rot_2"][indices], data["rot_3"][indices]]).astype(np.float32)
     opacities = sigmoid(raw_opacity[indices]).astype(np.float32)
-    return SplatAsset(name=name, means=means, quats=quats, scales=scales, opacities=opacities, colors=colors, source=path.as_posix())
+    quats = normalize_quats(quats)
+    normals = quats_to_normals(quats)
+    if normals.shape[0] != means.shape[0]:
+        normals = None
+    return SplatAsset(
+        name=name,
+        means=means.astype(np.float32),
+        quats=quats.astype(np.float32),
+        scales=scales.astype(np.float32),
+        opacities=opacities.astype(np.float32),
+        colors=colors.astype(np.float32),
+        normals=normals,
+        source=path.as_posix(),
+    )
+
+
+
+
+def load_background_camera_trajectory(
+    run_dir: Path,
+    background: SplatAsset,
+    total_frames: int,
+    target_width: int,
+) -> dict[str, Any] | None:
+    path = run_dir / "processed" / "background" / "transforms.json"
+    if not path.exists():
+        return None
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        frames = data.get("frames", [])
+    except Exception:
+        return None
+    if not frames:
+        return None
+    mats = []
+    for frame in frames:
+        matrix = frame.get("transform_matrix")
+        if not matrix:
+            continue
+        mats.append(np.array(matrix, dtype=np.float32))
+    if not mats:
+        return None
+    mats_np = np.array(mats, dtype=np.float32)
+    centers = mats_np[:, :3, 3]
+    if not np.all(np.isfinite(centers)):
+        return None
+    target = np.percentile(background.means, 50, axis=0)
+    span = np.percentile(background.means, 98, axis=0) - np.percentile(background.means, 2, axis=0)
+    indices = np.linspace(0, len(centers) - 1, num=total_frames).astype(int)
+    centers = centers[indices]
+    targets = np.repeat(target[None, :], len(centers), axis=0)
+    extent_x = max(float(span[0]), 1e-6)
+    extent_y = max(float(span[1]), 1e-6)
+    xy_radius = float(np.clip(0.42 * (extent_x + extent_y), 1.0, 4.8))
+    focal_scale = float(_estimate_focal_scale(background.means, target_width=float(target_width)))
+    return {
+        "mode": "background_trajectory",
+        "centers": centers.tolist(),
+        "targets": targets.tolist(),
+        "extent_x": extent_x,
+        "extent_y": extent_y,
+        "center": target.tolist(),
+        "radius": xy_radius,
+        "height": float(0.26 * (span[2] + 1.0) + 0.8),
+        "target_z": float(span[2] * 0.04),
+        "focal_scale": focal_scale,
+    }
 
 
 def read_ply_header(path: Path) -> tuple[int, list[str], int]:
@@ -202,29 +472,230 @@ def read_ply_header(path: Path) -> tuple[int, list[str], int]:
                 return count, properties, handle.tell()
 
 
-def load_obj_as_splats(path: Path, name: str, *, max_points: int, base_scale: float) -> SplatAsset:
+def load_obj_as_splats(
+    path: Path,
+    name: str,
+    *,
+    max_points: int,
+    base_scale: float,
+    seed: int,
+) -> SplatAsset:
     vertices: list[tuple[float, float, float]] = []
     colors: list[tuple[float, float, float]] = []
+    faces: list[tuple[int, int, int]] = []
+    vertex_normals: list[tuple[float, float, float]] = []
+    face_normals: list[tuple[int, int, int]] = []
     with path.open("r", encoding="utf-8", errors="ignore") as handle:
         for raw in handle:
-            if not raw.startswith("v "):
-                continue
-            values = [float(value) for value in raw.split()[1:]]
-            vertices.append((values[0], values[1], values[2]))
-            if len(values) >= 6:
-                colors.append(tuple(np.clip(values[3:6], 0.0, 1.0)))
-            else:
-                colors.append((0.72, 0.72, 0.72))
+            if raw.startswith("v "):
+                values = [float(value) for value in raw.split()[1:]]
+                vertices.append((values[0], values[1], values[2]))
+                if len(values) >= 6:
+                    colors.append(tuple(np.clip(values[3:6], 0.0, 1.0)))
+                else:
+                    colors.append((0.72, 0.72, 0.72))
+            elif raw.startswith("vn "):
+                values = [float(value) for value in raw.split()[1:]]
+                if len(values) >= 3:
+                    normal = np.asarray(values[:3], dtype=np.float32)
+                    norm = float(np.linalg.norm(normal))
+                    if norm > 1e-6:
+                        normal = normal / norm
+                    vertex_normals.append(tuple(normal))
+            elif raw.startswith("f "):
+                tokens = [int(token.split("/")[0]) - 1 for token in raw.split()[1:] if token.split("/")[0]]
+                if len(tokens) < 3:
+                    continue
+                normal_indices: list[int] = []
+                for token in raw.split()[1:]:
+                    parts = token.split("/")
+                    if len(parts) >= 3 and parts[2]:
+                        normal_indices.append(int(parts[2]) - 1)
+                first = tokens[0]
+                for idx in range(1, len(tokens) - 1):
+                    faces.append((first, tokens[idx], tokens[idx + 1]))
+                    if len(normal_indices) >= 3:
+                        face_normals.append((normal_indices[0], normal_indices[idx], normal_indices[idx + 1]))
     if not vertices:
         raise RuntimeError(f"OBJ has no vertices: {path}")
-    indices = deterministic_sample(np.arange(len(vertices)), max_points, seed=hash(name) & 0xFFFF)
-    means = np.asarray(vertices, dtype=np.float32)[indices]
-    rgb = np.asarray(colors, dtype=np.float32)[indices]
-    scales = np.full((indices.shape[0], 3), base_scale, dtype=np.float32)
-    quats = np.zeros((indices.shape[0], 4), dtype=np.float32)
+    vertices_np = np.asarray(vertices, dtype=np.float32)
+    colors_np = np.asarray(colors, dtype=np.float32)
+    vertex_normals_np = np.asarray(vertex_normals, dtype=np.float32) if vertex_normals else np.zeros_like(vertices_np, dtype=np.float32)
+    if vertex_normals_np.size and vertex_normals_np.shape[0] >= vertices_np.shape[0]:
+        vertex_normals_np = vertex_normals_np[: vertices_np.shape[0]]
+    if faces:
+        means, rgb, sampled_normals = sample_obj_surface(
+            vertices_np,
+            colors_np,
+            np.asarray(face_normals, dtype=np.int64) if face_normals else np.asarray(faces, dtype=np.int64),
+            vertex_normals=np.asarray(vertex_normals_np, dtype=np.float32),
+            max_points=max_points,
+            seed=seed,
+        )
+    else:
+        indices = deterministic_sample(np.arange(len(vertices_np)), max_points, seed=hash(name) & 0xFFFF)
+        means = vertices_np[indices]
+        rgb = colors_np[indices]
+        sampled_normals = (
+            vertex_normals_np[indices]
+            if vertex_normals_np.size
+            else np.tile(np.array([0.0, 0.0, 1.0], dtype=np.float32), (len(indices), 1))
+        )
+    means, rgb = prune_outliers(means, rgb, percentile=0.999)
+    if vertex_normals_np.size:
+        sampled_normals = sampled_normals[: len(means)]
+    scales = adaptive_scales(means, base_scale=base_scale, target_count=max_points, rng_seed=seed)
+    quats = np.zeros((means.shape[0], 4), dtype=np.float32)
     quats[:, 0] = 1.0
-    opacities = np.full(indices.shape[0], 0.92, dtype=np.float32)
-    return SplatAsset(name=name, means=means, quats=quats, scales=scales, opacities=opacities, colors=rgb, source=path.as_posix())
+    opacities = np.full(means.shape[0], 0.96, dtype=np.float32)
+    if not np.isfinite(sampled_normals).all():
+        sampled_normals = np.array([[0.0, 0.0, 1.0]], dtype=np.float32).repeat(len(means), axis=0)
+    sampled_normals = np.asarray(sampled_normals, dtype=np.float32)
+    norm = np.linalg.norm(sampled_normals, axis=1, keepdims=True)
+    norm = np.where(norm < 1e-6, 1.0, norm)
+    sampled_normals = sampled_normals / norm
+    return SplatAsset(
+        name=name,
+        means=means.astype(np.float32),
+        quats=quats.astype(np.float32),
+        scales=scales.astype(np.float32),
+        opacities=opacities.astype(np.float32),
+        colors=enhance_obj_colors(name, rgb, sampled_normals),
+        normals=sampled_normals.astype(np.float32),
+        source=path.as_posix(),
+    )
+
+
+def sample_obj_surface(
+    vertices: np.ndarray,
+    colors: np.ndarray,
+    faces: np.ndarray,
+    vertex_normals: np.ndarray,
+    *,
+    max_points: int,
+    seed: int,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    faces_arr = np.asarray(faces, dtype=np.int64)
+    if faces_arr.size == 0:
+        return vertices, colors, vertex_normals
+    rng = np.random.default_rng(seed)
+    a = vertices[faces_arr[:, 0]]
+    b = vertices[faces_arr[:, 1]]
+    c = vertices[faces_arr[:, 2]]
+    area = 0.5 * np.linalg.norm(np.cross(b - a, c - a), axis=1)
+    area = np.where(area > 0, area, 1e-12)
+    probs = area / area.sum()
+    indices = rng.choice(len(faces_arr), size=max_points, replace=True, p=probs)
+    triangles = faces_arr[indices]
+    tri_a, tri_b, tri_c = triangles[:, 0], triangles[:, 1], triangles[:, 2]
+    va, vb, vc = vertices[tri_a], vertices[tri_b], vertices[tri_c]
+    ca, cb, cc = colors[tri_a], colors[tri_b], colors[tri_c]
+    u = rng.random(size=max_points)
+    v = rng.random(size=max_points)
+    outside = u + v >= 1.0
+    u[outside] = 1.0 - u[outside]
+    v[outside] = 1.0 - v[outside]
+    w = 1.0 - u - v
+    points = w[:, None] * va + u[:, None] * vb + v[:, None] * vc
+    sampled_colors = w[:, None] * ca + u[:, None] * cb + v[:, None] * cc
+    if vertex_normals.shape[0] >= vertices.shape[0]:
+        na, nb, nc = vertex_normals[tri_a], vertex_normals[tri_b], vertex_normals[tri_c]
+        sampled_normals = w[:, None] * na + u[:, None] * nb + v[:, None] * nc
+    else:
+        sampled_normals = np.zeros_like(points, dtype=np.float32)
+        sampled_normals[:, 2] = 1.0
+    sampled_normals = np.where(
+        np.linalg.norm(sampled_normals, axis=1, keepdims=True) < 1e-6,
+        np.array([0.0, 0.0, 1.0], dtype=np.float32),
+        sampled_normals,
+    )
+    return (
+        points.astype(np.float32),
+        np.clip(sampled_colors.astype(np.float32), 0.0, 1.0),
+        sampled_normals.astype(np.float32),
+    )
+
+
+def enhance_obj_colors(name: str, colors: np.ndarray, normals: np.ndarray) -> np.ndarray:
+    """Enhance OBJ colors and compensate missing or weak texture.
+
+    Many OBJ exports from Zero123/threestudio have weak color channels; fallback to
+    palette + normal shading for stable, plausible appearance.
+    """
+    if colors.size == 0:
+        palette = PALETTE_COLORS.get(name, np.array([0.8, 0.8, 0.8], dtype=np.float32))
+        return np.repeat(palette[None, :], repeats=normals.shape[0], axis=0)
+    base = colors.astype(np.float32)
+    cmin, cmax = float(base.min()), float(base.max())
+    if cmax - cmin < 1e-5:
+        palette = PALETTE_COLORS.get(name, np.array([0.8, 0.8, 0.8], dtype=np.float32))
+        base = np.repeat(palette[None, :], repeats=base.shape[0], axis=0)
+    base = np.clip(base, 0.0, 1.0)
+    normal_factor = (normals @ DEFAULT_LIGHT_DIR).astype(np.float32)
+    normal_factor = np.clip(normal_factor, 0.25, 1.0)
+    shading = (AMBIENT + DIFFUSE * normal_factor)[:, None]
+    shaded = base * shading
+    palette = PALETTE_COLORS.get(name, np.array([0.8, 0.8, 0.8], dtype=np.float32))
+    fallback = palette * (
+        AMBIENT + DIFFUSE * np.linspace(0.7, 1.0, num=base.shape[0], dtype=np.float32)[:, None]
+    )
+    blend = 0.5 + 0.5 * normal_factor[:, None]
+    return np.clip(blend * shaded + (1.0 - blend) * fallback, 0.0, 1.0)
+
+
+def adaptive_scales(means: np.ndarray, *, base_scale: float, target_count: int, rng_seed: int) -> np.ndarray:
+    del target_count, rng_seed
+    mins = np.percentile(means, 0.2, axis=0)
+    maxs = np.percentile(means, 99.8, axis=0)
+    diag = np.linalg.norm(maxs - mins) + 1e-6
+    target = np.full((means.shape[0], 3), base_scale * (diag / 0.9), dtype=np.float32)
+    return np.clip(target, 0.0025, 0.022)
+
+
+def prune_outliers(points: np.ndarray, colors: np.ndarray, *, percentile: float) -> tuple[np.ndarray, np.ndarray]:
+    if points.size == 0:
+        return points, colors
+    z = np.linalg.norm(points, axis=1)
+    limit = np.quantile(z, percentile)
+    keep = z <= limit
+    if not np.any(keep):
+        return points, colors
+    return points[keep], colors[keep]
+
+
+def build_camera_config(run_dir: Path, assets: list[SplatAsset], total_frames: int) -> dict[str, Any]:
+    background = next(asset for asset in assets if asset.name == "background")
+    trajectory = load_background_camera_trajectory(
+        run_dir,
+        background,
+        total_frames=total_frames,
+        target_width=1920,
+    )
+    if trajectory is not None:
+        return trajectory
+    mins = np.percentile(background.means, 2, axis=0)
+    maxs = np.percentile(background.means, 98, axis=0)
+    center = ((mins + maxs) * 0.5).astype(float).tolist()
+    span = (maxs - mins).astype(float)
+    xy_radius = max(span[0] + span[1], 1e-6) * 0.35
+    return {
+        "mode": "orbit",
+        "center": center,
+        "radius": float(np.clip(xy_radius, 1.2, 4.5)),
+        "height": float(max(1.35, 0.22 * span[2] + 1.6)),
+        "target_z": float(span[2] * 0.05),
+        "focal_scale": _estimate_focal_scale(background.means, target_width=1920),
+    }
+
+
+def _estimate_focal_scale(points: np.ndarray, target_width: float) -> float:
+    mins = np.percentile(points, 4, axis=0)
+    maxs = np.percentile(points, 96, axis=0)
+    span = np.maximum(maxs - mins, 1e-6)
+    dominant = float(max(span[0], span[1], 1e-6))
+    if not np.isfinite(dominant) or dominant <= 0:
+        return 0.9
+    return float(np.clip(target_width / (3.4 * dominant), FOCAL_SCALE_MIN, FOCAL_SCALE_MAX))
 
 
 def deterministic_sample(indices: np.ndarray, max_points: int, *, seed: int) -> np.ndarray:
@@ -243,6 +714,7 @@ def normalize_asset(
     robust_percentile: tuple[float, float],
     scale_multiplier: float,
     scale_max: float,
+    reference: SplatAsset | None = None,
 ) -> SplatAsset:
     lower, upper = robust_percentile
     mins = np.percentile(asset.means, lower, axis=0)
@@ -256,6 +728,10 @@ def normalize_asset(
     means[:, 1] += xy[1]
     means[:, 2] += ground_z - robust_ground
     scales = np.clip(asset.scales * scale * scale_multiplier, 0.0025, scale_max)
+    if reference is not None:
+        bg_bottom = np.percentile(reference.means[:, 2], 2)
+        bg_top = np.percentile(reference.means[:, 2], 98)
+        means[:, 2] += (bg_bottom + 0.015 * (bg_top - bg_bottom)) - np.percentile(means[:, 2], 2)
     return SplatAsset(
         name=asset.name,
         means=means.astype(np.float32),
@@ -263,6 +739,7 @@ def normalize_asset(
         scales=scales.astype(np.float32),
         opacities=asset.opacities.astype(np.float32),
         colors=asset.colors.astype(np.float32),
+        normals=asset.normals,
         source=asset.source,
     )
 
@@ -273,18 +750,34 @@ def normalize_quats(quats: np.ndarray) -> np.ndarray:
     return (quats / norm).astype(np.float32)
 
 
+def quats_to_normals(quats: np.ndarray) -> np.ndarray:
+    """Approximate forward normals from unit quaternions in [x,y,z,w] format."""
+    q = normalize_quats(quats)
+    x, y, z, w = q[:, 0], q[:, 1], q[:, 2], q[:, 3]
+    normals = np.empty((q.shape[0], 3), dtype=np.float32)
+    normals[:, 0] = 2.0 * (x * z + w * y)
+    normals[:, 1] = 2.0 * (y * z - w * x)
+    normals[:, 2] = 1.0 - 2.0 * (x * x + y * y)
+    return np.where(np.linalg.norm(normals, axis=1, keepdims=True) > 1e-6, normals, np.array([0.0, 0.0, 1.0], dtype=np.float32))
+
+
 def concat_assets(assets: list[SplatAsset], device: str) -> dict[str, torch.Tensor]:
     means = np.concatenate([asset.means for asset in assets], axis=0)
     quats = np.concatenate([asset.quats for asset in assets], axis=0)
     scales = np.concatenate([asset.scales for asset in assets], axis=0)
     opacities = np.concatenate([asset.opacities for asset in assets], axis=0)
     colors = np.concatenate([asset.colors for asset in assets], axis=0)
+    normals = np.concatenate(
+        [np.zeros_like(asset.means) if asset.normals is None else asset.normals for asset in assets],
+        axis=0,
+    )
     return {
         "means": torch.from_numpy(means).to(device),
         "quats": torch.from_numpy(quats).to(device),
         "scales": torch.from_numpy(scales).to(device),
         "opacities": torch.from_numpy(opacities).to(device),
         "colors": torch.from_numpy(colors).to(device),
+        "normals": torch.from_numpy(normals).to(device),
     }
 
 
@@ -300,14 +793,52 @@ def render_frame(
     scales: torch.Tensor,
     opacities: torch.Tensor,
     colors: torch.Tensor,
+    normals: torch.Tensor,
+    camera_cfg: dict[str, Any],
 ) -> np.ndarray:
     phase = 2.0 * math.pi * frame / max(total_frames, 1)
-    radius = 4.4
-    eye = torch.tensor([math.sin(phase) * radius, -math.cos(phase) * radius, 1.85], device=device)
-    target = torch.tensor([0.0, 0.02, 0.62], device=device)
+    mode = camera_cfg.get("mode")
+    if mode == "background_trajectory":
+        centers = camera_cfg.get("centers", [])
+        targets = camera_cfg.get("targets", [])
+        if centers:
+            center_np = np.asarray(centers[frame % len(centers)], dtype=np.float32)
+            target_np = np.asarray(targets[frame % len(targets)], dtype=np.float32)
+        else:
+            center_np = np.asarray(camera_cfg["center"], dtype=np.float32)
+            target_np = np.asarray([camera_cfg["center"][0], camera_cfg["center"][1], camera_cfg["center"][2] + camera_cfg.get("target_z", 0.0)], dtype=np.float32)
+        center = torch.tensor(center_np, device=device, dtype=torch.float32)
+        target = torch.tensor(target_np, device=device, dtype=torch.float32)
+        radius = float(camera_cfg.get("radius", 2.5))
+        eye = center + torch.tensor(
+            [
+                radius * math.sin(phase),
+                radius * math.cos(phase) * 0.85,
+                radius * 0.16 * math.cos(1.3 * phase),
+            ],
+            device=device,
+            dtype=torch.float32,
+        )
+    else:
+        center = torch.tensor(camera_cfg["center"], device=device, dtype=torch.float32)
+        radius = float(camera_cfg["radius"]) * (1.0 + 0.06 * math.sin(2.0 * phase))
+        eye = torch.tensor(
+            [
+                center[0] + math.sin(phase) * radius,
+                center[1] + math.cos(phase) * radius,
+                center[2] + float(camera_cfg["height"]) + 0.15 * math.cos(1.7 * phase),
+            ],
+            device=device,
+            dtype=torch.float32,
+        )
+        target = center + torch.tensor([0.0, 0.0, float(camera_cfg["target_z"])], device=device, dtype=torch.float32)
     c2w = camera_to_world(eye, target)
     viewmat = nerfstudio_viewmat(c2w).unsqueeze(0)
-    focal = 0.92 * width
+    focal = float(camera_cfg.get("focal_scale", 0.92)) * width
+    # apply light shading for all points before rasterization
+    normal_factor = (normals @ torch.tensor(DEFAULT_LIGHT_DIR, device=device, dtype=torch.float32)).clamp(0.0, 1.0)
+    shade = (AMBIENT + DIFFUSE * normal_factor).clamp(0.0, 1.0).unsqueeze(1)
+    lit_colors = torch.clamp(colors * shade, 0.0, 1.0)
     intrinsics = torch.tensor(
         [[[focal, 0.0, width / 2.0], [0.0, focal, height / 2.0], [0.0, 0.0, 1.0]]],
         device=device,
@@ -319,22 +850,31 @@ def render_frame(
             quats=quats,
             scales=scales,
             opacities=opacities,
-            colors=colors,
+            colors=lit_colors,
             viewmats=viewmat,
             Ks=intrinsics,
             width=width,
             height=height,
             packed=True,
-            near_plane=0.02,
+            near_plane=0.01,
             far_plane=30.0,
             render_mode="RGB",
             sh_degree=None,
             rasterize_mode="antialiased",
-            radius_clip=0.2,
+            radius_clip=0.12,
         )
-    background = torch.tensor([0.70, 0.68, 0.62], device=device, dtype=torch.float32)
+    background = torch.tensor([0.72, 0.70, 0.67], device=device, dtype=torch.float32)
     image = render[0, :, :, :3] + (1.0 - alpha[0, :, :, :1]) * background
-    image = torch.clamp(image, 0.0, 1.0)
+    # light falloff by distance for soft contrast and continuity.
+    z_coords = means[:, 2]
+    z_min = float(torch.min(z_coords))
+    z_max = float(torch.max(z_coords))
+    depth_span = max(z_max - z_min, 1e-6)
+    depth = torch.clamp((z_coords - z_min) / depth_span, 0.0, 1.0).mean()
+    shade = torch.ones(1, dtype=torch.float32, device=device) * (1.0 - 0.06 * depth)
+    image = torch.clamp(image * shade.view(1, 1, 1), 0.0, 1.0)
+    # tone mapping for a flatter dynamic range.
+    image = torch.sqrt(torch.clamp(image, 0.0, 1.0))
     return (image.detach().cpu().numpy() * 255).astype(np.uint8)
 
 
