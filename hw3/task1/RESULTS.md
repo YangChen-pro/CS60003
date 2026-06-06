@@ -18,6 +18,8 @@ Task1 当前只保留真实高质量链路。早期 AI smoke test、程序化 pr
 本地最终展示视频：
 
 ```text
+hw3/task1/outputs/task1_real_high_quality/renders/fused_splats/fused_scene.mp4
+hw3/task1/outputs/task1_real_high_quality/renders/fused_splats/fused_scene_manifest.json
 hw3/task1/outputs/task1_real_high_quality/renders/final_3dgs_backplate/fused_scene.mp4
 hw3/task1/outputs/task1_real_high_quality/renders/final_3dgs_backplate/fused_scene_manifest.json
 hw3/task1/outputs/task1_real_high_quality/renders/final_3dgs_backplate/frame_0072.png
@@ -26,21 +28,26 @@ hw3/task1/outputs/task1_real_high_quality/renders/final_3dgs_backplate/frame_007
 远程对应路径：
 
 ```text
-/home/dell/yc/CS60003/hw3/task1/outputs/task1_real_high_quality/renders/final_3dgs_backplate/fused_scene.mp4
+/home/dell/yc/CS60003/hw3/task1/outputs/task1_real_high_quality/renders/fused_splats/fused_scene.mp4
 ```
 
 视频编码参数：1920×1080、144 帧、24 fps、CRF 16，远程 ffmpeg 编码日志已确认。
 
 ## 融合渲染策略
 
-最终视频使用 `compose_3dgs_backplate_video.py` 生成：
+当前保留两类视频：
+
+- strict 统一 3D 视频使用 `render_fused_splats.py` 生成，直接加载 A/background 的 `splat.ply` 与 B/C 的 `model.obj`，在同一 gsplat renderer 与同一 camera path 下渲染。该视频用于拦截 2D/2.5D 后合成冒充 3D 融合。
+- 高质量视觉预览视频使用 `compose_3dgs_backplate_video.py` 生成，只作为报告辅助预览，不作为 strict 交付。
+
+后合成预览视频的生成方式如下：
 
 1. 背景来自训练完成的 Mip-NeRF 360 `counter` 3DGS，并先用 Nerfstudio 渲染 215 张高质量 backplate。
 2. 物体 A 保留已训练 3DGS splat 权重，同时在最终展示视频中使用真实前景 mask/cutout 插入，以保证当前手机素材下的视觉质量。
 3. 物体 B 使用训练完成的 SDS 测试渲染序列和导出的 mesh/ckpt 作为资产来源。
 4. 物体 C 使用训练完成的 Zero123 测试渲染序列和导出的 mesh/ckpt 作为资产来源；最终脚本过滤不可见角度，并使用 C 专用 mask，避免空帧或背景色块进入视频。
 
-这段视频是报告级高质量融合展示；严格的原生单渲染器融合尝试保留在 `render_fused_splats.py` / `render_real_chain_blender.py` 中，但由于当前 splat/mesh 统一渲染质量低于 backplate 方案，不作为最终展示视频。报告中应据实说明“统一表达形式”的取舍：训练权重保留为 3DGS splat / OBJ / ckpt，展示视频采用 3DGS 背景渲染帧与训练对象渲染结果的后合成。
+strict 统一 3D 视频已经生成在 `renders/fused_splats/fused_scene.mp4`，manifest 中记录四个真实 3D 资产源和 splat 数量；该视频满足“不是 2D 贴图合成”的验证口径，但背景视觉质量仍弱于 Nerfstudio backplate 预览。报告中必须据实区分：`fused_splats/` 是统一 3D 渲染证据，`final_3dgs_backplate/` 是视觉预览，不可把后者冒充 strict 结果。
 
 ## 质量与限制
 
@@ -49,8 +56,8 @@ hw3/task1/outputs/task1_real_high_quality/renders/final_3dgs_backplate/frame_007
 - A 的原始 3DGS 已完成并导出 splat；后续基于前景 mask 的重跑只匹配到 2/8 张图，不作为正式重建结果。
 - A/background 的 TSDF mesh 导出因 `splatfacto` 输出不含 TSDF 所需 RGB 字段而跳过；Gaussian splat 权重是正式 3DGS 产物。
 - B 的视觉结果偏绿色蘑菇，和原 prompt 中的 violet crystal 有偏差；训练链路、SDS 结果和 SwanLab 曲线是真实的。
-- C 的 Zero123 结果可用，但部分角度不可见；最终视频只使用可见帧。
-- 当前视频适合报告展示和质量说明；若要完全满足“同一个 3D 场景原生融合渲染”的最严格解释，仍需要继续改进 splat 与 mesh 的同一渲染器融合质量。
+- C 的 Zero123 结果可用，但部分角度不可见；后合成预览只使用可见帧，strict 统一 3D 视频使用导出的 OBJ surface splats。
+- 当前 strict 统一 3D 视频已避免 2D/2.5D 后合成，但背景 splat 的相机/尺度视觉质量仍不理想；若追求最终展示质量，还需要继续改进背景 3DGS 相机轨迹和 B/C mesh-splat 转换质量。
 
 ## SwanLab 策略
 

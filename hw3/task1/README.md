@@ -95,7 +95,13 @@ real_chain:
 - object C：Zero123XL，1200 steps，SwanLab 已记录。
 - background：Mip-NeRF 360 `counter` + Nerfstudio `splatfacto`，30k steps，SwanLab 已记录。
 
-最终本地视频：
+严格统一 3D 本地视频：
+
+```text
+hw3/task1/outputs/task1_real_high_quality/renders/fused_splats/fused_scene.mp4
+```
+
+高质量后合成预览视频：
 
 ```text
 hw3/task1/outputs/task1_real_high_quality/renders/final_3dgs_backplate/fused_scene.mp4
@@ -104,17 +110,19 @@ hw3/task1/outputs/task1_real_high_quality/renders/final_3dgs_backplate/fused_sce
 远程视频：
 
 ```text
-/home/dell/yc/CS60003/hw3/task1/outputs/task1_real_high_quality/renders/final_3dgs_backplate/fused_scene.mp4
+/home/dell/yc/CS60003/hw3/task1/outputs/task1_real_high_quality/renders/fused_splats/fused_scene.mp4
 ```
 
 关键帧和 manifest：
 
 ```text
+hw3/task1/outputs/task1_real_high_quality/renders/fused_splats/frame_0072.png
+hw3/task1/outputs/task1_real_high_quality/renders/fused_splats/fused_scene_manifest.json
 hw3/task1/outputs/task1_real_high_quality/renders/final_3dgs_backplate/frame_0072.png
 hw3/task1/outputs/task1_real_high_quality/renders/final_3dgs_backplate/fused_scene_manifest.json
 ```
 
-视频参数：1920×1080、144 帧、24 fps、CRF 16。结果细节、限制、SwanLab 链接和 ModelScope 权重路径见 `RESULTS.md`、`EVALUATION.md`、`SWANLAB_RUNS.md` 与 `MODELSCOPE_WEIGHTS.md`。
+严格统一 3D 视频参数：1920×1080、144 帧、24 fps，由 `render_fused_splats.py` 直接加载 A/background 3DGS splat 与 B/C OBJ mesh 并用同一 gsplat camera path 渲染。视觉预览视频仍保留在 `final_3dgs_backplate/`，但不作为 strict 交付。结果细节、限制、SwanLab 链接和 ModelScope 权重路径见 `RESULTS.md`、`EVALUATION.md`、`SWANLAB_RUNS.md` 与 `MODELSCOPE_WEIGHTS.md`。
 
 ## SwanLab / ModelScope
 
