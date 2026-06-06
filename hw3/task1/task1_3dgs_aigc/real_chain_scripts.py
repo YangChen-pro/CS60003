@@ -6,9 +6,11 @@ from pathlib import Path
 from typing import Any
 
 from task1_3dgs_aigc.real_chain_export_scripts import export_script
+from task1_3dgs_aigc.script_utils import resolve_swanlab_config, swanlab_tag_args, to_cli_list, write_script
 
 
 def write_scripts(config: dict[str, Any], run_dir: Path, scripts_dir: Path) -> list[Path]:
+    scripts_dir.mkdir(parents=True, exist_ok=True)
     scripts = [
         _write_script(scripts_dir / "00_check_tools.sh", _check_tools_script(config)),
         _write_script(scripts_dir / "01_object_a_splatfacto.sh", _splatfacto_script(config, run_dir, "object_a")),
@@ -23,7 +25,7 @@ def write_scripts(config: dict[str, Any], run_dir: Path, scripts_dir: Path) -> l
 
 def _check_tools_script(config: dict[str, Any]) -> str:
     required = " ".join(config["real_chain"]["tools"]["required_cli"])
-    swanlab = _swanlab_config(config)
+    swanlab = resolve_swanlab_config(config)
     return f"""#!/usr/bin/env bash
 set -euo pipefail
 for tool in {required}; do
@@ -49,7 +51,6 @@ test -f "{config['real_chain']['tools']['object_foreground_preprocessor']}" || {
 test -f "{config['real_chain']['tools']['nerfstudio_swanlab_runner']}" || {{ echo "missing Nerfstudio SwanLab runner" >&2; exit 1; }}
 test -f "{config['real_chain']['tools']['threestudio_swanlab_runner']}" || {{ echo "missing threestudio SwanLab runner" >&2; exit 1; }}
 test -f "{Path(config['real_chain']['tools']['nerfstudio_swanlab_runner']).with_name('run_trusted_torch.py')}" || {{ echo "missing trusted torch runner" >&2; exit 1; }}
-test -f "{config['real_chain']['tools']['blender_renderer']}" || {{ echo "missing Blender renderer script" >&2; exit 1; }}
 python - <<'PY'
 import cv2
 import swanlab
@@ -63,9 +64,8 @@ def _splatfacto_script(config: dict[str, Any], run_dir: Path, target: str) -> st
     context = _splatfacto_context(config, run_dir, target)
     processed = run_dir / "processed" / target
     output = run_dir / "nerfstudio" / target
-    swanlab = _swanlab_config(config)
+    swanlab = resolve_swanlab_config(config)
     experiment_name = f"{config['experiment']['name']}-{target}-3dgs"
-    tags = _swanlab_tags(swanlab, [target, "3dgs", "nerfstudio"])
     return f"""#!/usr/bin/env bash
 set -euo pipefail
 export QT_QPA_PLATFORM="${{QT_QPA_PLATFORM:-offscreen}}"
@@ -80,7 +80,7 @@ python "{config['real_chain']['tools']['nerfstudio_swanlab_runner']}" \\
   --experiment-name "{experiment_name}" \\
   --mode "{swanlab['mode']}" \\
   --logdir "{run_dir}/swanlab/{target}" \\
-  {tags} \\
+  {swanlab_tag_args(swanlab, [target, "3dgs", "nerfstudio"])} \\
   -- ns-train splatfacto-big \\
   --vis tensorboard \\
   --data "{processed}" \\
@@ -175,7 +175,7 @@ def _object_b_script(config: dict[str, Any], run_dir: Path) -> str:
     output = run_dir / "object_b_threestudio"
     prompt = chain["object_b"]["prompt"].replace('"', '\\"')
     sds_model = chain["object_b"]["sds_model"].replace('"', '\\"')
-    swanlab = _swanlab_config(config)
+    swanlab = resolve_swanlab_config(config)
     return f"""#!/usr/bin/env bash
 set -euo pipefail
 mkdir -p "{output}"
@@ -213,12 +213,12 @@ def _object_c_script(config: dict[str, Any], run_dir: Path) -> str:
     zero123_config = Path(chain["tools"]["zero123_config"])
     zero123_config_arg = zero123_config.relative_to(threestudio_root) if zero123_config.is_relative_to(threestudio_root) else zero123_config
     object_c = chain["object_c"]
-    batch_size = _cli_list(object_c["random_camera_batch_size"])
-    height = _cli_list(object_c["random_camera_height"])
-    width = _cli_list(object_c["random_camera_width"])
-    milestones = _cli_list(object_c["resolution_milestones"])
+    batch_size = to_cli_list(object_c["random_camera_batch_size"])
+    height = to_cli_list(object_c["random_camera_height"])
+    width = to_cli_list(object_c["random_camera_width"])
+    milestones = to_cli_list(object_c["resolution_milestones"])
     resume_checkpoint = str(object_c.get("resume_checkpoint", "")).replace('"', '\\"')
-    swanlab = _swanlab_config(config)
+    swanlab = resolve_swanlab_config(config)
     return f"""#!/usr/bin/env bash
 set -euo pipefail
 mkdir -p "{output}"
@@ -263,7 +263,6 @@ python "{chain['tools']['threestudio_swanlab_runner']}" \\
 
 
 def _render_script(config: dict[str, Any], run_dir: Path) -> str:
-    renderer = config["real_chain"]["tools"]["blender_renderer"]
     return f"""#!/usr/bin/env bash
 set -euo pipefail
 mkdir -p "{run_dir}/renders"
@@ -274,9 +273,12 @@ python "{run_dir}/../scripts/render_fused_splats.py" \\
   --background-max 650000 \\
   --object-a-max 360000 \\
   --mesh-max 260000
-blender -b -P "{renderer}" -- "{run_dir}" "{run_dir}/renders"
 """
 
+
+
+def _write_script(path: Path, content: str) -> Path:
+    return write_script(path, content)
 
 
 def expected_outputs(run_dir: Path) -> dict[str, str]:
@@ -290,30 +292,3 @@ def expected_outputs(run_dir: Path) -> dict[str, str]:
         "object_c_mesh": f"{run_dir}/exports/object_c/mesh/*",
         "render_video": f"{run_dir}/renders/fused_splats/fused_scene.mp4",
     }
-
-
-def _write_script(path: Path, text: str) -> Path:
-    path.write_text(text, encoding="utf-8")
-    path.chmod(0o755)
-    return path
-
-
-def _cli_list(values: list[int | float | str]) -> str:
-    return "[" + ",".join(str(value) for value in values) + "]"
-
-
-def _swanlab_config(config: dict[str, Any]) -> dict[str, Any]:
-    swanlab = config.get("logging", {}).get("swanlab", {})
-    return {
-        "enabled": bool(swanlab.get("enabled", False)),
-        "project": str(swanlab.get("project", "cs60003-hw3-task1")),
-        "group": str(swanlab.get("group", "real-high-quality")),
-        "mode": str(swanlab.get("mode", "cloud")),
-        "tags": list(swanlab.get("tags", [])),
-        "env_file": str(swanlab.get("env_file", ".helloagents/secrets/hw3.env")),
-    }
-
-
-def _swanlab_tags(swanlab: dict[str, Any], extra: list[str]) -> str:
-    tags = [*swanlab.get("tags", []), *extra]
-    return " ".join(f'--tag "{tag}"' for tag in tags)

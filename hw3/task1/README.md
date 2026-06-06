@@ -1,6 +1,6 @@
 # HW3 Task1：真实高质量 3DGS 与 AIGC 融合链路
 
-本目录只保留高质量正式链路。早期 AI 图片 smoke test、程序化 proxy 点云、伪正式 `formal_ai_chain` 和报告素材已经移除，避免把低质量中间结果误当成作业交付。
+本目录只保留 task1 高质量正式链路。早期非正式中间产物和报告草稿不再保留。
 
 代码骨架继续对齐 HW1/HW2：
 
@@ -25,7 +25,7 @@ hw3/task1/configs/real_high_quality.yaml
 2. 背景：真实场景图片或视频 → COLMAP / Nerfstudio `splatfacto-big` → Gaussian splat 与 TSDF mesh；训练曲线通过 SwanLab 记录。
 3. 物体 B：文本 prompt → threestudio / SDS 训练 → 3D mesh；WandB 标量由 SwanLab 同步，不上传 WandB 云端。
 4. 物体 C：真实单图前景 → threestudio `zero123.yaml` / Zero123 → 3D mesh；WandB 标量由 SwanLab 同步，不上传 WandB 云端。
-5. 融合渲染：优先使用训练完成的背景 3DGS 渲染 backplate，再融合 A/B/C 的已训练资产渲染结果，输出 1080p 漫游视频和报告可引用画面；原生 splat/mesh 同渲染器脚本保留为技术验证，不把低质量预览当成最终结果。
+5. 融合渲染：使用统一 3D 表达（object A 的 splat、object B/C 的 mesh）在同一相机路径下输出一段 1080p 漫游视频，用于报告与评估。
 
 ## 真实素材放置
 
@@ -84,7 +84,7 @@ real_chain:
     mode: run
 ```
 
-再执行同一条 `train.py` 命令。`00_check_tools.sh` 会先检查 COLMAP、FFmpeg、Blender、Nerfstudio、threestudio 和 Zero123 权重；缺少依赖时直接失败，不做静默降级。
+再执行同一条 `train.py` 命令。`00_check_tools.sh` 会先检查 COLMAP、FFmpeg、Nerfstudio、threestudio 和 Zero123 权重；缺少依赖时直接失败，不做静默降级。
 
 ## 当前真实运行结果
 
@@ -101,12 +101,6 @@ real_chain:
 hw3/task1/outputs/task1_real_high_quality/renders/fused_splats/fused_scene.mp4
 ```
 
-高质量后合成预览视频：
-
-```text
-hw3/task1/outputs/task1_real_high_quality/renders/final_3dgs_backplate/fused_scene.mp4
-```
-
 远程视频：
 
 ```text
@@ -115,14 +109,13 @@ hw3/task1/outputs/task1_real_high_quality/renders/final_3dgs_backplate/fused_sce
 
 关键帧和 manifest：
 
-```text
+ ```text
 hw3/task1/outputs/task1_real_high_quality/renders/fused_splats/frame_0072.png
 hw3/task1/outputs/task1_real_high_quality/renders/fused_splats/fused_scene_manifest.json
-hw3/task1/outputs/task1_real_high_quality/renders/final_3dgs_backplate/frame_0072.png
-hw3/task1/outputs/task1_real_high_quality/renders/final_3dgs_backplate/fused_scene_manifest.json
 ```
 
-严格统一 3D 视频参数：1920×1080、144 帧、24 fps，由 `render_fused_splats.py` 直接加载 A/background 3DGS splat 与 B/C OBJ mesh 并用同一 gsplat camera path 渲染。视觉预览视频仍保留在 `final_3dgs_backplate/`，但不作为 strict 交付。结果细节、限制、SwanLab 链接和 ModelScope 权重路径见 `RESULTS.md`、`EVALUATION.md`、`SWANLAB_RUNS.md` 与 `MODELSCOPE_WEIGHTS.md`。
+严格统一 3D 视频参数：1920×1080、144 帧、24 fps，由 `render_fused_splats.py` 直接加载 A/background 3DGS splat 与 B/C OBJ mesh 并用同一 gsplat camera path 渲染。
+结果细节、限制、SwanLab 链接和 ModelScope 权重路径见 `RESULTS.md`、`EVALUATION.md`、`SWANLAB_RUNS.md` 与 `MODELSCOPE_WEIGHTS.md`。
 
 ## SwanLab / ModelScope
 

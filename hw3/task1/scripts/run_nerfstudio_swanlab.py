@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import argparse
-import os
 import sys
-import sysconfig
 from pathlib import Path
+
+from runtime_bootstrap import ensure_swanlab_api_key, load_env_file, prepare_cuda_extension_env
 
 
 def parse_args() -> argparse.Namespace:
@@ -31,11 +31,9 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     """Initialize SwanLab, sync TensorBoard scalars, then run Nerfstudio."""
     args = parse_args()
-    _load_env_file(args.env_file)
-    api_key = os.environ.get("SWANLAB_API_KEY", "").strip()
-    if not api_key:
-        raise RuntimeError("SWANLAB_API_KEY is required for training SwanLab logging.")
-    _prepare_cuda_extension_env(args.logdir)
+    load_env_file(args.env_file)
+    api_key = ensure_swanlab_api_key()
+    prepare_cuda_extension_env(args.logdir)
 
     import swanlab
     from nerfstudio.scripts.train import entrypoint
@@ -58,61 +56,6 @@ def main() -> None:
         entrypoint()
     finally:
         swanlab.finish()
-
-
-def _load_env_file(path: str | Path) -> None:
-    env_path = Path(path)
-    if not env_path.is_file():
-        return
-    for raw_line in env_path.read_text(encoding="utf-8").splitlines():
-        line = raw_line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        key, value = line.split("=", 1)
-        key = key.removeprefix("export ").strip()
-        value = value.strip().strip("'\"")
-        if key and key not in os.environ:
-            os.environ[key] = value
-
-
-def _prepare_cuda_extension_env(logdir: str | Path) -> None:
-    """Expose conda CUDA headers/libs for Nerfstudio JIT extensions."""
-    purelib = Path(sysconfig.get_paths()["purelib"])
-    nvidia_root = purelib / "nvidia"
-    include_dirs = sorted(str(path) for path in nvidia_root.glob("*/include") if path.is_dir())
-    lib_dirs = sorted(str(path) for path in nvidia_root.glob("*/lib") if path.is_dir())
-    conda_prefix = os.environ.get("CONDA_PREFIX", "")
-    if conda_prefix:
-        include_dirs.insert(0, str(Path(conda_prefix) / "targets" / "x86_64-linux" / "include"))
-        include_dirs.insert(0, str(Path(conda_prefix) / "include"))
-        lib_dirs.insert(0, str(Path(conda_prefix) / "lib"))
-        os.environ.setdefault("CUDA_HOME", conda_prefix)
-    _prepend_path_env("CPATH", include_dirs)
-    _prepend_path_env("CPLUS_INCLUDE_PATH", include_dirs)
-    _prepend_path_env("LIBRARY_PATH", lib_dirs)
-    _prepend_path_env("LD_LIBRARY_PATH", lib_dirs)
-    extension_dir = _torch_extensions_dir(logdir)
-    extension_dir.mkdir(parents=True, exist_ok=True)
-    os.environ.setdefault("TORCH_EXTENSIONS_DIR", str(extension_dir))
-    os.environ.setdefault("TORCH_CUDA_ARCH_LIST", "8.6")
-    os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
-
-
-def _prepend_path_env(name: str, values: list[str]) -> None:
-    existing = [value for value in os.environ.get(name, "").split(":") if value]
-    merged: list[str] = []
-    for value in [*values, *existing]:
-        if value and value not in merged:
-            merged.append(value)
-    if merged:
-        os.environ[name] = ":".join(merged)
-
-
-def _torch_extensions_dir(logdir: str | Path) -> Path:
-    log_path = Path(logdir).resolve()
-    if len(log_path.parents) >= 2:
-        return log_path.parents[1] / "torch_extensions"
-    return Path.home() / ".cache" / "torch_extensions_hw3"
 
 
 if __name__ == "__main__":

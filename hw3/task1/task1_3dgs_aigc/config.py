@@ -41,7 +41,7 @@ DEFAULT_CONFIG: dict[str, Any] = {
             "background_video": "",
         },
         "tools": {
-            "required_cli": ["ns-process-data", "ns-train", "ns-export", "ns-eval", "colmap", "ffmpeg", "blender"],
+            "required_cli": ["ns-process-data", "ns-train", "ns-export", "ns-eval", "colmap", "ffmpeg"],
             "threestudio_launch": "hw3/task1/external/threestudio/launch.py",
             "zero123_config": "hw3/task1/external/threestudio/configs/zero123.yaml",
             "zero123_checkpoint": "hw3/task1/external/threestudio/load/zero123/zero123-xl.ckpt",
@@ -49,7 +49,6 @@ DEFAULT_CONFIG: dict[str, Any] = {
             "object_foreground_preprocessor": "hw3/task1/scripts/preprocess_object_foreground.py",
             "nerfstudio_swanlab_runner": "hw3/task1/scripts/run_nerfstudio_swanlab.py",
             "threestudio_swanlab_runner": "hw3/task1/scripts/run_threestudio_swanlab.py",
-            "blender_renderer": "hw3/task1/scripts/render_real_chain_blender.py",
         },
         "quality": {
             "splatfacto_iterations": 30000,
@@ -145,7 +144,6 @@ def resolve_paths(config: dict[str, Any], output_root: str | None = None) -> Non
         "object_foreground_preprocessor",
         "nerfstudio_swanlab_runner",
         "threestudio_swanlab_runner",
-        "blender_renderer",
     ]:
         tools[key] = str(resolve_repo_path(tools[key], repo_root))
     swanlab = config.get("logging", {}).get("swanlab", {})

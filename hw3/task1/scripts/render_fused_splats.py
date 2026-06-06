@@ -70,8 +70,23 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--frames", type=int, default=144)
     parser.add_argument("--fps", type=int, default=24)
     parser.add_argument("--background-max", type=int, default=650_000)
-    parser.add_argument("--object-a-max", type=int, default=360_000)
+    parser.add_argument("--object-a-max", type=int, default=450_000)
     parser.add_argument("--mesh-max", type=int, default=260_000)
+    parser.add_argument("--object-a-opacity-quantile", type=float, default=0.35)
+    parser.add_argument("--object-a-scale-mult", type=float, default=0.44)
+    parser.add_argument("--object-b-max", type=int, default=260_000)
+    parser.add_argument("--object-c-max", type=int, default=300_000)
+    parser.add_argument("--object-b-scale-max", type=float, default=0.0130)
+    parser.add_argument("--object-b-base-scale", type=float, default=0.0038)
+    parser.add_argument("--object-c-scale-max", type=float, default=0.0110)
+    parser.add_argument("--object-c-base-scale", type=float, default=0.0032)
+    parser.add_argument("--camera-radius-scale", type=float, default=0.82)
+    parser.add_argument("--camera-height-scale", type=float, default=0.86)
+    parser.add_argument("--radius-clip", type=float, default=0.085)
+    parser.add_argument("--gamma", type=float, default=1.0)
+    parser.add_argument("--camera-orbit-eccentricity", type=float, default=0.85)
+    parser.add_argument("--camera-radial-sweep", type=float, default=0.10)
+    parser.add_argument("--camera-height-sweep", type=float, default=0.18)
     parser.add_argument("--seed", type=int, default=1337)
     parser.add_argument("--device", default="cuda")
     return parser.parse_args()
@@ -86,7 +101,18 @@ def main() -> None:
     frames_dir.mkdir(parents=True, exist_ok=True)
 
     assets = build_assets(args, rng)
-    camera_cfg = build_camera_config(args.run_dir, assets, total_frames=args.frames)
+    camera_cfg = build_camera_config(
+        args.run_dir,
+        assets,
+        total_frames=args.frames,
+        radius_scale=args.camera_radius_scale,
+        height_scale=args.camera_height_scale,
+        orbit_eccentricity=args.camera_orbit_eccentricity,
+        radial_sweep=args.camera_radial_sweep,
+        height_sweep=args.camera_height_sweep,
+    )
+    camera_cfg["radius_clip"] = float(args.radius_clip)
+    camera_cfg["gamma"] = float(args.gamma)
     tensors = concat_assets(assets, args.device)
     render_sequence(args, frames_dir, tensors, camera_cfg)
     video_path = args.output_dir / "fused_scene.mp4"
@@ -128,13 +154,13 @@ def build_assets(args: argparse.Namespace, rng: np.random.Generator) -> list[Spl
             name="object_a",
             relative_path="exports/object_a/splat/splat.ply",
             max_points=args.object_a_max,
-            opacity_quantile=0.45,
+            opacity_quantile=args.object_a_opacity_quantile,
             crop_percentile=(2, 98),
             target_height=1.0,
             xy=(background_center[0] - 0.95, background_center[1] - 0.03),
             ground_z=background_ground + 0.01,
             robust_percentile=(5, 95),
-            scale_multiplier=0.38,
+            scale_multiplier=args.object_a_scale_mult,
             scale_max=0.015,
             apply_dataparser=True,
             dataparser_target="object_a",
@@ -143,8 +169,10 @@ def build_assets(args: argparse.Namespace, rng: np.random.Generator) -> list[Spl
         _mesh_spec(
             name="object_b",
             relative_path="exports/object_b/mesh/model.obj",
-            max_points=args.mesh_max,
-            base_scale=0.0042,
+            max_points=args.object_b_max,
+            base_scale=args.object_b_base_scale,
+            scale_cap=0.013,
+            scale_max=args.object_b_scale_max,
             target_height=0.78,
             xy=(background_center[0], background_center[1] - 0.01),
             ground_z=background_ground + 0.01,
@@ -153,8 +181,10 @@ def build_assets(args: argparse.Namespace, rng: np.random.Generator) -> list[Spl
         _mesh_spec(
             name="object_c",
             relative_path="exports/object_c/mesh/model.obj",
-            max_points=args.mesh_max,
-            base_scale=0.0046,
+            max_points=args.object_c_max,
+            base_scale=args.object_c_base_scale,
+            scale_cap=0.011,
+            scale_max=args.object_c_scale_max,
             target_height=0.84,
             xy=(background_center[0] + 0.95, background_center[1] + 0.02),
             ground_z=background_ground + 0.03,
@@ -186,12 +216,19 @@ def _gaussian_spec(
 
 
 def _mesh_spec(
-    name: str, relative_path: str, max_points: int, base_scale: float,
-    target_height: float, xy: tuple[float, float], ground_z: float,
+    name: str,
+    relative_path: str,
+    max_points: int,
+    base_scale: float,
+    scale_max: float,
+    scale_cap: float,
+    target_height: float,
+    xy: tuple[float, float],
+    ground_z: float,
     seed: int = 0,
 ) -> dict[str, Any]:
     spec = locals()
-    spec.update({"robust_percentile": (0, 100), "scale_multiplier": 1.0, "scale_max": 0.014})
+    spec.update({"robust_percentile": (0, 100), "scale_multiplier": 1.0})
     spec["apply_dataparser"] = False
     spec["dataparser_target"] = ""
     return spec
@@ -205,6 +242,7 @@ def _load_normalized_asset(run_dir: Path, spec: dict, reference: SplatAsset | No
             spec["name"],
             max_points=spec["max_points"],
             base_scale=spec["base_scale"],
+            scale_cap=spec["scale_cap"],
             seed=spec.get("seed", 0),
         )
     else:
@@ -332,6 +370,14 @@ def build_manifest(
     asset_hashes = {}
     for asset in assets:
         source_path = args.run_dir / asset.source if not Path(asset.source).is_absolute() else Path(asset.source)
+        if not source_path.exists():
+            cwd_path = Path.cwd() / asset.source
+            if cwd_path.exists():
+                source_path = cwd_path
+        if not source_path.exists():
+            alt_path = Path(asset.source.lstrip("/"))
+            if alt_path.exists():
+                source_path = alt_path
         asset_hashes[asset.name] = _asset_sha256(source_path.as_posix())
     return {
         "renderer": RENDERER_NAME,
@@ -350,6 +396,11 @@ def build_manifest(
             "height": camera_cfg.get("height"),
             "target_z": camera_cfg.get("target_z"),
             "focal_scale": focal_scale,
+            "orbit_eccentricity": camera_cfg.get("orbit_eccentricity"),
+            "radial_sweep": camera_cfg.get("radial_sweep"),
+            "height_sweep": camera_cfg.get("height_sweep"),
+            "radius_clip": camera_cfg.get("radius_clip"),
+            "gamma": camera_cfg.get("gamma"),
             "centers": camera_cfg.get("centers"),
             "targets": camera_cfg.get("targets"),
         },
@@ -495,6 +546,7 @@ def load_obj_as_splats(
     *,
     max_points: int,
     base_scale: float,
+    scale_cap: float,
     seed: int,
 ) -> SplatAsset:
     vertices: list[tuple[float, float, float]] = []
@@ -561,7 +613,13 @@ def load_obj_as_splats(
     means, rgb = prune_outliers(means, rgb, percentile=0.999)
     if vertex_normals_np.size:
         sampled_normals = sampled_normals[: len(means)]
-    scales = adaptive_scales(means, base_scale=base_scale, target_count=max_points, rng_seed=seed)
+    scales = adaptive_scales(
+        means,
+        base_scale=base_scale,
+        scale_cap=scale_cap,
+        target_count=max_points,
+        rng_seed=seed,
+    )
     quats = np.zeros((means.shape[0], 4), dtype=np.float32)
     quats[:, 0] = 1.0
     opacities = np.full(means.shape[0], 0.96, dtype=np.float32)
@@ -660,13 +718,20 @@ def enhance_obj_colors(name: str, colors: np.ndarray, normals: np.ndarray) -> np
     return np.clip(blend * shaded + (1.0 - blend) * fallback, 0.0, 1.0)
 
 
-def adaptive_scales(means: np.ndarray, *, base_scale: float, target_count: int, rng_seed: int) -> np.ndarray:
+def adaptive_scales(
+    means: np.ndarray,
+    *,
+    base_scale: float,
+    scale_cap: float,
+    target_count: int,
+    rng_seed: int,
+) -> np.ndarray:
     del target_count, rng_seed
     mins = np.percentile(means, 0.2, axis=0)
     maxs = np.percentile(means, 99.8, axis=0)
     diag = np.linalg.norm(maxs - mins) + 1e-6
     target = np.full((means.shape[0], 3), base_scale * (diag / 0.9), dtype=np.float32)
-    return np.clip(target, 0.0025, 0.022)
+    return np.clip(target, 0.0020, scale_cap)
 
 
 def prune_outliers(points: np.ndarray, colors: np.ndarray, *, percentile: float) -> tuple[np.ndarray, np.ndarray]:
@@ -680,7 +745,17 @@ def prune_outliers(points: np.ndarray, colors: np.ndarray, *, percentile: float)
     return points[keep], colors[keep]
 
 
-def build_camera_config(run_dir: Path, assets: list[SplatAsset], total_frames: int) -> dict[str, Any]:
+def build_camera_config(
+    run_dir: Path,
+    assets: list[SplatAsset],
+    total_frames: int,
+    *,
+    radius_scale: float = 1.0,
+    height_scale: float = 1.0,
+    orbit_eccentricity: float = 0.85,
+    radial_sweep: float = 0.10,
+    height_sweep: float = 0.18,
+) -> dict[str, Any]:
     background = next(asset for asset in assets if asset.name == "background")
     trajectory = load_background_camera_trajectory(
         run_dir,
@@ -689,6 +764,9 @@ def build_camera_config(run_dir: Path, assets: list[SplatAsset], total_frames: i
         target_width=1920,
     )
     if trajectory is not None:
+        trajectory["orbit_eccentricity"] = float(orbit_eccentricity)
+        trajectory["radial_sweep"] = float(radial_sweep)
+        trajectory["height_sweep"] = float(height_sweep)
         return trajectory
     mins = np.percentile(background.means, 2, axis=0)
     maxs = np.percentile(background.means, 98, axis=0)
@@ -698,10 +776,13 @@ def build_camera_config(run_dir: Path, assets: list[SplatAsset], total_frames: i
     return {
         "mode": "orbit",
         "center": center,
-        "radius": float(np.clip(xy_radius, 1.2, 4.5)),
-        "height": float(max(1.35, 0.22 * span[2] + 1.6)),
+        "radius": float(np.clip(xy_radius * float(radius_scale), 1.0, 4.5)),
+        "height": float(max(1.2, (0.22 * span[2] + 1.6) * float(height_scale))),
         "target_z": float(span[2] * 0.05),
         "focal_scale": _estimate_focal_scale(background.means, target_width=1920),
+        "orbit_eccentricity": float(orbit_eccentricity),
+        "radial_sweep": float(radial_sweep),
+        "height_sweep": float(height_sweep),
     }
 
 
@@ -815,6 +896,9 @@ def render_frame(
 ) -> np.ndarray:
     phase = 2.0 * math.pi * frame / max(total_frames, 1)
     mode = camera_cfg.get("mode")
+    orbit_eccentricity = float(camera_cfg.get("orbit_eccentricity", 0.85))
+    radial_sweep = float(camera_cfg.get("radial_sweep", 0.10))
+    height_sweep = float(camera_cfg.get("height_sweep", 0.18))
     if mode == "background_trajectory":
         centers = camera_cfg.get("centers", [])
         targets = camera_cfg.get("targets", [])
@@ -830,7 +914,7 @@ def render_frame(
         eye = center + torch.tensor(
             [
                 radius * math.sin(phase),
-                radius * math.cos(phase) * 0.85,
+                radius * math.cos(phase) * orbit_eccentricity,
                 radius * 0.16 * math.cos(1.3 * phase),
             ],
             device=device,
@@ -838,12 +922,12 @@ def render_frame(
         )
     else:
         center = torch.tensor(camera_cfg["center"], device=device, dtype=torch.float32)
-        radius = float(camera_cfg["radius"]) * (1.0 + 0.06 * math.sin(2.0 * phase))
+        radius = float(camera_cfg["radius"]) * (1.0 + float(radial_sweep) * math.sin(2.0 * phase))
         eye = torch.tensor(
             [
                 center[0] + math.sin(phase) * radius,
                 center[1] + math.cos(phase) * radius,
-                center[2] + float(camera_cfg["height"]) + 0.15 * math.cos(1.7 * phase),
+                center[2] + float(camera_cfg["height"]) + height_sweep * math.cos(1.7 * phase),
             ],
             device=device,
             dtype=torch.float32,
@@ -853,8 +937,14 @@ def render_frame(
     viewmat = nerfstudio_viewmat(c2w).unsqueeze(0)
     focal = float(camera_cfg.get("focal_scale", 0.92)) * width
     # apply light shading for all points before rasterization
-    normal_factor = (normals @ torch.tensor(DEFAULT_LIGHT_DIR, device=device, dtype=torch.float32)).clamp(0.0, 1.0)
-    shade = (AMBIENT + DIFFUSE * normal_factor).clamp(0.0, 1.0).unsqueeze(1)
+    light_vec = torch.tensor(DEFAULT_LIGHT_DIR, device=device, dtype=torch.float32)
+    normal_factor = (normals @ light_vec).clamp(-0.25, 1.0)
+    view_factor = torch.nn.functional.normalize(eye[None, :] - means, dim=1)
+    view_factor = torch.clamp((normals * view_factor).sum(dim=1), 0.0, 1.0)
+    shade = (
+        (AMBIENT + DIFFUSE * normal_factor) * 0.78
+        + 0.22 * view_factor
+    ).clamp(0.0, 1.2).unsqueeze(1)
     lit_colors = torch.clamp(colors * shade, 0.0, 1.0)
     intrinsics = torch.tensor(
         [[[focal, 0.0, width / 2.0], [0.0, focal, height / 2.0], [0.0, 0.0, 1.0]]],
@@ -878,20 +968,15 @@ def render_frame(
             render_mode="RGB",
             sh_degree=None,
             rasterize_mode="antialiased",
-            radius_clip=0.12,
+            radius_clip=float(camera_cfg.get("radius_clip", 0.085)),
         )
     background = torch.tensor([0.72, 0.70, 0.67], device=device, dtype=torch.float32)
     image = render[0, :, :, :3] + (1.0 - alpha[0, :, :, :1]) * background
-    # light falloff by distance for soft contrast and continuity.
-    z_coords = means[:, 2]
-    z_min = float(torch.min(z_coords))
-    z_max = float(torch.max(z_coords))
-    depth_span = max(z_max - z_min, 1e-6)
-    depth = torch.clamp((z_coords - z_min) / depth_span, 0.0, 1.0).mean()
-    shade = torch.ones(1, dtype=torch.float32, device=device) * (1.0 - 0.06 * depth)
-    image = torch.clamp(image * shade.view(1, 1, 1), 0.0, 1.0)
-    # tone mapping for a flatter dynamic range.
-    image = torch.sqrt(torch.clamp(image, 0.0, 1.0))
+    # tone mapping for image contrast and gamma control.
+    image = torch.clamp(image, 0.0, 1.0)
+    gamma = float(camera_cfg.get("gamma", 1.0))
+    if gamma > 0 and abs(gamma - 1.0) > 1e-6:
+        image = torch.pow(image, 1.0 / gamma)
     return (image.detach().cpu().numpy() * 255).astype(np.uint8)
 
 
