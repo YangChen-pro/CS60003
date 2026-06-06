@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import hashlib
 from pathlib import Path
 import numpy as np
 
@@ -41,6 +42,7 @@ BANNED_COMPOSITION_SOURCES = [
     "test_renders",
     "panel",
 ]
+EXPORT_SOURCE_ROOT = "exports"
 
 
 def _is_under_root(child: Path, root: Path) -> bool:
@@ -50,6 +52,28 @@ def _is_under_root(child: Path, root: Path) -> bool:
         child_resolved = child.resolve()
         root_resolved = root.resolve()
         return child_resolved == root_resolved or root_resolved in child_resolved.parents
+
+
+
+
+def _sha256_hex(path: Path) -> str:
+    """Return lowercase sha256 digest for a file path."""
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(8192), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _normalize_source_path(run_dir: Path, source: str) -> list[Path]:
+    """Normalize source candidates in and outside run dir."""
+    path = Path(source)
+    candidates = [path]
+    if not path.is_absolute():
+        run_candidate = run_dir / source
+        if run_candidate.resolve() != path.resolve():
+            candidates.append(run_candidate)
+    return candidates
 
 
 def parse_args() -> argparse.Namespace:
@@ -110,7 +134,15 @@ def validate_strict_real_outputs(run_dir: Path) -> None:
         raise FileNotFoundError("Missing object B SDS checkpoint: object_b_threestudio/**/ckpts/last.ckpt")
     if not list((run_dir / "object_c_zero123").glob("**/ckpts/last.ckpt")):
         raise FileNotFoundError("Missing object C Zero123 checkpoint: object_c_zero123/**/ckpts/last.ckpt")
-    manifest = json.loads((run_dir / "renders/fused_splats/fused_scene_manifest.json").read_text(encoding="utf-8"))
+    manifest_path = run_dir / "renders/fused_splats/fused_scene_manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest_videos = _normalize_source_path(run_dir, manifest.get("video", ""))
+    manifest_video_candidates = [path for path in manifest_videos if path.exists()]
+    if not manifest_video_candidates:
+        raise FileNotFoundError(f"Manifest video path missing: {manifest.get('video')}")
+    manifest_video = manifest_video_candidates[0]
+    if manifest.get("run_dir") and Path(str(manifest.get("run_dir"))).resolve() != run_dir.resolve():
+        raise ValueError(f"Manifest run_dir mismatch: {manifest.get('run_dir')}")
     expected = {"width": 1920, "height": 1080, "frames": 144, "fps": 24}
     if {key: manifest.get(key) for key in expected} != expected:
         raise ValueError(f"Unexpected final video manifest fields: {manifest}")
@@ -144,23 +176,32 @@ def validate_unified_3d_manifest(run_dir: Path, manifest: dict) -> None:
     missing_sources = []
     for asset in assets:
         source = asset.get("source", "") if isinstance(asset, dict) else ""
+        name = asset.get("name", "")
         if not source:
             missing_sources.append(str(asset))
             continue
-        path = Path(source)
-        candidates = [path]
-        if not path.is_absolute():
-            run_dir_candidate = run_dir / source
-            if run_dir_candidate.resolve() != path.resolve():
-                candidates.append(run_dir_candidate)
+        candidates = _normalize_source_path(run_dir, source)
+        export_root = (run_dir / EXPORT_SOURCE_ROOT)
         existing = [candidate for candidate in candidates if candidate.exists()]
         if not existing:
-            missing_sources.append(source)
-        if not any(_is_under_root(candidate.resolve(), run_dir) for candidate in existing):
+            missing_sources.append(f"{source}(missing)")
+            continue
+        if not all(_is_under_root(candidate.resolve(), run_dir) for candidate in existing):
             missing_sources.append(f"{source}(source outside run_dir)")
+        in_export = any(_is_under_root(candidate.resolve(), export_root) for candidate in existing)
+        if not in_export:
+            missing_sources.append(f"{source}(source not under exports)")
         source_lower = source.lower()
         if any(name in source_lower for name in BANNED_COMPOSITION_SOURCES):
             missing_sources.append(f"{source}(forbidden source path)")
+        if any(k in source_lower for k in {"final_3dgs_backplate", "composite", "renders", "backplate"}):
+            missing_sources.append(f"{source}(likely preview source)")
+        if name == "background" and not source_lower.endswith(".ply"):
+            missing_sources.append(f"{source}(background source must be PLY)")
+        if name == "object_a" and not source_lower.endswith(".ply"):
+            missing_sources.append(f"{source}(object_a source must be PLY)")
+        if name in {"object_b", "object_c"} and not source_lower.endswith(".obj"):
+            missing_sources.append(f"{source}(object_c source must be OBJ)")
         # Optional hardening: ensure each source points to expected real asset classes for strict 3D.
         if source_lower.startswith("object_a") and "object_a" not in str(asset.get("name", "")):
             missing_sources.append(f"{source}(asset-name mismatch)")
@@ -178,6 +219,15 @@ def validate_unified_3d_manifest(run_dir: Path, manifest: dict) -> None:
             missing_sources.append(f"{source}(object_b source should be mesh obj)")
         if asset.get("name") == "object_c" and "obj" not in source_lower and "mesh" not in source_lower:
             missing_sources.append(f"{source}(object_c source should be mesh obj)")
+        hash_map = manifest.get("asset_hashes") or {}
+        if hash_map:
+            expected_hash = hash_map.get(name)
+            if not expected_hash:
+                missing_sources.append(f"{name}(asset hash missing)")
+            else:
+                actual_hash = _sha256_hex(existing[0])
+                if expected_hash.lower() != actual_hash:
+                    missing_sources.append(f"{source}(asset hash mismatch)")
     if missing_sources:
         raise FileNotFoundError(f"Strict final render source files missing: {missing_sources}")
 
@@ -191,9 +241,17 @@ def validate_camera_payload(manifest: dict) -> None:
     if mode not in {"orbit", "stabilized_orbit", "background_trajectory"}:
         raise ValueError(f"Strict final render must use a valid camera mode, got: {camera.get('name')}")
     if mode == "background_trajectory":
-        if not (camera.get("centers") and isinstance(camera.get("centers"), list)):
-            raise ValueError("Background trajectory mode must record camera centers.")
-    required = {"center", "radius", "focal_scale"}
+        centers = camera.get("centers")
+        targets = camera.get("targets")
+        if not (centers and isinstance(centers, list) and targets and isinstance(targets, list)):
+            raise ValueError("Background trajectory mode must record centers and targets arrays.")
+        if len(centers) != len(targets):
+            raise ValueError("Background trajectory mode must keep centers and targets same length.")
+        if len(centers) == 0:
+            raise ValueError("Background trajectory mode must include at least one frame.")
+    required = {"focal_scale"}
+    if mode in {"orbit", "stabilized_orbit"}:
+        required.update({"center", "radius", "height", "target_z"})
     missing = [field for field in required if field not in camera]
     if missing:
         raise ValueError(f"Strict final render camera metadata missing required fields: {missing}")

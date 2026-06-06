@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import hashlib
 import math
 from pathlib import Path
 import subprocess
@@ -264,6 +265,17 @@ def apply_dataparser_transform(run_dir: Path, asset: SplatAsset, *, dataparser_t
     )
 
 
+
+
+def _asset_sha256(path: str) -> str:
+    file_path = Path(path)
+    digest = hashlib.sha256()
+    with file_path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(8192), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def render_sequence(
     args: argparse.Namespace,
     frames_dir: Path,
@@ -317,6 +329,10 @@ def build_manifest(
         center = np.asarray(camera_cfg["centers"], dtype=np.float32).mean(axis=0).tolist()
     if center is None:
         center = [0.0, 0.0, 0.0]
+    asset_hashes = {}
+    for asset in assets:
+        source_path = args.run_dir / asset.source if not Path(asset.source).is_absolute() else Path(asset.source)
+        asset_hashes[asset.name] = _asset_sha256(source_path.as_posix())
     return {
         "renderer": RENDERER_NAME,
         "run_dir": args.run_dir.as_posix(),
@@ -345,6 +361,7 @@ def build_manifest(
             }
             for asset in assets
         ],
+        "asset_hashes": asset_hashes,
         "video": video_path.as_posix(),
         "elapsed_seconds": round(elapsed_seconds, 3),
     }
