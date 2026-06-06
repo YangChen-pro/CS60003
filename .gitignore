@@ -53,3 +53,6 @@ hw3/task1/outputs/
 # HelloAGENTS 项目级规则与本地状态
 .helloagents/
 AGENTS.md
+
+# Local SSH temp file used by Codex remote checks
+.tmp_known_hosts

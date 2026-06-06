@@ -40,7 +40,10 @@ def create_swanlab_logger(config: dict[str, Any], run_dir: str | Path) -> NullSw
     swanlab_config = config.get("logging", {}).get("swanlab", {})
     if not bool(swanlab_config.get("enabled", False)):
         return NullSwanLabLogger()
+    if config.get("real_chain", {}).get("execution", {}).get("mode") == "plan":
+        return NullSwanLabLogger()
 
+    load_env_file(swanlab_config.get("env_file", ""))
     api_key = os.environ.get("SWANLAB_API_KEY", "").strip()
     if not api_key:
         raise RuntimeError("SWANLAB_API_KEY is required when SwanLab logging is enabled.")
@@ -61,3 +64,21 @@ def create_swanlab_logger(config: dict[str, Any], run_dir: str | Path) -> NullSw
         logdir=str(Path(run_dir) / "swanlab"),
     )
     return SwanLabLogger(swanlab)
+
+
+def load_env_file(path: str | Path) -> None:
+    """Load KEY=VALUE pairs from an env file without printing secret values."""
+    if not path:
+        return
+    env_path = Path(path)
+    if not env_path.is_file():
+        return
+    for raw_line in env_path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.removeprefix("export ").strip()
+        value = value.strip().strip("'\"")
+        if key and key not in os.environ:
+            os.environ[key] = value

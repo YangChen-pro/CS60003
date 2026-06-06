@@ -25,6 +25,7 @@ DEFAULT_CONFIG: dict[str, Any] = {
             "mode": "cloud",
             "group": "real-high-quality",
             "tags": ["hw3", "task1", "real-high-quality"],
+            "env_file": ".helloagents/secrets/hw3.env",
         },
     },
     "real_chain": {
@@ -33,13 +34,21 @@ DEFAULT_CONFIG: dict[str, Any] = {
             "object_a_images": "hw3/assets/object_a_multiview",
             "object_a_video": "",
             "object_c_image": "hw3/assets/object_c_single/object_c_single_front.png",
+            "background_dataset": "mipnerf360_counter",
+            "background_download_url": "https://storage.googleapis.com/gresearch/refraw360/360_v2.zip",
+            "background_scene": "counter",
             "background_images": "hw3/assets/background_scene/images",
             "background_video": "",
         },
         "tools": {
             "required_cli": ["ns-process-data", "ns-train", "ns-export", "ns-eval", "colmap", "ffmpeg", "blender"],
             "threestudio_launch": "hw3/task1/external/threestudio/launch.py",
-            "triposr_run": "hw3/task1/external/TripoSR/run.py",
+            "zero123_config": "hw3/task1/external/threestudio/configs/zero123.yaml",
+            "zero123_checkpoint": "hw3/task1/external/threestudio/load/zero123/zero123-xl.ckpt",
+            "zero123_config_file": "hw3/task1/external/threestudio/load/zero123/sd-objaverse-finetune-c_concat-256.yaml",
+            "object_foreground_preprocessor": "hw3/task1/scripts/preprocess_object_foreground.py",
+            "nerfstudio_swanlab_runner": "hw3/task1/scripts/run_nerfstudio_swanlab.py",
+            "threestudio_swanlab_runner": "hw3/task1/scripts/run_threestudio_swanlab.py",
             "blender_renderer": "hw3/task1/scripts/render_real_chain_blender.py",
         },
         "quality": {
@@ -47,11 +56,29 @@ DEFAULT_CONFIG: dict[str, Any] = {
             "cull_alpha_thresh": 0.005,
         },
         "object_b": {
-            "prompt": "a small bioluminescent purple crystal mushroom with a green stem",
+            "prompt": (
+                "a small translucent violet crystal mushroom figurine with a jade green carved stem, "
+                "physically plausible tabletop object, detailed faceted crystal cap, subtle internal glow, "
+                "high quality PBR material, clean geometry, suitable for insertion into a reconstructed indoor scene"
+            ),
+            "sds_model": "runwayml/stable-diffusion-v1-5",
             "max_steps": 15000,
+            "limit_test_batches": 0,
         },
         "object_c": {
-            "texture_resolution": 2048,
+            "zero123_max_steps": 1200,
+            "export_resolution": 256,
+            "random_camera_batch_size": [1, 1, 1],
+            "random_camera_height": [64, 80, 96],
+            "random_camera_width": [64, 80, 96],
+            "resolution_milestones": [600, 1000],
+            "num_samples_per_ray": 128,
+            "limit_val_batches": 0,
+            "limit_test_batches": 0,
+            "lambda_normal_smooth": 0.0,
+            "lambda_3d_normal_smooth": 0.0,
+            "lambda_orient": 0.0,
+            "resume_checkpoint": "",
         },
     },
 }
@@ -110,8 +137,20 @@ def resolve_paths(config: dict[str, Any], output_root: str | None = None) -> Non
         if real_data.get(key):
             real_data[key] = str(resolve_repo_path(real_data[key], repo_root))
     tools = config["real_chain"]["tools"]
-    for key in ["threestudio_launch", "triposr_run", "blender_renderer"]:
+    for key in [
+        "threestudio_launch",
+        "zero123_config",
+        "zero123_checkpoint",
+        "zero123_config_file",
+        "object_foreground_preprocessor",
+        "nerfstudio_swanlab_runner",
+        "threestudio_swanlab_runner",
+        "blender_renderer",
+    ]:
         tools[key] = str(resolve_repo_path(tools[key], repo_root))
+    swanlab = config.get("logging", {}).get("swanlab", {})
+    if swanlab.get("env_file"):
+        swanlab["env_file"] = str(resolve_repo_path(swanlab["env_file"], repo_root))
 
 
 def _validate_config(config: dict[str, Any]) -> None:

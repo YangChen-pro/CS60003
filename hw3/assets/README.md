@@ -25,4 +25,10 @@ hw3/assets/
 python hw3/task1/train.py --config hw3/task1/configs/real_high_quality.yaml
 ```
 
-默认 `real_chain.execution.mode=plan`，会先校验素材并生成实际运行脚本。确认 136 已安装 Nerfstudio、COLMAP、threestudio、TripoSR、Blender 后，把 YAML 改成 `mode: run` 即可执行完整链路。
+默认 `real_chain.execution.mode=plan`，会先校验素材并生成实际运行脚本。确认 136 已安装 Nerfstudio、COLMAP、threestudio、Zero123、Blender 后，把 YAML 改成 `mode: run` 即可执行完整链路。
+
+背景默认按题目示例使用 Mip-NeRF 360 `counter`。136 上可用以下脚本下载官方数据并把 `hw3/assets/background_scene/images` 链接到场景图片目录：
+
+```bash
+bash hw3/task1/scripts/prepare_mipnerf360_counter_136.sh
+```

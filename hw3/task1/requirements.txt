@@ -1,3 +1,8 @@
 PyYAML>=6.0
 swanlab>=0.7.0
+wandb>=0.17.0
+opencv-python-headless>=4.10.0
 modelscope>=1.37.0
+gsplat>=1.5.3
+pytorch-lightning==2.0.0
+libigl==2.5.1

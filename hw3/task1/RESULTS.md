@@ -2,23 +2,59 @@
 
 ## 当前结论
 
-Task1 只保留真实高质量链路。早期 AI smoke test、程序化 proxy 点云、`formal_ai_chain` 伪正式结果、报告素材和 ModelScope 非权重上传都已经判定为不合格交付，不再作为结果记录。
+Task1 当前只保留真实高质量链路。早期 AI smoke test、程序化 proxy 点云、`formal_ai_chain` 伪正式结果、报告素材和 ModelScope 非权重上传都已经判定为不合格交付，不再作为结果记录。
 
-## 当前维护结果
+本轮在 136-3090-4 的 `qwen14b` 环境完成 A/B/C/背景训练记录和 1080p 多视角展示视频生成。训练和远程运行前通过 `.helloagents/secrets/hw3.env` 注入 SwanLab / ModelScope / 代理环境变量，文档和代码不保存 key 明文。
 
-- 配置：`hw3/task1/configs/real_high_quality.yaml`
-- 入口：`hw3/task1/train.py`
-- 验证：`hw3/task1/evaluate.py`
-- 编排模块：`hw3/task1/task1_3dgs_aigc/real_chain.py`
-- Blender 渲染脚本：`hw3/task1/scripts/render_real_chain_blender.py`
-- 136 安装入口：`hw3/task1/scripts/setup_real_chain_136.sh`
-- 真实素材说明：`hw3/assets/README.md`
+## 训练与资产结果
 
-## 验证状态
+| 资产 | 要求 | 当前实现 | 主要产物 | SwanLab |
+|---|---|---|---|---|
+| 物体 A | 多视角真实物体 + COLMAP + 3DGS | 用户真实多视角图片；Nerfstudio `splatfacto` 30k steps | `outputs/task1_real_high_quality/exports/object_a/splat/splat.ply` | <https://swanlab.cn/@youngchen/cs60003-hw3-task1/runs/dcbclc90gpdtpsn69brv3> |
+| 物体 B | 文本 prompt + threestudio + SDS | Prompt 生成水晶蘑菇；threestudio SDS 15k steps | `outputs/task1_real_high_quality/exports/object_b/mesh/model.obj`、`object_b_threestudio/.../ckpts/last.ckpt` | <https://swanlab.cn/@youngchen/cs60003-hw3-task1/runs/d2ebu67uf76o4cceq7avb> |
+| 物体 C | 单图真实物体 + Zero123 | 用户真实单图；Zero123XL 1200 steps | `outputs/task1_real_high_quality/exports/object_c/mesh/model.obj`、`object_c_zero123/.../ckpts/last.ckpt` | <https://swanlab.cn/@youngchen/cs60003-hw3-task1/runs/5yhocvbs6adfpiuo0f1jg> |
+| 背景 | 开源 3D 数据集 + 3DGS | Mip-NeRF 360 `counter`；Nerfstudio `splatfacto` 30k steps | `outputs/task1_real_high_quality/exports/background/splat/splat.ply` | <https://swanlab.cn/@youngchen/cs60003-hw3-task1/runs/7r8mxm6zzz7kjblrtbhm8> |
 
-当前 YAML 默认是 `real_chain.execution.mode: plan`。在没有真实手机拍摄 A/C 和背景素材时，计划模式会生成 7 个真实外部工具脚本，并返回 `NEEDS_INPUTS`，这是正确状态，不代表低质量降级。
+本地最终展示视频：
 
-待真实素材放入 `hw3/assets/` 后，把配置切到 `run`，再执行完整训练和渲染。
+```text
+hw3/task1/outputs/task1_real_high_quality/renders/final_3dgs_backplate/fused_scene.mp4
+hw3/task1/outputs/task1_real_high_quality/renders/final_3dgs_backplate/fused_scene_manifest.json
+hw3/task1/outputs/task1_real_high_quality/renders/final_3dgs_backplate/frame_0072.png
+```
+
+远程对应路径：
+
+```text
+/home/dell/yc/CS60003/hw3/task1/outputs/task1_real_high_quality/renders/final_3dgs_backplate/fused_scene.mp4
+```
+
+视频编码参数：1920×1080、144 帧、24 fps、CRF 16，远程 ffmpeg 编码日志已确认。
+
+## 融合渲染策略
+
+最终视频使用 `compose_3dgs_backplate_video.py` 生成：
+
+1. 背景来自训练完成的 Mip-NeRF 360 `counter` 3DGS，并先用 Nerfstudio 渲染 215 张高质量 backplate。
+2. 物体 A 保留已训练 3DGS splat 权重，同时在最终展示视频中使用真实前景 mask/cutout 插入，以保证当前手机素材下的视觉质量。
+3. 物体 B 使用训练完成的 SDS 测试渲染序列和导出的 mesh/ckpt 作为资产来源。
+4. 物体 C 使用训练完成的 Zero123 测试渲染序列和导出的 mesh/ckpt 作为资产来源；最终脚本过滤不可见角度，并使用 C 专用 mask，避免空帧或背景色块进入视频。
+
+这段视频是报告级高质量融合展示；严格的原生单渲染器融合尝试保留在 `render_fused_splats.py` / `render_real_chain_blender.py` 中，但由于当前 splat/mesh 统一渲染质量低于 backplate 方案，不作为最终展示视频。报告中应据实说明“统一表达形式”的取舍：训练权重保留为 3DGS splat / OBJ / ckpt，展示视频采用 3DGS 背景渲染帧与训练对象渲染结果的后合成。
+
+## 质量与限制
+
+三种资产生成方式的几何准确度、纹理细节和计算耗时对比见 `hw3/task1/EVALUATION.md`。关键结论如下：
+
+- A 的原始 3DGS 已完成并导出 splat；后续基于前景 mask 的重跑只匹配到 2/8 张图，不作为正式重建结果。
+- A/background 的 TSDF mesh 导出因 `splatfacto` 输出不含 TSDF 所需 RGB 字段而跳过；Gaussian splat 权重是正式 3DGS 产物。
+- B 的视觉结果偏绿色蘑菇，和原 prompt 中的 violet crystal 有偏差；训练链路、SDS 结果和 SwanLab 曲线是真实的。
+- C 的 Zero123 结果可用，但部分角度不可见；最终视频只使用可见帧。
+- 当前视频适合报告展示和质量说明；若要完全满足“同一个 3D 场景原生融合渲染”的最严格解释，仍需要继续改进 splat 与 mesh 的同一渲染器融合质量。
+
+## SwanLab 策略
+
+正式训练必须加载 `.helloagents/secrets/hw3.env` 中的 `SWANLAB_API_KEY`。Nerfstudio A/background 训练通过 TensorBoard scalar sync 写入 SwanLab；threestudio B/C 训练通过 SwanLab 的 WandB scalar sync 写入 SwanLab，并强制 `wandb_run=False`，不向 WandB 云端上传。真实 run 链接见 `hw3/task1/SWANLAB_RUNS.md`。
 
 ## ModelScope 策略
 

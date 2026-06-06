@@ -12,7 +12,13 @@
 - [√] 任务5（AFK）：清理 ModelScope 远端非权重文件（涉及文件：ModelScope Git 仓库 `youngchen/CS60003`；完成标准：删除 `hw3/task1/formal_ai_chain/`；验证方式：ModelScope Git push 成功）。
 - [√] 任务6（AFK）：本地验证、提交并同步 136（涉及文件：本地与远程 `/home/dell/yc/CS60003`；完成标准：本地和 136 验证通过且远程代码同步；验证方式：py_compile、train/evaluate）。
 - [√] 任务7（AFK）：清理预览配置和旧运行产物（涉及文件：`ai_assets_high_quality_preview.yaml`、`preview_chain.py`、`render_ai_assets_preview_blender.py`、`outputs/`；完成标准：只保留正式 `real_high_quality` 链路；验证方式：文件检查与 py_compile）。
-- [√] 任务8（AFK）：QA / closeout（涉及文件：`.helloagents` 证据；完成标准：写入最新 QA 与收尾证据；验证方式：HelloAGENTS gate 通过）。
+- [√] 任务8（AFK）：把正式链路从 TripoSR 口径修正为 Zero123，并增加 A 的前景保真预处理（涉及文件：`real_high_quality.yaml`、`real_chain.py`、`preprocess_object_foreground.py`、`evaluate.py`、`render_real_chain_blender.py`、文档；完成标准：生成 `04_object_c_zero123.sh`，C 使用 threestudio `zero123.yaml`，A 的 `ns-process-data` 使用前景图与 CPU COLMAP；验证方式：py_compile、plan train/evaluate）。
+- [√] 任务9（AFK）：增加 Mip-NeRF 360 `counter` 背景准备入口（涉及文件：`prepare_mipnerf360_counter_136.sh`、文档；完成标准：脚本能下载官方数据并链接 `hw3/assets/background_scene/images`；验证方式：脚本审查和 plan input issue 定位）。
+- [√] 任务10（AFK）：接入 SwanLab 训练记录（涉及文件：`run_nerfstudio_swanlab.py`、`run_threestudio_swanlab.py`、`real_chain.py`、`real_high_quality.yaml`、`requirements.txt`；完成标准：A/background 训练脚本走 TensorBoard scalar sync，B/C 训练脚本走 WandB scalar sync 到 SwanLab；验证方式：plan 脚本审查、py_compile）。
+- [ ] 任务11（AFK）：同步 136 并检查 Zero123 / 背景依赖 / SwanLab 环境（涉及文件：远程 `/home/dell/yc/CS60003`；完成标准：136 plan train/evaluate 通过，`00_check_tools.sh` 明确通过或准确报告缺失权重/背景/SwanLab 依赖；验证方式：ssh 远程命令）。
+- [ ] 任务12（AFK/HITL）：在 136 执行 run 模式真实训练、导出与融合渲染（涉及文件：`hw3/task1/outputs/task1_real_high_quality/`；完成标准：A/B/C/background 真实输出与 1080p `fused_scene.mp4` 存在，SwanLab 有训练曲线；验证方式：运行日志、输出 manifest、视频文件、SwanLab run 链接）。
+- [ ] 任务13（AFK）：评估与报告素材整理（涉及文件：`RESULTS.md`、`SWANLAB_RUNS.md`、报告素材目录；完成标准：几何/纹理/耗时对比、SwanLab 曲线、ModelScope 权重路径记录；验证方式：evaluate 与文件检查）。
+- [ ] 任务14（AFK）：QA / closeout（涉及文件：`.helloagents` 证据；完成标准：全链路真实完成后写入最新 QA 与收尾证据；验证方式：HelloAGENTS gate 通过）。
 
 ## Codex /goal 执行入口
 /goal 按 `.helloagents/plans/202606051645_hw3_task1_3dgs_aigc/tasks.md` 执行本方案；遵守 `requirements.md`、`plan.md`、`contract.json`。默认主执行命令是 `~auto`；全部 AFK 任务完成后必须进入 `~qa`，写最新质量证据并完成 HelloAGENTS 收尾。
@@ -26,3 +32,5 @@
 - [√] 2026-06-05：本地已通过 metadata、py_compile、real_high_quality plan train/evaluate（涉及文件：本地 `hw3/task1/`；完成标准：本地验证通过；验证方式：`tools/verify_delivery_metadata.py`、py_compile、train/evaluate）。
 - [√] 2026-06-05：已提交 `b1a805e` 并同步 136，136 `qwen14b` 已通过 py_compile、real_high_quality plan train/evaluate（涉及文件：远程 `/home/dell/yc/CS60003`；完成标准：远程验证通过且工作区干净；验证方式：ssh 远程命令）。
 - [√] 2026-06-05：已按用户要求删除 `ai_assets_high_quality_preview` 配置、预览代码和本地/136 旧运行产物（涉及文件：`hw3/task1/`、远程 `/home/dell/yc/CS60003/hw3/task1/outputs/`；完成标准：当前只保留正式链路；验证方式：文件检查、py_compile）。
+- [√] 2026-06-05：已把物体 C 正式链路从 TripoSR 改为 threestudio Zero123，并增加 Mip-NeRF 360 `counter` 背景准备脚本（涉及文件：`hw3/task1/`、`hw3/assets/README.md`；完成标准：本地 plan 生成 `04_object_c_zero123.sh`；验证方式：py_compile、train/evaluate）。
+- [√] 2026-06-05：已按用户要求把正式训练脚本接入 SwanLab（涉及文件：`run_nerfstudio_swanlab.py`、`run_threestudio_swanlab.py`、`real_chain.py`；完成标准：生成脚本引用 `.helloagents/secrets/hw3.env` 且不打印 key；验证方式：plan 脚本审查、py_compile）。

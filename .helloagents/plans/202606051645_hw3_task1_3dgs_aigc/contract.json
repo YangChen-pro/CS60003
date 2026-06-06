@@ -4,28 +4,35 @@
   "originCommand": "auto",
   "verifyMode": "test-first",
   "reviewerFocus": [
-    "确认 HW3 Task1 只保留真实高质量链路入口",
-    "确认早期 AI smoke、程序化 proxy、formal_ai_chain 和报告素材已从 Git 删除",
-    "确认 ModelScope 上传脚本只允许训练权重，非权重文件不会再次上传",
-    "确认 SwanLab/ModelScope key 只通过环境变量或忽略文件读取，不进入 Git 跟踪文件"
+    "确认 HW3 Task1 严格遵循 hw3.md：A=COLMAP+3DGS，B=threestudio/SDS，C=Zero123，背景=开源场景3DGS，融合=多视角视频",
+    "确认 A/C 当前素材被视为真实拍摄正式素材；A 可做前景保真预处理降低静态背景干扰，不再因题目之外的数量阈值阻塞",
+    "确认正式链路不使用 TripoSR 冒充 Zero123，也不恢复 preview/proxy/占位输出",
+    "确认 ModelScope 上传脚本只允许训练权重，SwanLab/ModelScope key 不进入 Git 跟踪文件",
+    "确认正式训练脚本从 .helloagents/secrets/hw3.env 加载 SWANLAB_API_KEY，记录 SwanLab 曲线且不泄露 key"
   ],
   "testerFocus": [
-    "本地 tools/verify_delivery_metadata.py 通过",
     "本地 py_compile 通过",
-    "本地 real_high_quality plan 模式 train/evaluate 通过",
+    "本地 real_high_quality plan 模式 train/evaluate 通过，并生成 04_object_c_zero123.sh",
     "136 qwen14b py_compile 通过",
-    "136 qwen14b real_high_quality plan 模式 train/evaluate 通过"
+    "136 qwen14b real_high_quality plan 模式 train/evaluate 通过",
+    "136 运行 00_check_tools.sh 明确通过或准确报告 Zero123 权重/背景数据缺失路径",
+    "真实 run 完成后验证 fused_scene.mp4、A/B/C/background 输出、评估记录与报告素材",
+    "本地 plan 脚本审查确认 Nerfstudio 使用 SwanLab TensorBoard sync，threestudio/Zero123 使用 SwanLab WandB sync",
+    "136 检查 swanlab/wandb/cv2 可 import，训练脚本运行时能读取 SWANLAB_API_KEY"
   ],
   "qaMode": "standard",
   "qaFocus": [
     "确认 hw3/task1 目录结构与 HW1/HW2 风格一致",
     "确认 train.py/evaluate.py/config.py 只接受 real_high_quality 阶段",
-    "确认 ModelScope youngchen/CS60003 已删除 hw3/task1/formal_ai_chain 非权重文件",
+    "确认物体 A 使用 COLMAP/Nerfstudio 3DGS；物体 B 使用 threestudio/SDS；物体 C 使用 threestudio Zero123；背景使用开源场景 3DGS",
+    "确认 Mip-NeRF 360 counter 准备脚本存在，且背景素材缺失时只报告真实缺失，不静默降级",
+    "确认正式链路没有 ai_assets_high_quality_preview、preview_chain、程序化 preview renderer 或旧输出目录",
     "确认 upload_modelscope.py 只上传训练权重并拒绝 summary/config/render/proxy 等杂项",
-    "确认 hw3/task1/outputs、external、真实 assets 不进入 Git",
+    "确认 hw3/task1/outputs、external、真实 assets、数据集和权重不进入 Git",
     "确认本地与 136 qwen14b 均能运行 real_high_quality plan 模式 train/evaluate",
-    "确认 ai_assets_high_quality_preview 配置、预览代码和旧产物已删除",
-    "确认正式 real_high_quality 只按 hw3.md 要求检查必要输入，不再设置题目之外的图片数量阈值"
+    "确认最终完成前必须有真实训练/生成/融合视频和评估证据，不能把 plan 通过说成 Task1 完成",
+    "确认 SWANLAB_RUNS.md 记录真实训练 run 链接前不虚报曲线完成",
+    "确认训练脚本只引用 .helloagents/secrets/hw3.env 路径，不把 SWANLAB_API_KEY 或 MODELSCOPE_API_TOKEN 写入 Git"
   ],
   "ui": {
     "required": false,
