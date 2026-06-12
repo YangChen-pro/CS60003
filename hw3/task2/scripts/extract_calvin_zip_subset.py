@@ -24,12 +24,16 @@ import subprocess
 import sys
 import time
 import urllib.request
-import zipfile
 import zlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
+
+try:
+    from tqdm import tqdm
+except ImportError:  # pragma: no cover - fallback for bare Python environments.
+    tqdm = None
 
 
 DEFAULT_URL = "http://calvin.cs.uni-freiburg.de/dataset/task_ABC_D.zip"
@@ -76,12 +80,14 @@ def parse_args() -> argparse.Namespace:
         help="Scene names to sample, e.g. calvin_scene_A. Repeat for multiple scenes.",
     )
     parser.add_argument("--episodes-per-scene", type=int, default=2)
+    parser.add_argument("--jobs", type=int, default=8, help="Parallel member downloads.")
     parser.add_argument(
         "--include-lang-annotations",
         action="store_true",
         help="Also extract language annotation arrays. They are large and not needed for an episode-range probe.",
     )
     parser.add_argument("--dry-run", action="store_true", help="Only list selected files.")
+    parser.add_argument("--list-selected", action="store_true", help="Print every selected ZIP member to stdout.")
     parser.add_argument("--force", action="store_true", help="Overwrite existing extracted files.")
     return parser.parse_args()
 
@@ -119,21 +125,24 @@ def main() -> None:
         args.episodes_per_scene,
         include_lang_annotations=args.include_lang_annotations,
     )
+    selection_mode = "scene_info" if f"{root_prefix}{args.split}/scene_info.npy" in entry_map else "sorted_episode_ids"
     manifest = {
         "url": args.url,
         "split": args.split,
         "scenes": scenes,
+        "selection_mode": selection_mode,
         "episodes_per_scene": args.episodes_per_scene,
         "include_lang_annotations": args.include_lang_annotations,
         "selected_count": len(selected),
+        "compressed_bytes": sum(entry.compressed_size for entry in selected),
+        "uncompressed_bytes": sum(entry.uncompressed_size for entry in selected),
         "selected": [entry.name for entry in selected],
     }
-    print(json.dumps(manifest, ensure_ascii=False, indent=2), flush=True)
+    print_manifest(manifest, args.list_selected)
     if args.dry_run:
         return
 
-    for entry in selected:
-        extract_entry(args.url, entry, args.output_dir, args.force)
+    extract_entries(args.url, selected, args.output_dir, args.force, args.jobs)
     write_json(args.output_dir / "subset_manifest.json", manifest)
 
 
@@ -257,23 +266,41 @@ def select_subset(
 ) -> list[ZipEntry]:
     """Select metadata and the first N episode frames for each requested scene."""
     scene_info_name = f"{root_prefix}{split}/scene_info.npy"
-    if scene_info_name not in entry_map:
-        raise FileNotFoundError(f"Missing scene info entry: {scene_info_name}")
-    scene_info_bytes = read_entry(url, entry_map[scene_info_name])
-    scene_info = load_npy_dict(scene_info_bytes)
-
     selected_names = metadata_names(root_prefix, split, include_lang_annotations)
     selected_names = [name for name in selected_names if name in entry_map]
+    if scene_info_name not in entry_map:
+        selected_names.extend(select_sorted_episode_names(entry_map, root_prefix, split, episodes_per_scene))
+        return entries_from_names(entry_map, selected_names)
+
+    scene_info_bytes = read_entry(url, entry_map[scene_info_name])
+    scene_info = load_npy_dict(scene_info_bytes)
     for scene in scenes:
         if scene not in scene_info:
             raise KeyError(f"Scene {scene!r} not found in {scene_info_name}; available={list(scene_info)}")
         start, end = [int(value) for value in scene_info[scene]]
         for episode_id in range(start, min(end, start + episodes_per_scene - 1) + 1):
             selected_names.append(f"{root_prefix}{split}/episode_{episode_id:07d}.npz")
-    missing = [name for name in selected_names if name not in entry_map]
+    return entries_from_names(entry_map, selected_names)
+
+
+def select_sorted_episode_names(
+    entry_map: dict[str, ZipEntry],
+    root_prefix: str,
+    split: str,
+    limit: int,
+) -> list[str]:
+    """Select the first N episode files when a split has no scene_info.npy."""
+    prefix = f"{root_prefix}{split}/episode_"
+    names = [name for name in entry_map if name.startswith(prefix) and name.endswith(".npz")]
+    return sorted(names)[:limit]
+
+
+def entries_from_names(entry_map: dict[str, ZipEntry], names: list[str]) -> list[ZipEntry]:
+    """Resolve selected member names and preserve order without duplicates."""
+    missing = [name for name in names if name not in entry_map]
     if missing:
         raise FileNotFoundError(f"Selected entries missing from central directory: {missing[:10]}")
-    return [entry_map[name] for name in dict.fromkeys(selected_names)]
+    return [entry_map[name] for name in dict.fromkeys(names)]
 
 
 def metadata_names(root_prefix: str, split: str, include_lang_annotations: bool) -> list[str]:
@@ -301,14 +328,14 @@ def metadata_names(root_prefix: str, split: str, include_lang_annotations: bool)
     return names
 
 
-def extract_entry(url: str, entry: ZipEntry, output_dir: Path, force: bool) -> None:
+def extract_entry(url: str, entry: ZipEntry, output_dir: Path, force: bool) -> int:
     """Fetch, decompress, and write one entry under output_dir."""
     target = output_dir / entry.name
     if target.exists() and not force:
-        return
+        return entry.compressed_size
     if entry.name.endswith("/"):
         target.mkdir(parents=True, exist_ok=True)
-        return
+        return 0
     data = read_entry(url, entry)
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_bytes(data)
@@ -317,7 +344,25 @@ def extract_entry(url: str, entry: ZipEntry, output_dir: Path, force: bool) -> N
     actual_crc = zlib.crc32(data) & 0xFFFFFFFF
     if actual_crc != entry.crc32:
         raise IOError(f"CRC mismatch for {entry.name}: {actual_crc:x} != {entry.crc32:x}")
-    print(f"extracted {entry.name} ({len(data)} bytes)", flush=True)
+    return entry.compressed_size
+
+
+def extract_entries(url: str, entries: list[ZipEntry], output_dir: Path, force: bool, jobs: int) -> None:
+    """Extract selected members with a tqdm byte progress bar."""
+    total = sum(entry.compressed_size for entry in entries)
+    progress = make_progress(total=total, desc="extract selected members", unit="B", unit_scale=True)
+    workers = max(1, jobs)
+    try:
+        if workers == 1:
+            for entry in entries:
+                progress.update(extract_entry(url, entry, output_dir, force))
+            return
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            futures = [executor.submit(extract_entry, url, entry, output_dir, force) for entry in entries]
+            for future in as_completed(futures):
+                progress.update(future.result())
+    finally:
+        progress.close()
 
 
 def read_entry(url: str, entry: ZipEntry) -> bytes:
@@ -411,8 +456,12 @@ def download_range_chunks_with_curl(url: str, start: int, end: int, output: Path
 
     with ThreadPoolExecutor(max_workers=jobs) as executor:
         futures = [executor.submit(download_one_chunk, curl, url, chunk_start, chunk_end, path) for chunk_start, chunk_end, path in ranges]
-        for future in as_completed(futures):
-            future.result()
+        progress = make_progress(total=end - start + 1, desc="download central directory", unit="B", unit_scale=True)
+        try:
+            for future in as_completed(futures):
+                progress.update(future.result())
+        finally:
+            progress.close()
 
     tmp = output.with_suffix(output.suffix + ".tmp")
     with tmp.open("wb") as handle:
@@ -426,11 +475,11 @@ def download_range_chunks_with_curl(url: str, start: int, end: int, output: Path
     shutil.rmtree(chunk_dir, ignore_errors=True)
 
 
-def download_one_chunk(curl: str, url: str, start: int, end: int, output: Path) -> None:
+def download_one_chunk(curl: str, url: str, start: int, end: int, output: Path) -> int:
     """Download one byte range if absent or incomplete."""
     expected_size = end - start + 1
     if output.exists() and output.stat().st_size == expected_size:
-        return
+        return expected_size
     tmp = output.with_suffix(output.suffix + ".tmp")
     subprocess.run(
         [
@@ -452,12 +501,42 @@ def download_one_chunk(curl: str, url: str, start: int, end: int, output: Path) 
     if actual_size != expected_size:
         raise IOError(f"Chunk size mismatch for {start}-{end}: {actual_size} != {expected_size}")
     tmp.replace(output)
+    return expected_size
+
+
+def make_progress(**kwargs):
+    """Create a tqdm progress bar, or a no-op progress object if tqdm is absent."""
+    if tqdm is not None:
+        return tqdm(**kwargs)
+    return NoProgress()
+
+
+class NoProgress:
+    """Minimal tqdm-compatible fallback."""
+
+    def update(self, _: int) -> None:
+        return
+
+    def close(self) -> None:
+        return
 
 
 def write_json(path: Path, data: dict) -> None:
     """Write JSON with stable UTF-8 formatting."""
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def print_manifest(manifest: dict, list_selected: bool) -> None:
+    """Print a compact manifest by default so tqdm remains readable."""
+    if list_selected:
+        print(json.dumps(manifest, ensure_ascii=False, indent=2), flush=True)
+        return
+    compact = dict(manifest)
+    selected = compact.pop("selected", [])
+    compact["selected_preview"] = selected[:5]
+    compact["selected_omitted"] = max(0, len(selected) - 5)
+    print(json.dumps(compact, ensure_ascii=False, indent=2), flush=True)
 
 
 if __name__ == "__main__":
