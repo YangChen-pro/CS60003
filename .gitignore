@@ -50,6 +50,11 @@ hw3/task1/data/
 hw3/task1/external/
 hw3/task1/outputs/
 
+# HW3 Task2 数据集、缓存和下载日志不进入 Git
+hw3/task2/cache/
+hw3/task2/data/
+hw3/task2/logs/
+
 # HelloAGENTS 项目级规则与本地状态
 .helloagents/
 AGENTS.md
