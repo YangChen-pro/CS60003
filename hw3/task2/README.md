@@ -98,11 +98,28 @@ hw3/task2/outputs/eval/act_splitA_splitD.json
 hw3/task2/outputs/eval/act_splitA_splitD.csv
 hw3/task2/outputs/eval/act_splitABC_splitD.json
 hw3/task2/outputs/eval/act_splitABC_splitD.csv
+hw3/task2/outputs/eval/task2_results_table.csv
+hw3/task2/outputs/eval/task2_results_table.json
 ```
+
+当前正式结果：
+
+| 模型 | 训练数据 | 测试数据 | best Action L1 | 显式评估 Action L1 |
+|---|---|---|---:|---:|
+| `act_splitA` | `splitA` | `splitD` | 0.1731817275 | 0.1731817282 |
+| `act_splitABC` | `splitA + splitB + splitC` | `splitD` | 0.1464656293 | 0.1464656246 |
+
+结论：多环境联合训练的 `act_splitABC` 在未见过的 `splitD` 上动作误差更低，说明 A+B+C 的视觉和状态覆盖对跨环境泛化有帮助。本仓库当前完成的是离线动作误差评估；没有接入 CALVIN simulator，因此不报告真实环境 success rate。
 
 ## SwanLab
 
 训练脚本会从 `.helloagents/secrets/hw3.env` 加载 SwanLab key，并记录训练 loss、验证 Action L1、学习率、超参数和数据配置。不要在命令行或日志中打印 key。
+
+正式记录：
+
+- 项目：<https://swanlab.cn/@youngchen/CS60003_HW3_Task2>
+- `act_splitA`：<https://swanlab.cn/@youngchen/CS60003_HW3_Task2/runs/05kubpls24j5jrp2wbl1t>
+- `act_splitABC`：<https://swanlab.cn/@youngchen/CS60003_HW3_Task2/runs/4si6dcrut2krorrbalfkn>
 
 ## ModelScope 上传
 
@@ -113,13 +130,20 @@ ssh 135-3090-8
 cd /data/yc/CS60003
 bash hw3/task2/scripts/upload_modelscope.sh \
   hw3/task2/outputs/act_splitA \
-  CS60003-HW3-Task2-ACT-splitA \
+  youngchen/CS60003-HW3-Task2-ACT-splitA \
   hw3/task2/outputs/act_splitA/modelscope_upload.json
 bash hw3/task2/scripts/upload_modelscope.sh \
   hw3/task2/outputs/act_splitABC \
-  CS60003-HW3-Task2-ACT-splitABC \
+  youngchen/CS60003-HW3-Task2-ACT-splitABC \
   hw3/task2/outputs/act_splitABC/modelscope_upload.json
 ```
+
+已上传模型：
+
+- `act_splitA`：<https://modelscope.cn/models/youngchen/CS60003-HW3-Task2-ACT-splitA>
+- `act_splitABC`：<https://modelscope.cn/models/youngchen/CS60003-HW3-Task2-ACT-splitABC>
+
+上传文件包含 `checkpoints/best.pt`、`checkpoints/final.pt`、`checkpoints/latest.pt`、`config.yaml`、`metrics.csv`、`dataset_summary.json`、`train_summary.json`、`results_summary.json`。
 
 ## 代码结构
 
