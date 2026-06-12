@@ -65,7 +65,21 @@ class ACTPolicy(nn.Module):
         }
         if "wrist_image" in batch:
             policy_batch["observation.images.wrist_image"] = batch["wrist_image"]
-        return self.policy(policy_batch)
+        if self.training:
+            return self.policy(policy_batch)
+        return self._inference_loss(policy_batch)
+
+    def _inference_loss(self, policy_batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, dict[str, float]]:
+        previous_use_vae = self.policy.config.use_vae
+        self.policy.config.use_vae = False
+        try:
+            actions_hat, _ = self.policy.model(policy_batch)
+        finally:
+            self.policy.config.use_vae = previous_use_vae
+        valid = ~policy_batch["action_is_pad"].unsqueeze(-1)
+        denom = valid.sum().clamp_min(1) * actions_hat.shape[-1]
+        l1_loss = (torch.abs(actions_hat - policy_batch["action"]) * valid).sum() / denom
+        return l1_loss, {"l1_loss": float(l1_loss.item())}
 
 
 def build_policy(config, image_size: int, use_wrist_image: bool, chunk_size: int, amp: bool) -> ACTPolicy:
