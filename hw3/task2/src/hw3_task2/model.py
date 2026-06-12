@@ -63,10 +63,15 @@ class ACTPolicy(nn.Module):
             "action": batch["actions"],
             "action_is_pad": ~batch["valid"].bool(),
         }
+        image_tensors = [policy_batch["observation.images.image"]]
         if "wrist_image" in batch:
             policy_batch["observation.images.wrist_image"] = batch["wrist_image"]
+            image_tensors.append(batch["wrist_image"])
+        policy_batch["observation.images"] = image_tensors
         if self.training:
-            return self.policy(policy_batch)
+            policy_batch_for_loss = dict(policy_batch)
+            policy_batch_for_loss.pop("observation.images")
+            return self.policy(policy_batch_for_loss)
         return self._inference_loss(policy_batch)
 
     def _inference_loss(self, policy_batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, dict[str, float]]:
