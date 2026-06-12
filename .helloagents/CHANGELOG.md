@@ -67,6 +67,11 @@
 ## [Unreleased]
 
 ### 快速修改
+- **[hw3-task2]**: 新增 CALVIN 官方大 ZIP Range 子集抽取脚本，并在 135 验证可从 `task_ABC_D.zip` 抽取 A/B/C 各 1 个 episode — by YangChen-pro
+  - 类型: 数据准备 / 远程验证
+  - 结果: 远程输出 `/data/yc/CS60003/hw3/task2/data/calvin_abc_subset_probe`，抽取 B=`episode_0000000.npz`、C=`episode_0598910.npz`、A=`episode_1191339.npz`
+  - 文件: hw3/task2/scripts/extract_calvin_zip_subset.py, .helloagents/modules/hw3.md, .helloagents/sessions/main/default/STATE.md, .helloagents/CHANGELOG.md
+
 - **[hw1]**: 同步 HW1 正式报告源文件的 ModelScope 新权重路径状态到知识库，记录 PDF 需按需重新编译 — by YangChen-pro
   - 类型: 知识库同步
   - 文件: .helloagents/STATE.md, .helloagents/context.md, .helloagents/modules/hw1.md, .helloagents/CHANGELOG.md
