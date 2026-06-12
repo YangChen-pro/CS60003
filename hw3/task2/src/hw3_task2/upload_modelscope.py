@@ -1,12 +1,35 @@
 from __future__ import annotations
 
 import argparse
+import os
 from pathlib import Path
 
 from tqdm import tqdm
 
 from .secrets import has_any_key, load_env_file
 from .utils import write_json
+
+UPLOAD_ALLOWLIST = {
+    "config.yaml",
+    "dataset_summary.json",
+    "metrics.csv",
+    "train_summary.json",
+    "results_summary.json",
+    "checkpoints/best.pt",
+    "checkpoints/final.pt",
+    "checkpoints/latest.pt",
+}
+
+
+def collect_upload_files(model_dir: Path) -> list[Path]:
+    files = []
+    for rel in sorted(UPLOAD_ALLOWLIST):
+        path = model_dir / rel
+        if path.is_file():
+            files.append(path)
+    if not files:
+        raise FileNotFoundError(f"no uploadable files found in {model_dir}")
+    return files
 
 
 def main() -> None:
@@ -19,18 +42,24 @@ def main() -> None:
     load_env_file(args.secret_env)
     if not has_any_key(["MODELSCOPE_API_TOKEN", "MODELSCOPE_TOKEN", "MODELSCOPE_SDK_TOKEN"]):
         raise RuntimeError("ModelScope token not found in environment")
+    token = (
+        os.environ.get("MODELSCOPE_API_TOKEN")
+        or os.environ.get("MODELSCOPE_TOKEN")
+        or os.environ.get("MODELSCOPE_SDK_TOKEN")
+    )
+
     from modelscope.hub.api import HubApi
 
     api = HubApi()
-    api.login(
-        access_token=(
-            __import__("os").environ.get("MODELSCOPE_API_TOKEN")
-            or __import__("os").environ.get("MODELSCOPE_TOKEN")
-            or __import__("os").environ.get("MODELSCOPE_SDK_TOKEN")
-        )
-    )
+    api.login(access_token=token)
+    try:
+        api.create_model(args.repo_id, visibility=5, license="Apache License 2.0", token=token)
+    except Exception as exc:  # existing repository is fine; upload_file will surface real auth/path errors.
+        print(f"ModelScope repo create skipped: {type(exc).__name__}")
+
     model_dir = Path(args.model_dir)
-    files = [path for path in model_dir.rglob("*") if path.is_file()]
+    files = collect_upload_files(model_dir)
+    uploaded = []
     for path in tqdm(files, desc=f"upload {args.repo_id}"):
         rel = path.relative_to(model_dir).as_posix()
         api.upload_file(
@@ -38,8 +67,16 @@ def main() -> None:
             path_in_repo=rel,
             repo_id=args.repo_id,
             repo_type="model",
+            token=token,
+            commit_message=f"upload {rel}",
         )
-    result = {"repo_id": args.repo_id, "model_dir": str(model_dir.resolve()), "files": len(files)}
+        uploaded.append(rel)
+    result = {
+        "repo_id": args.repo_id,
+        "modelscope_url": f"https://modelscope.cn/models/{args.repo_id}",
+        "model_dir": str(model_dir.resolve()),
+        "files": uploaded,
+    }
     write_json(args.output, result)
     print(result)
 
