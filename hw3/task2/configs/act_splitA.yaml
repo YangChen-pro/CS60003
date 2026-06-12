@@ -10,11 +10,12 @@ data:
 model:
   state_dim: 15
   action_dim: 7
-  task_vocab_size: 512
   hidden_dim: 256
   nheads: 4
   num_layers: 3
   dropout: 0.1
+  use_vae: true
+  kl_weight: 10.0
 train:
   name: act_splitA
   output_dir: /data/yc/CS60003/hw3/task2/outputs

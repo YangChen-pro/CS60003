@@ -54,6 +54,7 @@ hw3/task1/outputs/
 hw3/task2/cache/
 hw3/task2/data/
 hw3/task2/logs/
+hw3/task2/outputs/
 
 # HelloAGENTS 项目级规则与本地状态
 .helloagents/

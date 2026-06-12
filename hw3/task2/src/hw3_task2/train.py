@@ -12,7 +12,7 @@ from tqdm import tqdm
 
 from .config import load_config, save_config
 from .data import CalvinActDataset, collate_batch, summarize_dataset
-from .model import build_policy, masked_l1
+from .model import build_policy
 from .secrets import has_any_key, load_env_file
 from .utils import append_csv, is_main_process, set_seed, write_json
 
@@ -69,9 +69,8 @@ def evaluate(model, loader, device: torch.device, amp: bool, desc: str) -> float
         for batch in iterator:
             batch = move_batch(batch, device)
             with torch.autocast(device_type="cuda", dtype=torch.float16, enabled=amp and device.type == "cuda"):
-                pred = model(batch["image"], batch["state"], batch["task_index"])
-                loss = masked_l1(pred, batch["actions"], batch["valid"])
-            total += float(loss.item())
+                loss, loss_dict = model(batch)
+            total += float(loss_dict["l1_loss"])
             count += 1
             iterator.set_postfix(action_l1=f"{total / max(count, 1):.5f}")
     model.train()
@@ -153,7 +152,7 @@ def main() -> None:
         collate_fn=collate_batch,
     )
 
-    model = build_policy(cfg.model, cfg.data.use_wrist_image, cfg.data.chunk_size).to(device)
+    model = build_policy(cfg.model, cfg.data.image_size, cfg.data.use_wrist_image, cfg.data.chunk_size, cfg.train.amp).to(device)
     if distributed:
         model = DDP(model, device_ids=[device.index], output_device=device.index)
     optimizer = torch.optim.AdamW(model.parameters(), lr=cfg.train.lr, weight_decay=cfg.train.weight_decay)
@@ -172,8 +171,7 @@ def main() -> None:
             batch = move_batch(batch, device)
             optimizer.zero_grad(set_to_none=True)
             with torch.autocast(device_type="cuda", dtype=torch.float16, enabled=cfg.train.amp and device.type == "cuda"):
-                pred = model(batch["image"], batch["state"], batch["task_index"])
-                loss = masked_l1(pred, batch["actions"], batch["valid"])
+                loss, loss_dict = model(batch)
             scaler.scale(loss).backward()
             scaler.unscale_(optimizer)
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
@@ -181,9 +179,10 @@ def main() -> None:
             scaler.update()
             global_step += 1
             loss_value = float(loss.item())
-            iterator.set_postfix(action_l1=f"{loss_value:.5f}")
+            l1_value = float(loss_dict["l1_loss"])
+            iterator.set_postfix(loss=f"{loss_value:.5f}", action_l1=f"{l1_value:.5f}")
             if is_main_process() and global_step % cfg.train.log_every == 0:
-                row = {"step": global_step, "epoch": epoch, "train_action_l1": loss_value, "lr": cfg.train.lr}
+                row = {"step": global_step, "epoch": epoch, "train_loss": loss_value, "train_action_l1": l1_value, "lr": cfg.train.lr}
                 append_csv(output_dir / "metrics.csv", row)
                 if run is not None:
                     import swanlab

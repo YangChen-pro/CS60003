@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 from .config import load_config
 from .data import CalvinActDataset, collate_batch
-from .model import build_policy, masked_l1
+from .model import build_policy
 from .utils import append_csv, write_json
 
 
@@ -42,7 +42,7 @@ def main() -> None:
         pin_memory=True,
         collate_fn=collate_batch,
     )
-    model = build_policy(cfg.model, cfg.data.use_wrist_image, cfg.data.chunk_size).to(device)
+    model = build_policy(cfg.model, cfg.data.image_size, cfg.data.use_wrist_image, cfg.data.chunk_size, cfg.train.amp).to(device)
     checkpoint = torch.load(args.checkpoint, map_location="cpu")
     model.load_state_dict(checkpoint["model"])
     model.eval()
@@ -54,9 +54,8 @@ def main() -> None:
         for batch in iterator:
             batch = {key: value.to(device, non_blocking=True) for key, value in batch.items()}
             with torch.autocast(device_type="cuda", dtype=torch.float16, enabled=cfg.train.amp and device.type == "cuda"):
-                pred = model(batch["image"], batch["state"], batch["task_index"])
-                loss = masked_l1(pred, batch["actions"], batch["valid"])
-            total += float(loss.item())
+                loss, loss_dict = model(batch)
+            total += float(loss_dict["l1_loss"])
             count += 1
             iterator.set_postfix(action_l1=f"{total / max(count, 1):.5f}")
     result = {

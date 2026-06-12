@@ -105,14 +105,13 @@ class CalvinActDataset(Dataset):
         table = self.cache.get(episode.parquet_path)
         row = frame.row_index
         image = self._decode_image(table["image"][row])
-        if self.use_wrist_image:
-            wrist = self._decode_image(table["wrist_image"][row])
-            image = torch.cat([image, wrist], dim=0)
+        wrist = self._decode_image(table["wrist_image"][row]) if self.use_wrist_image else None
         state = torch.tensor(table["state"][row], dtype=torch.float32)
         task_index = torch.tensor(int(table["task_index"][row]), dtype=torch.long)
         actions, valid = self._action_chunk(table["actions"], row)
         return {
             "image": image,
+            **({"wrist_image": wrist} if wrist is not None else {}),
             "state": state,
             "task_index": task_index,
             "actions": actions,

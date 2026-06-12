@@ -23,11 +23,12 @@ class DataConfig:
 class ModelConfig:
     state_dim: int = 15
     action_dim: int = 7
-    task_vocab_size: int = 512
     hidden_dim: int = 256
     nheads: int = 4
     num_layers: int = 3
     dropout: float = 0.1
+    use_vae: bool = True
+    kl_weight: float = 10.0
 
 
 @dataclass

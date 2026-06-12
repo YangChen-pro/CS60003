@@ -34,7 +34,7 @@ cd /data/yc/CS60003
 | `act_splitA` | `splitA` | `splitD` | Action L1 Error |
 | `act_splitABC` | `splitA + splitB + splitC` | `splitD` | Action L1 Error |
 
-当前实现是轻量 action-chunking transformer：双视角图像编码、状态编码、任务嵌入、chunk query transformer，一次预测未来 `chunk_size` 步动作。离线评估使用 `splitD` 的动作 L1 误差；如果后续接入 CALVIN 真实环境，可在相同 checkpoint 上补充 success rate。
+当前实现直接调用 LeRobot 的 `ACTPolicy`：双视角图像编码、机器人状态编码、ACT transformer decoder 和 VAE 训练目标，一次预测未来 `chunk_size` 步动作。离线评估使用 `splitD` 的动作 L1 误差；如果后续接入 CALVIN 真实环境，可在相同 checkpoint 上补充 success rate。
 
 ## Dry-run
 
