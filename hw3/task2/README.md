@@ -1,0 +1,131 @@
+# HW3 Task2：LeRobot ACT 跨环境泛化实验
+
+本任务使用老师划分好的 CALVIN LeRobot 数据集完成 ACT 行为克隆实验，并比较单环境训练与多环境联合训练在未见过环境 D 上的 zero-shot 泛化能力。
+
+## 运行环境
+
+远程机器：`135-3090-8`
+
+```bash
+cd /data/yc/CS60003
+/data/yc/miniconda/envs/llm-26-gpu/bin/python --version
+```
+
+关键依赖：`torch`, `torchvision`, `lerobot`, `pyarrow`, `swanlab`, `modelscope`, `tqdm`, `pyyaml`。
+
+## 数据路径
+
+```text
+/data/yc/CS60003/hw3/task2/data/calvin_lerobot
+├── splitA  # 环境 A
+├── splitB  # 环境 B
+├── splitC  # 环境 C
+└── splitD  # 环境 D
+```
+
+每个 episode 是 LeRobot/parquet 格式，核心字段包括 `image`, `wrist_image`, `state`, `actions`, `timestamp`, `task_index`。
+
+## 实验设置
+
+两个模型使用相同 ACT 网络结构和核心超参数：
+
+| 模型 | 训练数据 | 测试数据 | 主要指标 |
+|---|---|---|---|
+| `act_splitA` | `splitA` | `splitD` | Action L1 Error |
+| `act_splitABC` | `splitA + splitB + splitC` | `splitD` | Action L1 Error |
+
+当前实现是轻量 action-chunking transformer：双视角图像编码、状态编码、任务嵌入、chunk query transformer，一次预测未来 `chunk_size` 步动作。离线评估使用 `splitD` 的动作 L1 误差；如果后续接入 CALVIN 真实环境，可在相同 checkpoint 上补充 success rate。
+
+## Dry-run
+
+先确认数据读取、训练、评估、SwanLab 和 checkpoint 保存链路：
+
+```bash
+ssh 135-3090-8
+cd /data/yc/CS60003
+bash hw3/task2/scripts/dry_run.sh
+```
+
+## 正式训练
+
+脚本会自动选择空闲 GPU，并用 `torchrun` 多 GPU 训练：
+
+```bash
+ssh 135-3090-8
+cd /data/yc/CS60003
+bash hw3/task2/scripts/train.sh hw3/task2/configs/act_splitA.yaml 8
+bash hw3/task2/scripts/train.sh hw3/task2/configs/act_splitABC.yaml 8
+```
+
+输出目录：
+
+```text
+/data/yc/CS60003/hw3/task2/outputs/act_splitA
+/data/yc/CS60003/hw3/task2/outputs/act_splitABC
+```
+
+每个实验会保存：
+
+```text
+config.yaml
+metrics.csv
+dataset_summary.json
+train_summary.json
+checkpoints/latest.pt
+checkpoints/best.pt
+checkpoints/final.pt
+```
+
+## 评估
+
+```bash
+ssh 135-3090-8
+cd /data/yc/CS60003
+bash hw3/task2/scripts/evaluate.sh \
+  hw3/task2/configs/act_splitA.yaml \
+  hw3/task2/outputs/act_splitA/checkpoints/best.pt \
+  act_splitA
+bash hw3/task2/scripts/evaluate.sh \
+  hw3/task2/configs/act_splitABC.yaml \
+  hw3/task2/outputs/act_splitABC/checkpoints/best.pt \
+  act_splitABC
+```
+
+评估结果：
+
+```text
+hw3/task2/outputs/eval/act_splitA_splitD.json
+hw3/task2/outputs/eval/act_splitA_splitD.csv
+hw3/task2/outputs/eval/act_splitABC_splitD.json
+hw3/task2/outputs/eval/act_splitABC_splitD.csv
+```
+
+## SwanLab
+
+训练脚本会从 `.helloagents/secrets/hw3.env` 加载 SwanLab key，并记录训练 loss、验证 Action L1、学习率、超参数和数据配置。不要在命令行或日志中打印 key。
+
+## ModelScope 上传
+
+训练完成后上传两个模型目录：
+
+```bash
+ssh 135-3090-8
+cd /data/yc/CS60003
+bash hw3/task2/scripts/upload_modelscope.sh \
+  hw3/task2/outputs/act_splitA \
+  CS60003-HW3-Task2-ACT-splitA \
+  hw3/task2/outputs/act_splitA/modelscope_upload.json
+bash hw3/task2/scripts/upload_modelscope.sh \
+  hw3/task2/outputs/act_splitABC \
+  CS60003-HW3-Task2-ACT-splitABC \
+  hw3/task2/outputs/act_splitABC/modelscope_upload.json
+```
+
+## 代码结构
+
+```text
+hw3/task2/configs/        # 实验配置
+hw3/task2/scripts/        # 训练、评估、上传启动脚本
+hw3/task2/src/hw3_task2/  # 数据、模型、训练、评估、上传实现
+hw3/task2/outputs/        # 运行输出，不提交 Git
+```
