@@ -6,14 +6,14 @@ MAX_GPUS=${2:-8}
 ENV_PY=/data/yc/miniconda/envs/llm-26-gpu/bin/python
 cd /data/yc/CS60003
 export PYTHONPATH=/data/yc/CS60003/hw3/task2/src:${PYTHONPATH:-}
-GPU_IDS=$($ENV_PY hw3/task2/scripts/select_gpus.py --max-gpus "$MAX_GPUS")
+GPU_IDS=$($ENV_PY hw3/task2/scripts/select_gpus.py --min-free-mib 20000 --max-util 5 --max-gpus "$MAX_GPUS")
 if [[ -z "$GPU_IDS" ]]; then
   echo "No sufficiently free GPU found; fallback to CPU."
   $ENV_PY -m hw3_task2.train --config "$CONFIG"
   exit 0
 fi
 export CUDA_VISIBLE_DEVICES="$GPU_IDS"
-NPROC=$(python - <<'PY'
+NPROC=$($ENV_PY - <<'PY'
 import os
 print(len(os.environ['CUDA_VISIBLE_DEVICES'].split(',')))
 PY
