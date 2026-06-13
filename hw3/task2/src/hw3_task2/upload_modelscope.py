@@ -21,6 +21,11 @@ UPLOAD_ALLOWLIST = {
 }
 
 
+def build_repo_path(prefix: str, run_name: str, rel_path: str) -> str:
+    parts = [prefix.strip("/"), run_name.strip("/"), rel_path.strip("/")]
+    return "/".join(part for part in parts if part)
+
+
 def collect_upload_files(model_dir: Path) -> list[Path]:
     files = []
     for rel in sorted(UPLOAD_ALLOWLIST):
@@ -36,6 +41,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--model-dir", required=True)
     parser.add_argument("--repo-id", required=True)
+    parser.add_argument("--path-prefix", default="")
     parser.add_argument("--secret-env", default=".helloagents/secrets/hw3.env")
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
@@ -60,20 +66,23 @@ def main() -> None:
     model_dir = Path(args.model_dir)
     files = collect_upload_files(model_dir)
     uploaded = []
+    run_name = model_dir.name
     for path in tqdm(files, desc=f"upload {args.repo_id}"):
         rel = path.relative_to(model_dir).as_posix()
+        path_in_repo = build_repo_path(args.path_prefix, run_name, rel)
         api.upload_file(
             path_or_fileobj=str(path),
-            path_in_repo=rel,
+            path_in_repo=path_in_repo,
             repo_id=args.repo_id,
             repo_type="model",
             token=token,
-            commit_message=f"upload {rel}",
+            commit_message=f"upload {path_in_repo}",
         )
-        uploaded.append(rel)
+        uploaded.append(path_in_repo)
     result = {
         "repo_id": args.repo_id,
         "modelscope_url": f"https://modelscope.cn/models/{args.repo_id}",
+        "path_prefix": args.path_prefix,
         "model_dir": str(model_dir.resolve()),
         "files": uploaded,
     }

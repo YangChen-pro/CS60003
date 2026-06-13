@@ -62,7 +62,8 @@ class TrackConfig:
 @dataclass
 class UploadConfig:
     enable_modelscope: bool = True
-    repo_id: str = "CS60003-HW3-Task2-ACT"
+    repo_id: str = "youngchen/CS60003"
+    path_prefix: str = "hw3/task2"
     secret_env: str = ".helloagents/secrets/hw3.env"
 
 

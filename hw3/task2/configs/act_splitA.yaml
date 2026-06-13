@@ -40,5 +40,6 @@ track:
   secret_env: /data/yc/CS60003/.helloagents/secrets/hw3.env
 upload:
   enable_modelscope: true
-  repo_id: youngchen/CS60003-HW3-Task2-ACT-splitA
+  repo_id: youngchen/CS60003
+  path_prefix: hw3/task2
   secret_env: /data/yc/CS60003/.helloagents/secrets/hw3.env

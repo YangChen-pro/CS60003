@@ -123,27 +123,51 @@ hw3/task2/outputs/eval/task2_results_table.json
 
 ## ModelScope 上传
 
-训练完成后上传两个模型目录：
+训练完成后上传到课程统一 ModelScope 项目 `youngchen/CS60003` 的 `hw3/task2/` 目录，不再创建独立模型仓：
 
 ```bash
 ssh 135-3090-8
 cd /data/yc/CS60003
 bash hw3/task2/scripts/upload_modelscope.sh \
   hw3/task2/outputs/act_splitA \
-  youngchen/CS60003-HW3-Task2-ACT-splitA \
-  hw3/task2/outputs/act_splitA/modelscope_upload.json
+  youngchen/CS60003 \
+  hw3/task2/outputs/act_splitA/modelscope_upload.json \
+  hw3/task2
 bash hw3/task2/scripts/upload_modelscope.sh \
   hw3/task2/outputs/act_splitABC \
-  youngchen/CS60003-HW3-Task2-ACT-splitABC \
-  hw3/task2/outputs/act_splitABC/modelscope_upload.json
+  youngchen/CS60003 \
+  hw3/task2/outputs/act_splitABC/modelscope_upload.json \
+  hw3/task2
 ```
 
-已上传模型：
+已上传位置：<https://modelscope.cn/models/youngchen/CS60003>
 
-- `act_splitA`：<https://modelscope.cn/models/youngchen/CS60003-HW3-Task2-ACT-splitA>
-- `act_splitABC`：<https://modelscope.cn/models/youngchen/CS60003-HW3-Task2-ACT-splitABC>
+```text
+hw3/task2/
+├── act_splitA/
+│   ├── checkpoints/best.pt
+│   ├── checkpoints/final.pt
+│   ├── checkpoints/latest.pt
+│   ├── config.yaml
+│   ├── dataset_summary.json
+│   ├── metrics.csv
+│   ├── results_summary.json
+│   └── train_summary.json
+├── act_splitABC/
+│   ├── checkpoints/best.pt
+│   ├── checkpoints/final.pt
+│   ├── checkpoints/latest.pt
+│   ├── config.yaml
+│   ├── dataset_summary.json
+│   ├── metrics.csv
+│   ├── results_summary.json
+│   └── train_summary.json
+└── eval/
+    ├── task2_results_table.csv
+    └── task2_results_table.json
+```
 
-上传文件包含 `checkpoints/best.pt`、`checkpoints/final.pt`、`checkpoints/latest.pt`、`config.yaml`、`metrics.csv`、`dataset_summary.json`、`train_summary.json`、`results_summary.json`。
+其中 `eval/` 里的汇总结果表由评估脚本生成后单独上传；两个旧独立模型仓不是最终交付位置。
 
 ## 代码结构
 
