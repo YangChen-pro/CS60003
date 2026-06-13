@@ -1,5 +1,13 @@
 # 变更日志
 
+## [0.6.2] - 2026-06-13
+### 更新
+- **[hw3-task2]**: 同步 Task2 LeRobot ACT 正式实验、135 运行环境、SwanLab 记录、ModelScope 最终目录和上传配置到知识库。
+  - 类型: 知识库同步
+  - 结果: 记录 `act_splitA` 与 `act_splitABC` 在 `splitD` 的 Action L1 结果；明确最终 ModelScope 位置为 `youngchen/CS60003/hw3/task2/`，旧独立模型仓不是交付位置；验证命令补充 Task2 配置与上传脚本编译检查。
+  - 文件: .helloagents/context.md, .helloagents/modules/_index.md, .helloagents/modules/hw3.md, .helloagents/verify.yaml, .helloagents/CHANGELOG.md
+
+
 ## [0.6.1] - 2026-06-05
 ### 更新
 - **[hw3-task1]**: 按用户质量要求删除旧低质量链路，并清理 ModelScope 非权重文件。

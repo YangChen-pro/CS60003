@@ -4,4 +4,4 @@
 
 commands:
   - python3 -X utf8 tools/verify_delivery_metadata.py
-  - python3 -m py_compile hw1/train.py hw1/evaluate.py hw1/search.py hw2/task1/train.py hw2/task1/evaluate.py hw2/task2/train.py hw2/task2/evaluate.py hw2/task2/track_video.py hw2/task3/train.py hw2/task3/evaluate.py tools/verify_delivery_metadata.py
+  - python3 -m py_compile hw1/train.py hw1/evaluate.py hw1/search.py hw2/task1/train.py hw2/task1/evaluate.py hw2/task2/train.py hw2/task2/evaluate.py hw2/task2/track_video.py hw2/task3/train.py hw2/task3/evaluate.py hw3/task2/src/hw3_task2/config.py hw3/task2/src/hw3_task2/upload_modelscope.py tools/verify_delivery_metadata.py
