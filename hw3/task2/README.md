@@ -102,23 +102,37 @@ hw3/task2/outputs/eval/task2_results_table.csv
 hw3/task2/outputs/eval/task2_results_table.json
 ```
 
-当前正式结果：
+当前正式结果（主口径优先看 `final.pt`，`best.pt` 只作为参考）：
 
 | 模型 | 训练数据 | 测试数据 | best Action L1 | final-only Action L1 |
 |---|---|---|---:|---:|
 | `act_splitA` | `splitA` | `splitD` | 0.1731817282 | 0.1886211640 |
 | `act_splitABC` | `splitA + splitB + splitC` | `splitD` | 0.1464656246 | 0.1549013643 |
 
-结论：多环境联合训练的 `act_splitABC` 在未见过的 `splitD` 上动作误差更低。即使用不按验证集挑选的 `final.pt`，`act_splitABC` 也明显优于 `act_splitA`；`best.pt` 结果更强，但报告里需要说明它使用了 D 上离线验证误差做 checkpoint 选择。
+结论：多环境联合训练的 `act_splitABC` 在未见过的 `splitD` 上动作误差更低。主结论优先采用不按 D 环境选择 checkpoint 的 `final.pt`：`act_splitABC` 将 Action L1 从 `0.1886211640` 降到 `0.1549013643`，相对提升 `17.88%`。`best.pt` 结果更强，但它使用了 D 上离线验证误差做 checkpoint 选择，因此只作为模型潜力参考。
 
 可提交的小体积证据集中在 `hw3/task2/results/`：
 
-- `task2_results_table.csv/json`：best checkpoint 汇总。
-- `final_only_eval_table.csv/json`：final checkpoint 汇总。
+- `task2_results_table.csv/json`：历史原始 best checkpoint 汇总。
+- `best_checkpoint_eval_table.csv/json`：字段无歧义的 best checkpoint 汇总，避免把 best 评估误读为 final.pt。
+- `final_only_eval_table.csv/json`：final checkpoint 汇总，作为最干净的 zero-shot 主口径。
+- `STATISTICAL_SUMMARY.md`、`statistical_summary.csv/json`：episode、task、action-dim paired 统计与 bootstrap 置信区间。
 - `*_task_breakdown.csv`、`*_episode_breakdown.csv`、`*_action_dim_breakdown.csv`：按任务、episode 和动作维度的误差分解。
 - `curves/*_metrics_clean.csv`：从 SwanLab 拉取并清洗后的训练曲线源数据。
 - `figures/*.png`：训练 loss、训练 Action L1、验证 Action L1 和模型对比图。
 - `calvin_simulator_probe.md`：官方 CALVIN simulator 接入探测和阻塞证据。
+
+## 复现检查
+
+在 135 上可先跑前置检查，确认环境、数据、结果文件和 final.pt 主结论都在位：
+
+```bash
+ssh 135-3090-8
+cd /data/yc/CS60003
+bash hw3/task2/scripts/check_reproducibility.sh --strict-data --strict-env
+```
+
+该脚本会检查 Python 包版本、GPU 可见性、四个 split 的数据目录与 episode/frame 数、可提交结果文件和 `final.pt` 的 ABC 优势。普通本机没有数据或 GPU 时可以不加 `--strict-data --strict-env`，用于检查仓库里的小体积结果证据是否完整。
 
 ## SwanLab
 
@@ -176,7 +190,7 @@ hw3/task2/
     └── task2_results_table.json
 ```
 
-其中 `eval/` 里的汇总结果表由评估脚本生成后单独上传；两个旧独立模型仓不是最终交付位置。
+其中 `eval/` 里的汇总结果表由评估脚本生成后单独上传；两个旧独立模型仓不是最终交付位置。最新 final-only 与统计汇总结论保存在 Git 的 `hw3/task2/results/`，包括 `final_only_eval_table.*`、`best_checkpoint_eval_table.*` 和 `STATISTICAL_SUMMARY.md`。
 
 ## 代码结构
 

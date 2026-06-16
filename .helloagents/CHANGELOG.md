@@ -1,5 +1,12 @@
 # 变更日志
 
+## [0.6.4] - 2026-06-16
+### 更新
+- **[hw3-task2]**: 补齐 AI 阅卷友好的 final.pt 主口径、paired 统计汇总和复现检查脚本。
+  - 类型: 结果证据与复现性补强
+  - 结果: final.pt 口径下 `act_splitABC` 相对 `act_splitA` Action L1 提升 `17.88%`；episode 级 `4041/5124`、task 级 `355/389`、action-dim 级 `7/7` 配对项更优；135 上 `check_reproducibility.sh --strict-data` 通过。
+  - 文件: hw3/task2/README.md, hw3/task2/scripts/, hw3/task2/src/hw3_task2/, hw3/task2/results/, .helloagents/modules/hw3.md, .helloagents/CHANGELOG.md
+
 ## [0.6.3] - 2026-06-16
 ### 更新
 - **[hw3-task2]**: 补齐 Task2 final-only 评估、SwanLab 曲线源数据、结果图表、误差分解、精简 requirements 和 CALVIN simulator 探测记录。

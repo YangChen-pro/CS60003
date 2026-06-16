@@ -276,6 +276,30 @@ def copy_results(outputs_dir: Path, results_dir: Path) -> dict[str, Any]:
     return {"copied_files": copied}
 
 
+
+def build_best_checkpoint_table(results_dir: Path) -> list[dict[str, Any]]:
+    source = results_dir / "task2_results_table.csv"
+    if not source.exists():
+        return []
+    rows = []
+    with source.open(newline="") as handle:
+        for row in csv.DictReader(handle):
+            rows.append(
+                {
+                    "model_name": row["model_name"],
+                    "train_split": row["train_split"],
+                    "eval_split": row["eval_split"],
+                    "training_best_eval_action_l1": float(row["best_eval_action_l1"]),
+                    "evaluated_best_checkpoint_action_l1": float(row["final_eval_action_l1"]),
+                    "num_eval_frames": int(row["num_eval_frames"]),
+                    "num_eval_episodes": int(row["num_eval_episodes"]),
+                    "checkpoint_path": row["checkpoint_path"],
+                }
+            )
+    write_csv(results_dir / "best_checkpoint_eval_table.csv", rows)
+    write_json(results_dir / "best_checkpoint_eval_table.json", rows)
+    return rows
+
 def build_final_only_table(results_dir: Path) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for run in RUNS:
@@ -315,8 +339,10 @@ def write_readme(results_dir: Path, summary: dict[str, Any], final_rows: list[di
         "",
         "## 核心结果",
         "",
-        "- 主结果表：`task2_results_table.csv` / `task2_results_table.json`。",
+        "- 原始 best 结果表：`task2_results_table.csv` / `task2_results_table.json`。",
+        "- 字段无歧义的 best checkpoint 表：`best_checkpoint_eval_table.csv` / `best_checkpoint_eval_table.json`。",
         "- final-only 评估表：`final_only_eval_table.csv` / `final_only_eval_table.json`。",
+        "- paired 统计汇总：`STATISTICAL_SUMMARY.md`、`statistical_summary.csv`、`statistical_summary.json`。",
         "- 清洗后的曲线源数据：`curves/*_metrics_clean.csv`。",
         "- 曲线图：`figures/*.png`。",
         "",
@@ -342,6 +368,7 @@ def main() -> None:
     results_dir = Path(args.results_dir)
     copy_summary = copy_results(outputs_dir, results_dir)
     curve_summary = normalize_metrics(outputs_dir, results_dir)
+    build_best_checkpoint_table(results_dir)
     final_rows = build_final_only_table(results_dir)
     plot_curves(results_dir)
     summary = {"copy": copy_summary, "curves": curve_summary}

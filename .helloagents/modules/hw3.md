@@ -41,3 +41,6 @@
 - Task2 final-only 结果：`act_splitA` final splitD Action L1 为 `0.1886211640`，`act_splitABC` final splitD Action L1 为 `0.1549013643`；二者均弱于 best，但多环境训练优势保持，报告中应说明 best 使用 D 离线指标选 checkpoint。
 - Task2 官方 CALVIN simulator 探测：135 已克隆 `/data/yc/tools/calvin_sim/calvin` 和 `calvin_env`，补装轻量依赖后官方评估入口可导入；当前 `xiaoma26/calvin-lerobot` splitD 缺少 `validation/.hydra/merged_config.yaml`，不能直接跑真实 Success Rate。官方 `task_D_D.zip` 约 165GiB，若要真实 Success Rate 需另行准备原始 CALVIN validation 数据并实现 ACT 的 `CustomModel.step(obs, goal)` 适配。
 - Task2 精简依赖版本写入 `hw3/task2/requirements.txt`；CALVIN simulator 额外探测依赖不放入作业精简 requirements。
+
+- Task2 A+ 补强新增 paired 统计与复现检查：`hw3/task2/results/STATISTICAL_SUMMARY.md` 记录 final.pt 主口径下 episode/task/action-dim 配对优势；`hw3/task2/scripts/check_reproducibility.sh --strict-data` 在 135 上验证 Python 包、GPU、数据 split、结果文件和 final.pt ABC 优势均 PASS。
+- Task2 final.pt 统计主结论：ABC 相对 A 的 Action L1 提升为 `17.88%`；episode 级 `4041/5124` 更优，task 级 `355/389` 更优，action-dim 级 `7/7` 更优。报告和 README 应以 final.pt 为主结论，best.pt 只作为参考。
