@@ -1,5 +1,12 @@
 # 变更日志
 
+## [0.6.3] - 2026-06-16
+### 更新
+- **[hw3-task2]**: 补齐 Task2 final-only 评估、SwanLab 曲线源数据、结果图表、误差分解、精简 requirements 和 CALVIN simulator 探测记录。
+  - 类型: 质量收口与结果证据补全
+  - 结果: `act_splitA` final splitD Action L1 `0.1886211640`，`act_splitABC` final splitD Action L1 `0.1549013643`；多环境训练优势在 final checkpoint 上保持。官方 CALVIN simulator 评估入口在 135 可导入，但当前 LeRobot 数据缺少原始 `validation/.hydra/merged_config.yaml`，因此不报告真实 Success Rate。
+  - 文件: README.md, hw3/task2/README.md, hw3/task2/requirements.txt, hw3/task2/scripts/, hw3/task2/src/hw3_task2/, hw3/task2/results/, .helloagents/modules/hw3.md, .helloagents/CHANGELOG.md
+
 ## [0.6.2] - 2026-06-13
 ### 更新
 - **[hw3-task2]**: 同步 Task2 LeRobot ACT 正式实验、135 运行环境、SwanLab 记录、ModelScope 最终目录和上传配置到知识库。

@@ -28,15 +28,16 @@ def write_json(path: str | Path, payload: dict | list) -> None:
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2))
 
 
-def append_csv(path: str | Path, row: dict) -> None:
+def append_csv(path: str | Path, row: dict, fieldnames: list[str] | None = None) -> None:
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     exists = path.exists()
+    fields = fieldnames or list(row.keys())
     with path.open("a", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=list(row.keys()))
+        writer = csv.DictWriter(handle, fieldnames=fields, extrasaction="ignore")
         if not exists:
             writer.writeheader()
-        writer.writerow(row)
+        writer.writerow({key: row.get(key, "") for key in fields})
 
 
 def available_gpu_ids(min_free_mib: int = 12_000) -> list[int]:

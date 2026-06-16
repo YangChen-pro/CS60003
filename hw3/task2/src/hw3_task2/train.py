@@ -16,6 +16,8 @@ from .model import build_policy
 from .secrets import has_any_key, load_env_file
 from .utils import append_csv, is_main_process, set_seed, write_json
 
+METRIC_FIELDS = ["step", "epoch", "phase", "train_loss", "train_action_l1", "eval_action_l1", "lr"]
+
 
 def setup_distributed() -> tuple[bool, torch.device]:
     world_size = int(os.environ.get("WORLD_SIZE", "1"))
@@ -182,8 +184,15 @@ def main() -> None:
             l1_value = float(loss_dict["l1_loss"])
             iterator.set_postfix(loss=f"{loss_value:.5f}", action_l1=f"{l1_value:.5f}")
             if is_main_process() and global_step % cfg.train.log_every == 0:
-                row = {"step": global_step, "epoch": epoch, "train_loss": loss_value, "train_action_l1": l1_value, "lr": cfg.train.lr}
-                append_csv(output_dir / "metrics.csv", row)
+                row = {
+                    "step": global_step,
+                    "epoch": epoch,
+                    "phase": "train",
+                    "train_loss": loss_value,
+                    "train_action_l1": l1_value,
+                    "lr": cfg.train.lr,
+                }
+                append_csv(output_dir / "metrics.csv", row, METRIC_FIELDS)
                 if run is not None:
                     import swanlab
                     swanlab.log(row, step=global_step)
@@ -199,8 +208,8 @@ def main() -> None:
                 dist.all_reduce(value, op=dist.ReduceOp.AVG)
                 eval_l1 = float(value.item())
             if is_main_process():
-                row = {"step": global_step, "epoch": epoch, "eval_action_l1": eval_l1}
-                append_csv(output_dir / "metrics.csv", row)
+                row = {"step": global_step, "epoch": epoch, "phase": "eval", "eval_action_l1": eval_l1}
+                append_csv(output_dir / "metrics.csv", row, METRIC_FIELDS)
                 if run is not None:
                     import swanlab
                     swanlab.log(row, step=global_step)

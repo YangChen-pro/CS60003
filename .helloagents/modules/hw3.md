@@ -36,3 +36,8 @@
 - Task2 SwanLab 项目为 `CS60003_HW3_Task2`；正式 run：`act_splitA=05kubpls24j5jrp2wbl1t`，`act_splitABC=4si6dcrut2krorrbalfkn`。
 - Task2 ModelScope 最终位置是统一项目 `youngchen/CS60003` 下的 `hw3/task2/`，包含 `act_splitA/`、`act_splitABC/` 与 `eval/`；此前两个独立模型仓 `youngchen/CS60003-HW3-Task2-ACT-splitA` 和 `youngchen/CS60003-HW3-Task2-ACT-splitABC` 是误放位置，不作为交付链接。
 - Task2 上传脚本 `hw3/task2/scripts/upload_modelscope.sh` 第 4 个参数是 ModelScope 仓内前缀，正式值为 `hw3/task2`；配置中的 `upload.repo_id` 固定为 `youngchen/CS60003`，`upload.path_prefix` 固定为 `hw3/task2`。
+
+- Task2 已补齐 A+ 报告所需小体积证据：`hw3/task2/results/` 保存 best/final-only D 评估表、SwanLab 曲线源数据、曲线图、任务/episode/动作维度分解和 CALVIN simulator 探测记录。
+- Task2 final-only 结果：`act_splitA` final splitD Action L1 为 `0.1886211640`，`act_splitABC` final splitD Action L1 为 `0.1549013643`；二者均弱于 best，但多环境训练优势保持，报告中应说明 best 使用 D 离线指标选 checkpoint。
+- Task2 官方 CALVIN simulator 探测：135 已克隆 `/data/yc/tools/calvin_sim/calvin` 和 `calvin_env`，补装轻量依赖后官方评估入口可导入；当前 `xiaoma26/calvin-lerobot` splitD 缺少 `validation/.hydra/merged_config.yaml`，不能直接跑真实 Success Rate。官方 `task_D_D.zip` 约 165GiB，若要真实 Success Rate 需另行准备原始 CALVIN validation 数据并实现 ACT 的 `CustomModel.step(obs, goal)` 适配。
+- Task2 精简依赖版本写入 `hw3/task2/requirements.txt`；CALVIN simulator 额外探测依赖不放入作业精简 requirements。

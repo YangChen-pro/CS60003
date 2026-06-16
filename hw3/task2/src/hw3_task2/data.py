@@ -114,6 +114,8 @@ class CalvinActDataset(Dataset):
             **({"wrist_image": wrist} if wrist is not None else {}),
             "state": state,
             "task_index": task_index,
+            "episode_index": torch.tensor(frame.episode_index, dtype=torch.long),
+            "row_index": torch.tensor(row, dtype=torch.long),
             "actions": actions,
             "valid": valid,
         }

@@ -3,9 +3,10 @@ set -euo pipefail
 
 CONFIG=${1:?usage: bash hw3/task2/scripts/train.sh <config.yaml> [max_gpus]}
 MAX_GPUS=${2:-8}
-ENV_PY=/data/yc/miniconda/envs/llm-26-gpu/bin/python
-cd /data/yc/CS60003
-export PYTHONPATH=/data/yc/CS60003/hw3/task2/src:${PYTHONPATH:-}
+TASK2_ROOT=${TASK2_ROOT:-/data/yc/CS60003}
+ENV_PY=${PYTHON_BIN:-/data/yc/miniconda/envs/llm-26-gpu/bin/python}
+cd "$TASK2_ROOT"
+export PYTHONPATH=$TASK2_ROOT/hw3/task2/src:${PYTHONPATH:-}
 GPU_IDS=$($ENV_PY hw3/task2/scripts/select_gpus.py --min-free-mib 20000 --max-util 5 --max-gpus "$MAX_GPUS")
 if [[ -z "$GPU_IDS" ]]; then
   echo "No sufficiently free GPU found; fallback to CPU."

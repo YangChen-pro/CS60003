@@ -11,7 +11,7 @@ cd /data/yc/CS60003
 /data/yc/miniconda/envs/llm-26-gpu/bin/python --version
 ```
 
-关键依赖：`torch`, `torchvision`, `lerobot`, `pyarrow`, `swanlab`, `modelscope`, `tqdm`, `pyyaml`。
+关键依赖已收敛到 `hw3/task2/requirements.txt`，用于复现实验环境中的核心包版本；CALVIN simulator 只作为额外探测，不放进精简 requirements。
 
 ## 数据路径
 
@@ -34,7 +34,7 @@ cd /data/yc/CS60003
 | `act_splitA` | `splitA` | `splitD` | Action L1 Error |
 | `act_splitABC` | `splitA + splitB + splitC` | `splitD` | Action L1 Error |
 
-当前实现直接调用 LeRobot 的 `ACTPolicy`：双视角图像编码、机器人状态编码、ACT transformer decoder 和 VAE 训练目标，一次预测未来 `chunk_size` 步动作。离线评估使用 `splitD` 的动作 L1 误差；如果后续接入 CALVIN 真实环境，可在相同 checkpoint 上补充 success rate。
+当前实现直接调用 LeRobot 的 `ACTPolicy`：双视角图像编码、机器人状态编码、ACT transformer decoder 和 VAE 训练目标，一次预测未来 `chunk_size` 步动作。离线评估使用 `splitD` 的动作 L1 误差。已额外探测官方 CALVIN simulator；当前 LeRobot 数据不含官方 simulator 所需的 `validation/.hydra/merged_config.yaml`，因此本次不把真实 Success Rate 作为已完成指标。
 
 ## Dry-run
 
@@ -104,12 +104,21 @@ hw3/task2/outputs/eval/task2_results_table.json
 
 当前正式结果：
 
-| 模型 | 训练数据 | 测试数据 | best Action L1 | 显式评估 Action L1 |
+| 模型 | 训练数据 | 测试数据 | best Action L1 | final-only Action L1 |
 |---|---|---|---:|---:|
-| `act_splitA` | `splitA` | `splitD` | 0.1731817275 | 0.1731817282 |
-| `act_splitABC` | `splitA + splitB + splitC` | `splitD` | 0.1464656293 | 0.1464656246 |
+| `act_splitA` | `splitA` | `splitD` | 0.1731817282 | 0.1886211640 |
+| `act_splitABC` | `splitA + splitB + splitC` | `splitD` | 0.1464656246 | 0.1549013643 |
 
-结论：多环境联合训练的 `act_splitABC` 在未见过的 `splitD` 上动作误差更低，说明 A+B+C 的视觉和状态覆盖对跨环境泛化有帮助。本仓库当前完成的是离线动作误差评估；没有接入 CALVIN simulator，因此不报告真实环境 success rate。
+结论：多环境联合训练的 `act_splitABC` 在未见过的 `splitD` 上动作误差更低。即使用不按验证集挑选的 `final.pt`，`act_splitABC` 也明显优于 `act_splitA`；`best.pt` 结果更强，但报告里需要说明它使用了 D 上离线验证误差做 checkpoint 选择。
+
+可提交的小体积证据集中在 `hw3/task2/results/`：
+
+- `task2_results_table.csv/json`：best checkpoint 汇总。
+- `final_only_eval_table.csv/json`：final checkpoint 汇总。
+- `*_task_breakdown.csv`、`*_episode_breakdown.csv`、`*_action_dim_breakdown.csv`：按任务、episode 和动作维度的误差分解。
+- `curves/*_metrics_clean.csv`：从 SwanLab 拉取并清洗后的训练曲线源数据。
+- `figures/*.png`：训练 loss、训练 Action L1、验证 Action L1 和模型对比图。
+- `calvin_simulator_probe.md`：官方 CALVIN simulator 接入探测和阻塞证据。
 
 ## SwanLab
 
@@ -173,7 +182,8 @@ hw3/task2/
 
 ```text
 hw3/task2/configs/        # 实验配置
-hw3/task2/scripts/        # 训练、评估、上传启动脚本
-hw3/task2/src/hw3_task2/  # 数据、模型、训练、评估、上传实现
+hw3/task2/scripts/        # 训练、评估、曲线导出、结果整理、上传启动脚本
+hw3/task2/src/hw3_task2/  # 数据、模型、训练、评估、结果整理、上传实现
+hw3/task2/results/        # 可提交的小体积结果证据
 hw3/task2/outputs/        # 运行输出，不提交 Git
 ```
