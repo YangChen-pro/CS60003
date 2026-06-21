@@ -83,6 +83,7 @@ class ModelScopeUploadTests(unittest.TestCase):
                 {"Path": "hw3/task2/act_splitA/final.pt", "Type": "blob"},
             ]
         )
+        git_deleted: list[str] = []
 
         deleted = _prune_remote_subdir(
             api,
@@ -91,6 +92,7 @@ class ModelScopeUploadTests(unittest.TestCase):
             keep_paths={
                 "hw3/task1/real_high_quality/exports/object_a/splat/splat.ply",
             },
+            delete_files=git_deleted.extend,
         )
 
         self.assertEqual(
@@ -99,7 +101,8 @@ class ModelScopeUploadTests(unittest.TestCase):
                 "hw3/task1/real_high_quality/old/checkpoint.ckpt",
             ],
         )
-        self.assertEqual(api.deleted, deleted)
+        self.assertEqual(git_deleted, deleted)
+        self.assertEqual(api.deleted, [])
 
 
 if __name__ == "__main__":

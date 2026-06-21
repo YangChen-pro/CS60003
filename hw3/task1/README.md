@@ -143,3 +143,6 @@ MODELSCOPE_API_TOKEN=... python hw3/task1/upload_modelscope.py \
   --remote-subdir real_high_quality \
   --replace-remote-subdir
 ```
+
+替换模式需要 `git` 和 `git-lfs`。权重仍通过 ModelScope API 上传；旧文件通过
+临时浅克隆中的 Git 提交删除，不会下载远端 LFS 权重内容。

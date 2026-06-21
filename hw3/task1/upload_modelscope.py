@@ -3,8 +3,12 @@
 from __future__ import annotations
 
 import argparse
+from collections.abc import Callable
 import os
 from pathlib import Path
+import shutil
+import subprocess
+import tempfile
 
 DEFAULT_MODEL_ID = "youngchen/CS60003"
 DEFAULT_REMOTE_ROOT = "hw3/task1"
@@ -19,7 +23,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--replace-remote-subdir",
         action="store_true",
-        help="After uploading, remove stale files below the selected remote subdir.",
+        help="After uploading, remove stale files through a ModelScope Git commit.",
     )
     return parser.parse_args()
 
@@ -70,6 +74,11 @@ def main() -> None:
             model_id=args.model_id,
             remote_subdir=remote_subdir,
             keep_paths=uploaded_paths,
+            delete_files=lambda paths: _delete_files_with_git(
+                model_id=args.model_id,
+                token=token,
+                paths=paths,
+            ),
         )
         for path in deleted:
             print(f"deleted stale file {path}", flush=True)
@@ -117,6 +126,7 @@ def _prune_remote_subdir(
     model_id: str,
     remote_subdir: str,
     keep_paths: set[str],
+    delete_files: Callable[[list[str]], None],
 ) -> list[str]:
     prefix = f"{DEFAULT_REMOTE_ROOT}/{_normalize_remote_subdir(remote_subdir)}/"
     entries = api.list_repo_files(
@@ -134,16 +144,77 @@ def _prune_remote_subdir(
     )
     if not paths:
         return []
-    result = api.delete_files(
-        model_id,
-        "model",
-        paths,
-        revision="master",
-    )
-    failed = list(result.get("failed_files", [])) if isinstance(result, dict) else []
-    if failed:
-        raise RuntimeError(f"ModelScope failed to delete: {failed}")
+    delete_files(paths)
     return paths
+
+
+def _delete_files_with_git(*, model_id: str, token: str, paths: list[str]) -> None:
+    git = shutil.which("git")
+    git_lfs = shutil.which("git-lfs")
+    if not git or not git_lfs:
+        raise RuntimeError("git and git-lfs are required to replace remote weights.")
+
+    with tempfile.TemporaryDirectory(prefix="modelscope-prune-") as tmp:
+        root = Path(tmp)
+        askpass = root / "askpass.sh"
+        askpass.write_text(
+            '#!/bin/sh\n'
+            'case "$1" in\n'
+            '  *Username*) printf "%s\\n" "oauth2" ;;\n'
+            '  *Password*) printf "%s\\n" "$MODELSCOPE_API_TOKEN" ;;\n'
+            '  *) exit 1 ;;\n'
+            'esac\n',
+            encoding="utf-8",
+        )
+        askpass.chmod(0o700)
+
+        env = os.environ.copy()
+        env.update(
+            {
+                "GIT_ASKPASS": str(askpass),
+                "GIT_LFS_SKIP_SMUDGE": "1",
+                "GIT_TERMINAL_PROMPT": "0",
+                "MODELSCOPE_API_TOKEN": token,
+            }
+        )
+        repo = root / "repo"
+        remote = f"https://www.modelscope.cn/{model_id}.git"
+        _run_git(
+            git,
+            "clone",
+            "--no-checkout",
+            "--filter=blob:none",
+            "--single-branch",
+            "--branch",
+            "master",
+            remote,
+            str(repo),
+            env=env,
+        )
+        _run_git(git, "checkout", "master", cwd=repo, env=env)
+        _run_git(git, "rm", "--", *paths, cwd=repo, env=env)
+        _run_git(
+            git,
+            "-c",
+            "user.name=ModelScope CLI",
+            "-c",
+            "user.email=modelscope-cli@users.noreply.github.com",
+            "commit",
+            "-m",
+            "Prune stale HW3 Task1 weights",
+            cwd=repo,
+            env=env,
+        )
+        _run_git(git, "push", "origin", "master", cwd=repo, env=env)
+
+
+def _run_git(
+    git: str,
+    *args: str,
+    cwd: Path | None = None,
+    env: dict[str, str],
+) -> None:
+    subprocess.run([git, *args], cwd=cwd, env=env, check=True)
 
 
 def _entry_path(entry: object) -> str:

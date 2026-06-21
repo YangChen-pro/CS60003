@@ -31,3 +31,6 @@ python hw3/task1/upload_modelscope.py \
   --remote-subdir real_high_quality \
   --replace-remote-subdir
 ```
+
+替换模式需要 `git` 和 `git-lfs`，并使用同一个
+`MODELSCOPE_API_TOKEN` 完成 Git 身份验证。
