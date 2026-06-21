@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PROJECT_DIR=${PROJECT_DIR:-/home/dell/yc/CS60003}
-DATA_ROOT=${DATA_ROOT:-/home/dell/yc/datasets/mipnerf360}
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+PROJECT_DIR=${PROJECT_DIR:-$(cd "$SCRIPT_DIR/../../.." && pwd)}
+DATA_ROOT=${DATA_ROOT:-$HOME/.cache/mipnerf360}
 SCENE=${SCENE:-counter}
 RESOLUTION_DIR=${RESOLUTION_DIR:-images}
 DATASET_URL=${DATASET_URL:-https://storage.googleapis.com/gresearch/refraw360/360_v2.zip}

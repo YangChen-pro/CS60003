@@ -7,6 +7,8 @@ import sys
 from pathlib import Path
 from typing import Iterable
 
+SYSTEM_CUDA_HOME = Path("/usr/local/cuda")
+
 
 def ensure_swanlab_api_key() -> str:
     """Return SWANLAB_API_KEY from environment or raise a clear error."""
@@ -56,6 +58,7 @@ def prepare_cuda_extension_env(logdir: str | Path | None = None) -> None:
     """Populate extension-related env vars used by PyTorch heavy wrappers."""
     from sysconfig import get_paths
 
+    _prepend_path_env("PATH", [str(Path(sys.executable).resolve().parent)])
     purelib = Path(get_paths()["purelib"])
     nvidia_root = purelib / "nvidia"
     include_dirs = sorted(str(path) for path in nvidia_root.glob("*/include") if path.is_dir())
@@ -67,7 +70,13 @@ def prepare_cuda_extension_env(logdir: str | Path | None = None) -> None:
         include_dirs.insert(0, str(Path(conda_prefix) / "include"))
         lib_dirs.insert(0, str(Path(conda_prefix) / "targets" / "x86_64-linux" / "lib"))
         lib_dirs.insert(0, str(Path(conda_prefix) / "lib"))
-        os.environ.setdefault("CUDA_HOME", conda_prefix)
+
+    cuda_home = _find_cuda_home(conda_prefix)
+    if cuda_home is not None:
+        os.environ["CUDA_HOME"] = str(cuda_home)
+        _prepend_path_env("PATH", [str(cuda_home / "bin")])
+        include_dirs.insert(0, str(cuda_home / "include"))
+        lib_dirs.insert(0, str(cuda_home / "lib64"))
 
     for name, values in {
         "CPATH": include_dirs,
@@ -84,6 +93,22 @@ def prepare_cuda_extension_env(logdir: str | Path | None = None) -> None:
 
     os.environ.setdefault("TORCH_CUDA_ARCH_LIST", "8.6")
     os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
+
+
+def _find_cuda_home(conda_prefix: str = "") -> Path | None:
+    candidates = [
+        Path(value)
+        for value in (
+            os.environ.get("CUDA_HOME", ""),
+            str(SYSTEM_CUDA_HOME),
+            conda_prefix,
+        )
+        if value
+    ]
+    for candidate in candidates:
+        if (candidate / "bin" / "nvcc").is_file():
+            return candidate.resolve()
+    return None
 
 
 def _torch_extensions_dir(logdir: str | Path) -> Path:

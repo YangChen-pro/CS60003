@@ -12,8 +12,14 @@ def export_script(config: dict[str, Any], run_dir: Path) -> str:
     threestudio_root = Path(chain["tools"]["threestudio_launch"]).parent
     trusted_runner = Path(chain["tools"]["nerfstudio_swanlab_runner"]).with_name("run_trusted_torch.py")
     export_resolution = int(chain["object_c"]["export_resolution"])
+    texture_size = int(chain["quality"]["mesh_texture_size"])
     nerfstudio_block = _nerfstudio_export_block(run_dir, trusted_runner)
-    threestudio_block = _threestudio_export_block(run_dir, trusted_runner, export_resolution)
+    threestudio_block = _threestudio_export_block(
+        run_dir,
+        trusted_runner,
+        export_resolution,
+        texture_size,
+    )
     return f"""#!/usr/bin/env bash
 set -euo pipefail
 export WANDB_MODE=offline
@@ -79,7 +85,12 @@ done
 """
 
 
-def _threestudio_export_block(run_dir: Path, trusted_runner: Path, export_resolution: int) -> str:
+def _threestudio_export_block(
+    run_dir: Path,
+    trusted_runner: Path,
+    export_resolution: int,
+    texture_size: int,
+) -> str:
     return f"""\
 for item in object_b:object_b_threestudio object_c:object_c_zero123; do
   target="${{item%%:*}}"
@@ -94,14 +105,24 @@ for item in object_b:object_b_threestudio object_c:object_c_zero123; do
     resume="$ckpt" \\
     system.loggers.wandb.enable=false \\
     system.exporter_type=mesh-exporter \\
-    system.exporter.fmt=obj \\
-    system.exporter.save_uv=false \\
+    system.exporter.fmt=obj-mtl \\
+    system.exporter.save_uv=true \\
+    system.exporter.save_texture=true \\
+    system.exporter.texture_size={texture_size} \\
     system.geometry.isosurface_method=mc-cpu \\
     system.geometry.isosurface_resolution={export_resolution}
   exported="$(find "$trial_dir/save" -path "*/it*-export/*.obj" | sort | tail -1)"
   test -n "$exported" || {{ echo "missing exported OBJ for $target" >&2; exit 1; }}
-  mkdir -p "{run_dir}/exports/$target/mesh"
-  cp -a "$(dirname "$exported")"/. "{run_dir}/exports/$target/mesh/"
+  export_dir="$(dirname "$exported")"
+  material="$(find "$export_dir" -maxdepth 1 -iname '*.mtl' | sort | head -1)"
+  texture="$(find "$export_dir" -maxdepth 1 \\( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' \\) | sort | head -1)"
+  test -n "$material" || {{ echo "missing exported MTL for $target" >&2; exit 1; }}
+  test -n "$texture" || {{ echo "missing exported texture for $target" >&2; exit 1; }}
+  target_dir="{run_dir}/exports/$target/mesh"
+  mkdir -p "$target_dir"
+  cp -a "$export_dir"/. "$target_dir/"
+  if [ "$(basename "$exported")" != "model.obj" ]; then
+    cp "$exported" "$target_dir/model.obj"
+  fi
 done
 """
-

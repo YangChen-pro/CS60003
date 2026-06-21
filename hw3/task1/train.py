@@ -1,9 +1,4 @@
-"""Run the maintained HW3 Task1 real high-quality pipeline.
-
-The entrypoint keeps the same config-driven style as HW1/HW2 train scripts,
-but Task1 now only keeps the real external-tool chain. Replacing `hw3/assets`
-with real captures drives COLMAP/Nerfstudio/threestudio/Zero123 directly.
-"""
+"""Run the config-driven HW3 Task 1 pipeline."""
 
 from __future__ import annotations
 

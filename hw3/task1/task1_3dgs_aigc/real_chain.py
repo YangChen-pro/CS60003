@@ -1,4 +1,4 @@
-"""High-quality external-tool chain for HW3 Task1.
+"""External-tool orchestration for HW3 Task 1.
 
 This module does not replace COLMAP, Nerfstudio, threestudio, Zero123, or
 Blender. It provides a reproducible orchestration layer so replacing
@@ -14,9 +14,18 @@ from typing import Any
 from task1_3dgs_aigc.real_chain_scripts import expected_outputs, write_scripts
 from task1_3dgs_aigc.utils import copy_source_config, make_run_dir, save_json
 
+STRICT_REAL_OUTPUT_FILES = [
+    "exports/object_a/splat/splat.ply",
+    "exports/background/splat/splat.ply",
+    "exports/object_b/mesh/model.obj",
+    "exports/object_c/mesh/model.obj",
+    "renders/fused_splats/fused_scene.mp4",
+    "renders/fused_splats/fused_scene_manifest.json",
+]
+
 
 def run_real_chain(config: dict[str, Any]) -> dict[str, Any]:
-    """Prepare or run the high-quality Task1 external-tool chain."""
+    """Prepare or run the Task 1 pipeline."""
     run_dir = make_run_dir(config["experiment"]["output_root"], config["experiment"]["name"])
     scripts_dir = run_dir / "scripts"
     logs_dir = run_dir / "logs"
@@ -25,8 +34,12 @@ def run_real_chain(config: dict[str, Any]) -> dict[str, Any]:
     copy_source_config(config["config_path"], run_dir)
     save_json(run_dir / "config.json", config)
 
-    input_issues = _validate_real_inputs(config, strict=config["real_chain"]["execution"]["mode"] == "run")
+    input_issues = _validate_real_inputs(
+        config,
+        require_complete=config["real_chain"]["execution"]["mode"] == "run",
+    )
     scripts = write_scripts(config, run_dir, scripts_dir)
+    outputs = expected_outputs(run_dir)
     summary = {
         "status": _initial_status(config, input_issues),
         "stage": "real_high_quality",
@@ -34,10 +47,13 @@ def run_real_chain(config: dict[str, Any]) -> dict[str, Any]:
         "script_count": len(scripts),
         "scripts": [path.as_posix() for path in scripts],
         "input_issues": input_issues,
-        "expected_outputs": expected_outputs(run_dir),
+        "expected_outputs": outputs,
         "input_policy": "Replace hw3/assets real input directories; do not edit code.",
         "background_dataset": config["real_chain"]["data"].get("background_dataset", ""),
     }
+    if summary["status"] == "READY" and _final_outputs_present(run_dir):
+        summary["status"] = "PASS"
+        _collect_outputs(run_dir)
     save_json(run_dir / "summary.json", summary)
 
     if config["real_chain"]["execution"]["mode"] == "run":
@@ -48,7 +64,7 @@ def run_real_chain(config: dict[str, Any]) -> dict[str, Any]:
     return summary
 
 
-def _validate_real_inputs(config: dict[str, Any], *, strict: bool) -> list[str]:
+def _validate_real_inputs(config: dict[str, Any], *, require_complete: bool) -> list[str]:
     data = config["real_chain"]["data"]
     issues: list[str] = []
     object_a_images = Path(data["object_a_images"])
@@ -68,7 +84,7 @@ def _validate_real_inputs(config: dict[str, Any], *, strict: bool) -> list[str]:
         issues.append(f"Missing background 3DGS source: {background_images} or real_chain.data.background_video")
     if background_images.is_dir() and not _image_files(background_images):
         issues.append(f"Background image directory has no PNG/JPG files: {background_images}")
-    if strict and issues:
+    if require_complete and issues:
         raise ValueError("; ".join(issues))
     return issues
 
@@ -77,6 +93,10 @@ def _initial_status(config: dict[str, Any], input_issues: list[str]) -> str:
     if config["real_chain"]["execution"]["mode"] == "run":
         return "RUNNING"
     return "READY" if not input_issues else "NEEDS_INPUTS"
+
+
+def _final_outputs_present(run_dir: Path) -> bool:
+    return all((run_dir / relative_path).exists() for relative_path in STRICT_REAL_OUTPUT_FILES)
 
 
 

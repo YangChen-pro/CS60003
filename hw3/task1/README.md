@@ -1,82 +1,77 @@
-# HW3 Task1：真实高质量 3DGS 与 AIGC 融合链路
+# HW3 Task 1: 3DGS 与 AIGC 多源资产融合
 
-本目录只保留 task1 高质量正式链路。早期非正式中间产物和报告草稿不再保留。
+本目录实现三类 3D 资产的生成与统一渲染：
 
-代码骨架继续对齐 HW1/HW2：
+| 资产 | 输入 | 方法 | 融合表示 |
+|---|---|---|---|
+| A | 真实物体环绕视频或多视角照片 | COLMAP + Nerfstudio 3DGS | Gaussian splats |
+| B | 文本 prompt | threestudio + SDS | 带纹理 mesh，渲染前采样为 surface splats |
+| C | 单张真实物体照片 | 前景分割 + Zero123XL | 带纹理 mesh，渲染前采样为 surface splats |
+| 背景 | Mip-NeRF 360 `counter` | Nerfstudio 3DGS | Gaussian splats |
 
-- `configs/`：实验 YAML。
-- `task1_3dgs_aigc/`：配置解析、真实工具链编排、SwanLab 工具。
-- `train.py`：固定训练/执行入口。
-- `evaluate.py`：固定验证入口。
-- `outputs/`：运行输出，不进入 Git。
-- `upload_modelscope.py`：只上传训练好的模型权重。
+最终渲染由 `scripts/render_fused_splats.py` 完成。A、背景以及由 B/C mesh
+采样得到的 splats 进入同一个 `gsplat` rasterizer，共享相机、深度排序和
+alpha compositing。
 
-## 当前维护的链路
-
-配置文件：
-
-```bash
-hw3/task1/configs/real_high_quality.yaml
-```
-
-链路内容：
-
-1. 物体 A：真实多视角图片或视频 → 前景保真预处理去除静态背景干扰 → COLMAP / Nerfstudio `splatfacto-big` → Gaussian splat 与 TSDF mesh；训练曲线通过 SwanLab 记录。
-2. 背景：真实场景图片或视频 → COLMAP / Nerfstudio `splatfacto-big` → Gaussian splat 与 TSDF mesh；训练曲线通过 SwanLab 记录。
-3. 物体 B：文本 prompt → threestudio / SDS 训练 → 3D mesh；WandB 标量由 SwanLab 同步，不上传 WandB 云端。
-4. 物体 C：真实单图前景 → threestudio `zero123.yaml` / Zero123 → 3D mesh；WandB 标量由 SwanLab 同步，不上传 WandB 云端。
-5. 融合渲染：使用统一 3D 表达（object A 的 splat、object B/C 的 mesh）在同一相机路径下输出一段 1080p 漫游视频，用于报告与评估。
-
-## 真实素材放置
-
-素材目录见 `hw3/assets/README.md`。默认路径如下：
+## 目录结构
 
 ```text
-hw3/assets/object_a_multiview/
-hw3/assets/object_c_single/object_c_single_front.png
+configs/                 实验配置
+scripts/                 数据预处理、外部工具封装和融合渲染
+task1_3dgs_aigc/         配置解析、脚本生成和几何处理
+tests/                   几何、预处理、渲染配置和发布逻辑测试
+train.py                 流程入口
+evaluate.py              产物验证入口
+upload_modelscope.py     权重上传入口
+```
+
+训练输出写入 `hw3/task1/outputs/`，外部仓库安装到
+`hw3/task1/external/`；两个目录都不进入 Git。
+
+## 环境
+
+建议使用 Python 3.10、CUDA 11.8+ 和支持 CUDA 的 PyTorch：
+
+```bash
+python -m pip install -r hw3/task1/requirements.txt
+bash hw3/task1/scripts/setup_environment.sh
+```
+
+`setup_environment.sh` 安装 Nerfstudio、gsplat、threestudio，并下载
+Zero123XL checkpoint。COLMAP 和 FFmpeg 需要由系统包管理器安装。
+
+## 数据准备
+
+默认配置读取：
+
+```text
+hw3/milk_task1_1080.m4v
+hw3/objectC.HEIC
 hw3/assets/background_scene/images/
 ```
 
-这些真实素材默认不进入 Git。之后把 A/C 换成手机实拍图，不需要改代码，只要保持路径结构一致。背景路径用于放开源 3D 数据集场景图片；如果使用视频或其他本地数据路径，直接改 `real_high_quality.yaml` 中的 `object_a_video` / `background_video` / `background_images`，不额外限制图片数量。
+这些素材不随代码仓库发布。可以在
+`configs/real_high_quality.yaml` 中替换 `object_a_video`、
+`object_c_image` 和 `background_images`。
 
-背景默认选择 Mip-NeRF 360 `counter`，原因是它是题目举例中的开源室内桌面场景，适合插入小物体 A/B/C。136 上可执行：
-
-```bash
-bash hw3/task1/scripts/prepare_mipnerf360_counter_136.sh
-```
-
-脚本会下载官方 `360_v2.zip`，解压 `counter`，并把 `hw3/assets/background_scene/images` 链接到 `counter/images_2`；如需更省显存，可用 `RESOLUTION_DIR=images_4` 覆盖。
-
-## 136 环境
+下载并链接 Mip-NeRF 360 `counter`：
 
 ```bash
-ssh 136-3090-4
-cd /home/dell/yc/CS60003
-source /home/dell/miniconda3/etc/profile.d/conda.sh
-conda activate qwen14b
-set -a
-source /home/dell/yc/CS60003/.helloagents/secrets/hw3.env
-set +a
+bash hw3/task1/scripts/prepare_mipnerf360_counter.sh
 ```
 
-安装/检查外部工具入口：
+数据目录可通过 `DATA_ROOT` 覆盖，下载代理可通过 `DOWNLOAD_PROXY` 设置。
+
+## 运行
+
+配置默认使用 `plan` 模式，只检查输入并生成各阶段脚本：
 
 ```bash
-bash hw3/task1/scripts/setup_real_chain_136.sh
+python hw3/task1/train.py \
+  --config hw3/task1/configs/real_high_quality.yaml
 ```
 
-`setup_real_chain_136.sh` 会安装 threestudio 并准备 Zero123XL 所需的 `zero123-xl.ckpt` 与模型配置文件；不会安装或使用 TripoSR。
-
-## 运行方式
-
-默认 `real_chain.execution.mode: plan`，只验证真实素材是否齐全并生成 7 个可审查脚本：
-
-```bash
-python hw3/task1/train.py --config hw3/task1/configs/real_high_quality.yaml
-python hw3/task1/evaluate.py --run-dir hw3/task1/outputs/task1_real_high_quality
-```
-
-真实素材和外部依赖都准备好后，把 YAML 改成：
+确认输入和依赖后，将配置中的执行模式改为：
 
 ```yaml
 real_chain:
@@ -84,60 +79,66 @@ real_chain:
     mode: run
 ```
 
-再执行同一条 `train.py` 命令。`00_check_tools.sh` 会先检查 COLMAP、FFmpeg、Nerfstudio、threestudio 和 Zero123 权重；缺少依赖时直接失败，不做静默降级。
+再次执行同一命令即可依次运行：
 
-## 当前真实运行结果
+1. A 的 COLMAP、前景 mask 和 3DGS 训练；
+2. 背景 3DGS 训练；
+3. B 的 SDS 优化；
+4. C 的 Zero123XL 优化；
+5. mesh/splat 导出；
+6. 统一 `gsplat` 渲染。
 
-当前 136-3090-4 / `qwen14b` 已完成一次真实 Task1 链路：
+## 当前结果
 
-- object A：COLMAP + Nerfstudio `splatfacto`，30k steps，SwanLab 已记录。
-- object B：threestudio SDS，15k steps，SwanLab 已记录。
-- object C：Zero123XL，1200 steps，SwanLab 已记录。
-- background：Mip-NeRF 360 `counter` + Nerfstudio `splatfacto`，30k steps，SwanLab 已记录。
-
-严格统一 3D 本地视频：
-
-```text
-hw3/task1/outputs/task1_real_high_quality/renders/fused_splats/fused_scene.mp4
-```
-
-远程视频：
+当前 run 名为 `task1_real_quality_v2`：
 
 ```text
-/home/dell/yc/CS60003/hw3/task1/outputs/task1_real_high_quality/renders/fused_splats/fused_scene.mp4
+hw3/task1/outputs/task1_real_quality_v2/
 ```
 
-关键帧和 manifest：
+主要设置与产物：
 
- ```text
-hw3/task1/outputs/task1_real_high_quality/renders/fused_splats/frame_0072.png
-hw3/task1/outputs/task1_real_high_quality/renders/fused_splats/fused_scene_manifest.json
+- A：30k 3DGS steps，最终融合使用 42,924 个 splats；
+- B：15k SDS steps，融合时采样 260,000 个 surface splats；
+- C：1200 Zero123 steps，融合时采样 120,000 个 surface splats；
+- 背景：30k 3DGS steps，最终使用 494,805 个 splats；
+- 视频：1920x1080、24 fps、144 帧；
+- 相机：以 A/B/C 为中心的 `foreground_orbit`。
+
+完整产物验证：
+
+```bash
+python hw3/task1/evaluate.py \
+  --run-dir hw3/task1/outputs/task1_real_quality_v2 \
+  --strict-real-outputs
 ```
 
-严格统一 3D 视频参数：1920×1080、144 帧、24 fps，由 `render_fused_splats.py` 直接加载 A/background 3DGS splat 与 B/C OBJ mesh 并用同一 gsplat camera path 渲染。
-结果细节、限制、SwanLab 链接和 ModelScope 权重路径见 `RESULTS.md`、`EVALUATION.md`、`SWANLAB_RUNS.md` 与 `MODELSCOPE_WEIGHTS.md`。
+已知限制是 A 的反光区域仍有少量高亮 splat，B 的颜色与 prompt 存在偏差，
+C 的侧面和背面依赖生成先验。
 
-## SwanLab / ModelScope
+## SwanLab 与模型权重
 
-SwanLab 继续通过环境变量里的用户 key 记录曲线：
+训练曲线记录在
+[cs60003-hw3-task1](https://swanlab.cn/@youngchen/cs60003-hw3-task1/)。
+模型权重存放在
+[ModelScope: youngchen/CS60003](https://www.modelscope.cn/models/youngchen/CS60003)
+的 `hw3/task1/real_high_quality/` 目录，文件清单见
+[`MODELSCOPE_WEIGHTS.md`](MODELSCOPE_WEIGHTS.md)。
 
-```yaml
-logging:
-  swanlab:
-    enabled: true
-    project: cs60003-hw3-task1
-    mode: cloud
-    group: real-high-quality
-```
-
-`real_high_quality.yaml` 默认启用 SwanLab，并通过 `.helloagents/secrets/hw3.env` 加载 `SWANLAB_API_KEY`。这个文件不进入 Git；运行脚本只引用路径，不打印 key。Nerfstudio 训练使用 TensorBoard scalar sync，threestudio / Zero123 训练使用 SwanLab 的 WandB scalar sync。
-
-ModelScope 只放训练好的模型权重。`upload_modelscope.py` 会筛选当前最终权重：A/background 的 3DGS splat、A/background 的 Nerfstudio checkpoint，以及 B/C 的最终 `last.ckpt`；不会上传 config、summary、metrics、图片、GIF、报告素材、COLMAP 中间文件、旧试跑 checkpoint 或 proxy 文件。
+检查上传文件：
 
 ```bash
 python hw3/task1/upload_modelscope.py \
-  --run-dir hw3/task1/outputs/task1_real_high_quality \
-  --remote-subdir real_high_quality
+  --run-dir hw3/task1/outputs/task1_real_quality_v2 \
+  --remote-subdir real_high_quality \
+  --dry-run
 ```
 
-如果当前 run 目录没有训练权重，上传脚本会直接报错并跳过，不会把杂项文件塞进 ModelScope。
+覆盖该远端目录：
+
+```bash
+MODELSCOPE_API_TOKEN=... python hw3/task1/upload_modelscope.py \
+  --run-dir hw3/task1/outputs/task1_real_quality_v2 \
+  --remote-subdir real_high_quality \
+  --replace-remote-subdir
+```

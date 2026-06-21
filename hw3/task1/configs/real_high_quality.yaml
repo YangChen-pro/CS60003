@@ -1,5 +1,5 @@
 experiment:
-  name: task1_real_high_quality
+  name: task1_real_quality_v2
   seed: 42
   output_root: hw3/task1/outputs
 
@@ -25,8 +25,8 @@ real_chain:
 
   data:
     object_a_images: hw3/assets/object_a_multiview
-    object_a_video: ""
-    object_c_image: hw3/assets/object_c_single/object_c_single_front.png
+    object_a_video: hw3/milk_task1_1080.m4v
+    object_c_image: hw3/objectC.HEIC
     background_dataset: mipnerf360_counter
     background_download_url: https://storage.googleapis.com/gresearch/refraw360/360_v2.zip
     background_scene: counter
@@ -46,13 +46,22 @@ real_chain:
     zero123_config: hw3/task1/external/threestudio/configs/zero123.yaml
     zero123_checkpoint: hw3/task1/external/threestudio/load/zero123/zero123-xl.ckpt
     zero123_config_file: hw3/task1/external/threestudio/load/zero123/sd-objaverse-finetune-c_concat-256.yaml
-    object_foreground_preprocessor: hw3/task1/scripts/preprocess_object_foreground.py
+    object_mask_attacher: hw3/task1/scripts/attach_object_masks.py
+    object_c_preprocessor: hw3/task1/scripts/preprocess_object_c.py
     nerfstudio_swanlab_runner: hw3/task1/scripts/run_nerfstudio_swanlab.py
     threestudio_swanlab_runner: hw3/task1/scripts/run_threestudio_swanlab.py
 
   quality:
     splatfacto_iterations: 30000
     cull_alpha_thresh: 0.005
+    object_a_num_frames_target: 80
+    object_a_segmentation_model: isnet-general-use
+    object_a_min_registration_ratio: 0.70
+    object_a_min_mask_occupancy: 0.05
+    object_a_max_mask_occupancy: 0.80
+    object_a_min_refined_area_ratio: 0.70
+    object_a_max_refined_area_ratio: 1.60
+    mesh_texture_size: 2048
 
   object_b:
     prompt: a small translucent violet crystal mushroom figurine with a jade green carved stem, physically plausible tabletop object, detailed faceted crystal cap, subtle internal glow, high quality PBR material, clean geometry, suitable for insertion into a reconstructed indoor scene
@@ -63,14 +72,23 @@ real_chain:
   object_c:
     zero123_max_steps: 1200
     export_resolution: 256
-    random_camera_batch_size: [1, 1, 1]
-    random_camera_height: [64, 80, 96]
-    random_camera_width: [64, 80, 96]
-    resolution_milestones: [600, 1000]
-    num_samples_per_ray: 128
+    preprocess_model: isnet-general-use
+    preprocess_size: 512
+    preprocess_padding_ratio: 0.10
+    preprocess_min_occupancy: 0.45
+    preprocess_max_occupancy: 0.85
+    input_height: [128, 256, 512]
+    input_width: [128, 256, 512]
+    # Keep the ray budget nearly constant across milestones on a 48 GB A6000.
+    random_camera_batch_size: [10, 2, 1]
+    random_camera_height: [64, 128, 192]
+    random_camera_width: [64, 128, 192]
+    resolution_milestones: [200, 300]
+    default_elevation_deg: 32.0
+    num_samples_per_ray: 512
     limit_val_batches: 0
     limit_test_batches: 0
-    lambda_normal_smooth: 0.0
-    lambda_3d_normal_smooth: 0.0
-    lambda_orient: 0.0
+    lambda_normal_smooth: 8.0
+    lambda_3d_normal_smooth: 8.0
+    lambda_orient: 1.0
     resume_checkpoint: ""

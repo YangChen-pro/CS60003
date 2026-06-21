@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PROJECT_DIR=${PROJECT_DIR:-/home/dell/yc/CS60003}
-ENV_NAME=${ENV_NAME:-qwen14b}
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+PROJECT_DIR=${PROJECT_DIR:-$(cd "$SCRIPT_DIR/../../.." && pwd)}
+ENV_NAME=${ENV_NAME:-hw3-task1}
 PYTHON_VERSION=${PYTHON_VERSION:-3.10}
 PIP_INDEX_URL=${PIP_INDEX_URL:-https://pypi.tuna.tsinghua.edu.cn/simple}
 DOWNLOAD_PROXY=${DOWNLOAD_PROXY:-}
+CONDA_BASE=${CONDA_BASE:-}
 
 WGET_PROXY_ARGS=()
 CURL_PROXY_ARGS=()
@@ -14,7 +16,14 @@ if [ -n "$DOWNLOAD_PROXY" ]; then
   CURL_PROXY_ARGS=(--proxy "$DOWNLOAD_PROXY")
 fi
 
-source /home/dell/miniconda3/etc/profile.d/conda.sh
+if [ -z "$CONDA_BASE" ]; then
+  command -v conda >/dev/null 2>&1 || {
+    echo "conda is required; set CONDA_BASE if it is not on PATH" >&2
+    exit 1
+  }
+  CONDA_BASE=$(conda info --base)
+fi
+source "$CONDA_BASE/etc/profile.d/conda.sh"
 if ! conda env list | awk '{print $1}' | grep -qx "$ENV_NAME"; then
   conda create -y -n "$ENV_NAME" "python=$PYTHON_VERSION"
 fi

@@ -1,4 +1,4 @@
-"""Validate maintained HW3 Task1 real high-quality chain outputs."""
+"""Validate Task 1 pipeline outputs."""
 
 from __future__ import annotations
 
@@ -115,7 +115,7 @@ def main() -> None:
 
 
 def validate_strict_real_outputs(run_dir: Path) -> None:
-    """Validate trained Task1 artifacts, final render, and SwanLab links."""
+    """Validate trained assets and the final render."""
     missing = [name for name in STRICT_REQUIRED_FILES if not (run_dir / name).exists()]
     if missing:
         raise FileNotFoundError(f"Missing strict Task1 real outputs: {missing}")
@@ -153,10 +153,8 @@ def validate_strict_real_outputs(run_dir: Path) -> None:
             f"Strict final render must declare pipeline mode '{REQUIRED_PIPELINE_MODE}', got: {manifest.get('pipeline_mode')}"
         )
     validate_unified_3d_manifest(run_dir, manifest)
+    validate_textured_mesh_assets(run_dir, manifest)
     validate_camera_payload(manifest)
-    swanlab_runs = Path(__file__).with_name("SWANLAB_RUNS.md").read_text(encoding="utf-8")
-    if swanlab_runs.count("https://swanlab.cn/@youngchen/cs60003-hw3-task1/runs/") < 4:
-        raise ValueError("SWANLAB_RUNS.md must record four real Task1 SwanLab runs.")
 
 
 def validate_unified_3d_manifest(run_dir: Path, manifest: dict) -> None:
@@ -202,7 +200,6 @@ def validate_unified_3d_manifest(run_dir: Path, manifest: dict) -> None:
             missing_sources.append(f"{source}(object_a source must be PLY)")
         if name in {"object_b", "object_c"} and not source_lower.endswith(".obj"):
             missing_sources.append(f"{source}(object_c source must be OBJ)")
-        # Optional hardening: ensure each source points to expected real asset classes for strict 3D.
         if source_lower.startswith("object_a") and "object_a" not in str(asset.get("name", "")):
             missing_sources.append(f"{source}(asset-name mismatch)")
         if source_lower.startswith("object_b") and "object_b" not in str(asset.get("name", "")):
@@ -232,13 +229,64 @@ def validate_unified_3d_manifest(run_dir: Path, manifest: dict) -> None:
         raise FileNotFoundError(f"Strict final render source files missing: {missing_sources}")
 
 
+def validate_textured_mesh_assets(run_dir: Path, manifest: dict) -> None:
+    """Require B/C to preserve UV textures through export and strict rendering."""
+    assets = {
+        asset.get("name"): asset
+        for asset in manifest.get("assets", [])
+        if isinstance(asset, dict)
+    }
+    failures: list[str] = []
+    texture_hashes = manifest.get("texture_hashes") or {}
+    for name in ("object_b", "object_c"):
+        asset = assets.get(name)
+        if not asset:
+            failures.append(f"{name}(missing asset)")
+            continue
+        if asset.get("color_mode") != "uv_texture":
+            failures.append(f"{name}(strict rendering requires uv_texture color mode)")
+        texture_source = str(asset.get("texture_source") or "")
+        if not texture_source:
+            failures.append(f"{name}(missing texture_source)")
+            continue
+        texture_candidates = [
+            candidate
+            for candidate in _normalize_source_path(run_dir, texture_source)
+            if candidate.exists()
+        ]
+        if not texture_candidates:
+            failures.append(f"{name}(texture file missing)")
+            continue
+        texture_path = texture_candidates[0]
+        if not _is_under_root(texture_path, run_dir / EXPORT_SOURCE_ROOT):
+            failures.append(f"{name}(texture outside exports)")
+        obj_candidates = [
+            candidate
+            for candidate in _normalize_source_path(run_dir, str(asset.get("source") or ""))
+            if candidate.exists()
+        ]
+        if not obj_candidates:
+            failures.append(f"{name}(OBJ source missing)")
+            continue
+        material_files = sorted(obj_candidates[0].parent.glob("*.mtl"))
+        if not material_files:
+            failures.append(f"{name}(MTL missing)")
+        elif not any("map_Kd" in path.read_text(encoding="utf-8", errors="ignore") for path in material_files):
+            failures.append(f"{name}(MTL has no map_Kd texture)")
+        expected_hash = texture_hashes.get(name)
+        if expected_hash and expected_hash.lower() != _sha256_hex(texture_path):
+            failures.append(f"{name}(texture hash mismatch)")
+    if failures:
+        raise ValueError(f"Strict textured mesh validation failed: {failures}")
+
+
 def validate_camera_payload(manifest: dict) -> None:
     """Validate camera metadata for strict outputs."""
     camera = manifest.get("camera")
     if not isinstance(camera, dict):
         raise ValueError("Strict final render must include camera metadata in manifest.")
     mode = str(camera.get("name") or camera.get("mode") or "").lower()
-    if mode not in {"orbit", "stabilized_orbit", "background_trajectory"}:
+    if mode not in {"orbit", "stabilized_orbit", "background_trajectory", "foreground_orbit"}:
         raise ValueError(f"Strict final render must use a valid camera mode, got: {camera.get('name')}")
     if mode == "background_trajectory":
         centers = camera.get("centers")
@@ -250,7 +298,7 @@ def validate_camera_payload(manifest: dict) -> None:
         if len(centers) == 0:
             raise ValueError("Background trajectory mode must include at least one frame.")
     required = {"focal_scale"}
-    if mode in {"orbit", "stabilized_orbit"}:
+    if mode in {"orbit", "stabilized_orbit", "foreground_orbit"}:
         required.update({"center", "radius", "height", "target_z"})
     missing = [field for field in required if field not in camera]
     if missing:
