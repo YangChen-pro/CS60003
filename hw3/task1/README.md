@@ -124,6 +124,7 @@ C 的侧面和背面依赖生成先验。
 [ModelScope: youngchen/CS60003](https://www.modelscope.cn/models/youngchen/CS60003)
 的 `hw3/task1/real_high_quality/` 目录，文件清单见
 [`MODELSCOPE_WEIGHTS.md`](MODELSCOPE_WEIGHTS.md)。
+该目录已于 2026-06-21 更新并核验，仅保留当前 run 对应的六个模型文件。
 
 检查上传文件：
 
